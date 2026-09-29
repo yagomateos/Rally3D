@@ -112,7 +112,8 @@ namespace Rally.EditorTools
                 case "T_Road_Dirt":
                     return Keep(Color.Lerp(c, new Color(0.62f, 0.54f, 0.42f), 0.5f), c.a);
                 case "T_Road_Asphalt":
-                    return RoadLines(Keep(new Color(0.19f, 0.19f, 0.2f) * (0.75f + 0.55f * lum), c.a), u, v);
+                    // Mid-grey rather than black: in the low sunset light darker tarmac read as a black hole on the web.
+                    return RoadLines(Keep(new Color(0.38f, 0.38f, 0.39f) * (0.75f + 0.55f * lum), c.a), u, v);
                 case "T_Needles":
                     return Keep(Color.Lerp(c, new Color(0.24f, 0.34f, 0.2f), 0.4f), c.a); // Mediterranean pines
                 case "T_Plaster":

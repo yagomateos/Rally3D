@@ -230,10 +230,11 @@ Ajustes del proyecto que ya vienen preparados para esto:
   No llevan luces reales: decenas de luces irían demasiado lentas en la web.
 - **Señales de curva peligrosa:** unos 90 m antes de cada curva de radio menor de ~235 m,
   a la derecha y con la flecha hacia el lado de la curva (8 en el tramo).
-- **Asfalto** con líneas pintadas (bordes blancos y línea central discontinua) y menos relieve y brillo que el asfalto viejo.
+- **Asfalto** gris medio con líneas pintadas (bordes blancos y línea central discontinua), y menos relieve y brillo que el asfalto viejo.
 - **Costa y puesta de sol:**
   - Un lado del mapa baja hasta el mar, con acantilados de caliza; el mar queda siempre por debajo de la carretera.
-  - Sol bajo y anaranjado con sombras largas, cielo de atardecer y niebla ligera rosada.
+  - Sol de hora dorada (15°), anaranjado y con sombras largas; cielo de atardecer y niebla ligera rosada.
+    Con el sol a 9° las sombras de las colinas dejaban la carretera casi negra en la web.
   - *Volume* cálido: temperatura +20, tinte rosado, más saturación y *bloom* para farolas y sol.
 - Pinos mediterráneos menos densos, para que se vean el mar y la carretera. Sin lluvia ni bancos de niebla.
 
@@ -399,7 +400,16 @@ El terreno de cada tramo ocupaba 19,8 MB, el 78 % del contenido. Recortes aplica
 
 `QA14` comprueba que el terreno, con menos resolución, sigue por debajo de la carretera. Con 1025 muestras asoma en 6 de ~27.000 puntos, como mucho 9 cm y en el borde de la calzada.
 Bajar más el lecho de la carretera lo evitaba, pero dejaba ver más el arcén y cambiaba el aspecto del tramo, así que se dejó como estaba.
-La descarga estimada baja de 51 MB a unos 33 MB. **Hipótesis a verificar** con el siguiente build.
+**Resultado medido con el build final (4 tramos):** 41,6 MB frente a 51,4 MB con 2 tramos.
+Paquete de datos: 31 MB (antes 40 MB); código `wasm`: 11 MB.
+
+| Conexión (caché vacía) | 2 tramos, antes | 4 tramos, con recortes |
+|---|---|---|
+| 20 Mbps | 23,6 s | **19,0 s** |
+| 10 Mbps (Android emulado) | 44,3 s | **36,4 s** |
+
+Con el doble de tramos carga más rápido y cumple los 30 s a 20 Mbps. En un 4G flojo (10 Mbps) sigue por encima.
+Para bajar de ahí haría falta cargar cada tramo al elegirlo (Addressables).
 
 ### Pendiente de verificar en dispositivos reales
 - **iPhone / iPad:** no se ha probado el permiso de movimiento de Safari.

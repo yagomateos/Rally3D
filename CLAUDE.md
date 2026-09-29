@@ -121,8 +121,8 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Menú principal, elección de coche, opciones, pausa con salir al menú / salir del juego.
 - Motor sintetizado (`ProceduralAudio`): el usuario **prefirió volver a él** en lugar de las grabaciones CC0.
 - Controles de móvil y 19 tests (18 PlayMode + 1 EditMode) más una medición *Explicit*.
-- Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. El tamaño del build está **pendiente de medir en el siguiente build**
-  (unos 33 MB estimados con dos tramos frente a 51 MB; cada tramo nuevo añade unos 6–8 MB).
+- Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
+  (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 
 **Pendiente de verificar en dispositivos reales:**
 - Permiso de movimiento en iPhone / iPad (Safari).

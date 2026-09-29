@@ -388,7 +388,8 @@ namespace Rally.EditorTools
             sun.shadowStrength = snow ? 0.6f : desert ? 0.85f : coast ? 0.75f : 0.72f;
             sun.shadowBias = 0.04f;
             sun.shadowNormalBias = 0.3f;
-            sunGo.transform.rotation = Quaternion.Euler(desert ? 55f : coast ? 9f : 36f, -38f, 0f);
+            // Coast: 15° golden-hour sun; lower put most of the road in the hills' long shadows (near black on the web).
+            sunGo.transform.rotation = Quaternion.Euler(desert ? 55f : coast ? 15f : 36f, -38f, 0f);
             sunGo.AddComponent<UniversalAdditionalLightData>();
 
             // Sky, ambient, fog.
@@ -404,10 +405,10 @@ namespace Rally.EditorTools
             RenderSettings.skybox = sky;
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = snow ? new Color(0.84f, 0.88f, 0.96f) : desert ? new Color(0.72f, 0.8f, 0.92f) : coast ? new Color(0.5f, 0.48f, 0.64f) : new Color(0.78f, 0.82f, 0.88f);
-            RenderSettings.ambientEquatorColor = snow ? new Color(0.76f, 0.8f, 0.87f) : desert ? new Color(0.84f, 0.74f, 0.6f) : coast ? new Color(0.82f, 0.58f, 0.46f) : new Color(0.62f, 0.64f, 0.6f);
+            RenderSettings.ambientSkyColor = snow ? new Color(0.84f, 0.88f, 0.96f) : desert ? new Color(0.72f, 0.8f, 0.92f) : coast ? new Color(0.64f, 0.6f, 0.76f) : new Color(0.78f, 0.82f, 0.88f);
+            RenderSettings.ambientEquatorColor = snow ? new Color(0.76f, 0.8f, 0.87f) : desert ? new Color(0.84f, 0.74f, 0.6f) : coast ? new Color(0.92f, 0.68f, 0.54f) : new Color(0.62f, 0.64f, 0.6f);
             // Snow and sand bounce a lot of light back up.
-            RenderSettings.ambientGroundColor = snow ? new Color(0.68f, 0.71f, 0.78f) : desert ? new Color(0.62f, 0.5f, 0.36f) : coast ? new Color(0.3f, 0.25f, 0.24f) : new Color(0.32f, 0.3f, 0.26f);
+            RenderSettings.ambientGroundColor = snow ? new Color(0.68f, 0.71f, 0.78f) : desert ? new Color(0.62f, 0.5f, 0.36f) : coast ? new Color(0.42f, 0.34f, 0.3f) : new Color(0.32f, 0.3f, 0.26f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Exponential;
             // Desert calima: warm haze that softens the distance but still shows the next corners (~300 m to half fog).
