@@ -7,13 +7,21 @@ no usa assets de terceros.
 Se juega en **PC** (teclado o mando) y en el **navegador**, también en **móvil** (inclinación del teléfono,
 botones táctiles o mando en pantalla). La versión web está preparada para publicarse en **itch.io**.
 
-![Pantalla de inicio en PC](docs/capturas/pc-inicio.jpg)
+![Menú principal](docs/capturas/pc-menu.jpg)
 
 ## Capturas
 
-| PC — en carrera | PC — pausa |
+| Elegir coche | Copiloto: notas de curva |
 |---|---|
-| ![En carrera detrás de los rivales](docs/capturas/pc-carrera.jpg) | ![Menú de pausa](docs/capturas/pc-pausa.jpg) |
+| ![Elección de coche con estadísticas](docs/capturas/pc-elegir-coche.jpg) | ![Aviso del copiloto IZQUIERDA 5 LARGA](docs/capturas/pc-copiloto.jpg) |
+
+| Daños y penalización (+5 s al reiniciar) | Pausa con SALIR AL MENÚ |
+|---|---|
+| ![Barra de daños, humo y penalización](docs/capturas/pc-danos.jpg) | ![Menú de pausa](docs/capturas/pc-pausa.jpg) |
+
+| En carrera detrás de los rivales | Controles |
+|---|---|
+| ![En carrera](docs/capturas/pc-carrera.jpg) | ![Pantalla de controles](docs/capturas/pc-controles.jpg) |
 
 | Móvil — inicio | Móvil — botones + inclinación |
 |---|---|
@@ -23,11 +31,40 @@ botones táctiles o mando en pantalla). La versión web está preparada para pub
 |---|---|
 | ![Joystick y botones A B X Y](docs/capturas/movil-mando.jpg) | ![Pausa en móvil](docs/capturas/movil-pausa.jpg) |
 
-| Móvil sin sensor de inclinación (aparecen IZQUIERDA / DERECHA) |
-|---|
-| ![Botones de giro de reserva](docs/capturas/movil-sin-sensor.jpg) |
+| Móvil — opciones | Móvil sin sensor de inclinación (aparecen IZQUIERDA / DERECHA) |
+|---|---|
+| ![Opciones en móvil](docs/capturas/movil-opciones.jpg) | ![Botones de giro de reserva](docs/capturas/movil-sin-sensor.jpg) |
 
 > Las capturas de móvil están hechas en un Android simulado (Chrome, 915×412 en horizontal).
+
+## Cómo se juega
+
+1. **Menú principal:** JUGAR, CONTROLES, OPCIONES y SALIR (SALIR solo fuera del navegador).
+2. **JUGAR → elige tu coche** con las flechas y pulsa EMPEZAR. Hay tres coches:
+   - **VALDENIEBLA #7**, equilibrado.
+   - **AZUR #3**, el más rápido pero con menos agarre.
+   - **CARMESÍ #11**, con mucho agarre y menos punta.
+
+   Cada coche tiene decoración y prestaciones propias. El juego recuerda tu elección, también al usar REPETIR TRAMO.
+3. **Durante el tramo:**
+   - El **copiloto** avisa de cada curva (de 1, la más cerrada, a 6, la más rápida), de las **horquillas** y de los **saltos**.
+     Lo hace en pantalla y, en el navegador, con voz en castellano.
+   - Si **reinicias** (R), se suman **+5 s**.
+   - En cada control ves la **diferencia con tu mejor tiempo**: verde si vas más rápido, rojo si vas más lento.
+   - Los **choques abollan el coche**, le quitan potencia y hacen que la dirección tire hacia el lado dañado.
+     Reiniciar no repara el coche; repetir el tramo, sí.
+4. **Pausa:** CONTINUAR, REPETIR TRAMO, **SALIR AL MENÚ** (y la sensibilidad de la inclinación en el móvil).
+
+### Opciones
+
+| Opción | Valores |
+|---|---|
+| Volumen | 100 / 75 / 50 / 25 / 0 % |
+| Daños | COMPLETOS · SOLO VISUALES · DESACTIVADOS |
+| Copiloto | VOZ Y TEXTO · SOLO TEXTO · DESACTIVADO |
+| Rivales | SÍ · NO (contra el reloj, como en un rally real) |
+| Sensibilidad inclinación (móvil) | BAJA · MEDIA · ALTA · MUY ALTA |
+| Acelerar solo (móvil) | SÍ · NO: el coche acelera solo salvo cuando frenas |
 
 ## Controles
 
@@ -118,6 +155,28 @@ Ajustes del proyecto que ya vienen preparados para esto:
   El teclado y los rivales no cambian.
 - **Controles táctiles creados por código** (`TouchControls`, `TouchPedal`, `TouchJoystick`): modos BOTONES y MANDO, multitáctil.
 
+### Menú, coches y reglas
+- **Menú principal** (`MainMenu`): se construye por código sobre la escena real, con una cámara que gira alrededor del coche (`MenuCamera`).
+  La carrera tiene un estado `Menu` previo al título. **SALIR AL MENÚ** recarga el tramo con el menú; **REPETIR TRAMO** lo recarga sin él.
+- **Elección de coche** (`CarCatalog`): el jugador se queda la decoración elegida (pintura, colores, número y color en el mapa)
+  y el rival que la llevaba recibe la suya. El jugador recibe una **copia propia** de la configuración (`CarTuning`)
+  con los ajustes del coche, sin tocar la de los rivales ni el archivo del proyecto (`CarController.ApplyTuning`).
+- **Daños** (`CarDamage`, en todos los coches):
+  - Se calculan por zonas (delante, detrás, izquierda y derecha) a partir de la velocidad del impacto.
+  - **Abolladuras reales** de la malla de la carrocería hacia dentro.
+  - **Humo** cuando el frontal está muy dañado.
+  - En modo COMPLETOS, **menos potencia** y **tirón de la dirección**. Esto va aparte del multiplicador de potencia que usa la IA.
+- **Penalización y parciales:** +5 s por cada reinicio pedido por el jugador; el reinicio automático tras volcar es gratis.
+  Los tiempos parciales del mejor recorrido se guardan y se comparan en cada control.
+- **Copiloto** (`Pacenotes`, `CoDriver`, `Plugins/WebGL/RallySpeech.jslib`):
+  - Las notas se generan a partir de la curvatura del recorrido: grado 1–6 según el radio más cerrado,
+    HORQUILLA, LARGA, SE CIERRA, SE ABRE.
+  - Los saltos se toman de la definición del tramo.
+  - El aviso llega unos 2,6 s antes según la velocidad, y dos notas seguidas se dicen juntas («IZQUIERDA 3 Y DERECHA 4»).
+- **Rendimiento en móvil** (`MobilePerformance`): sin desenfoque de movimiento, grano, aberración ni distorsión;
+  bloom y antialiasing más ligeros; distancia de dibujado de 900 m (la niebla lo tapa); la mitad de partículas de clima;
+  y como mucho 50 ms de física por fotograma.
+
 ### Interfaz y juego
 - **Idioma:** todos los textos en castellano (HUD, menús, avisos, botones y carteles SALIDA / META del escenario).
 - **HUD:** *Canvas Scaler* en Scale With Screen Size, 1920 × 1080 y Match 0,5. El nombre del tramo se ajusta solo
@@ -137,8 +196,15 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA03_CarOnItsRoof…` | El coche volcado se recupera solo | ✅ |
 | `QA04_ConfirmOnResults…` | Enter en la pantalla de resultados recarga el tramo una sola vez | ✅ |
 | `QA05_Stage01_IsReadyForAPlayerBuild` | La escena y sus dependencias están listas para un build | ✅ |
+| `QA06_PlayerReset_AddsFiveSecondPenalty` | Reiniciar suma 5 s al reloj y al tiempo final | ✅ |
+| `QA07_HardFrontalHit_DamagesCarAndReducesPower` | Un choque frontal a 72 km/h daña el coche, quita potencia y abolla la carrocería **hacia dentro** | ✅ |
+| `QA08_Pacenotes_CallCornersBothWaysAndTheThreeJumps` | Notas de curva a ambos lados, grados válidos, en orden y los 3 saltos del tramo | ✅ |
+| `QA09_CoDriver_CallsTheNextCornerOnScreen` | Al acercarse a una curva, el copiloto muestra la nota correcta | ✅ |
 
-Se pasaron después de cada cambio. `QA04` falló una vez tras una recompilación y pasó en las repeticiones, así que parece intermitente.
+Se pasaron después de cada cambio (9 en total: 8 de PlayMode y 1 de EditMode).
+`QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
+`QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
+ahora los saltos se toman de la definición del tramo.
 
 ### Compilación del código web
 Unity no compila los bloques `#if UNITY_WEBGL && !UNITY_EDITOR` al ejecutar los tests en el Editor.
@@ -166,7 +232,18 @@ Por eso se compilaron aparte con el compilador de Unity (Roslyn), con los *defin
 | Modo MANDO | A acelera hasta ~78 km/h; el joystick gira a derecha e izquierda |
 | Pedal táctil ACELERAR | ~100 km/h en recta |
 
+- **Menú y reglas, en PC (1280 × 720):**
+  - Recorrido completo: menú → controles → opciones → elegir coche → cambiar a AZUR → empezar → carrera
+    → pausa → SALIR AL MENÚ → de vuelta al menú con el coche elegido.
+  - Choque real (acelerando sin girar): barra de daños, humo y **+5 s PENALIZACIÓN** al pulsar R.
+  - Copiloto: «IZQUIERDA 5 · LARGA» antes de la primera curva.
+- **Menú en el móvil simulado:** las opciones caben en una pantalla horizontal. Con **ACELERAR SOLO**, el coche va a 116 km/h sin tocar ningún pedal.
 - **Fallos encontrados gracias a estas pruebas y ya corregidos:**
+  - La elección de coche se perdía al usar REPETIR TRAMO o al volver al menú.
+  - Las flechas ↑ ← → no existen en la fuente web.
+  - El panel de información tapaba el coche en la pantalla de elección.
+  - El botón VOLVER de Opciones se salía de la pantalla en el móvil.
+  - ACELERAR SOLO no se aplicaba si se activaba desde el menú.
   - Eje de inclinación mal interpretado en horizontal: el volante se quedaba a tope y el coche no avanzaba.
   - El plugin esperaba un permiso que Chrome para Android nunca concede antes de escuchar el sensor (código 32 en el diagnóstico).
   - El botón MANDO no se podía pulsar en la pantalla de título.
@@ -177,6 +254,8 @@ Por eso se compilaron aparte con el compilador de Unity (Roslyn), con los *defin
 - **Mando físico en el navegador:** el mapeo existe, pero no se ha probado con un mando conectado.
 - **Rendimiento en móviles de gama baja.**
 - **Sensibilidad de la inclinación:** cuál de los cuatro niveles se nota mejor con el móvil en la mano.
+- **Voz del copiloto:** depende de las voces que tenga instaladas el navegador o el sistema; si no hay voz en castellano, lee con la voz por defecto.
+- **Mejor tiempo en PC nativo:** se pierde el guardado anterior al cambiar el nombre del producto a «Tramo 01».
 
 ## Regenerar el tramo
 
@@ -191,16 +270,17 @@ En modo batch: `Unity -batchmode -projectPath . -executeMethod Rally.EditorTools
 
 ## Estructura del código (`Assets/Scripts`)
 
-- **`Car/`:**
+- **`Car/`** (incluye `CarDamage`: daños y abolladuras):
   - `CarController`: física con WheelCollider y ayudas.
   - `CarDrivetrain`, `CarWheel`, `CarBodyMotion`, `CarFeedback`, `CarTuning`.
   - `PlayerCarInput`: teclado, mando, inclinación, controles táctiles y ayuda a alta velocidad.
-- **`Camera/`:** `RallyCamera`, con cámara de persecución, FOV, inclinación, vibración, evitación del terreno y vistas de capó y paragolpes.
-- **`Track/`:** `TrackPath`, `Checkpoint`, `StageDefinition`, `TerrainSurfaceMap` y `Generation/` (recorrido, esculpido del terreno, malla de la carretera).
+- **`Camera/`:** `MenuCamera` (cámara giratoria del menú) y `RallyCamera`, con cámara de persecución, FOV, inclinación, vibración, evitación del terreno y vistas de capó y paragolpes.
+- **`Track/`:** `Pacenotes` (notas del copiloto), `TrackPath`, `Checkpoint`, `StageDefinition`, `TerrainSurfaceMap` y `Generation/` (recorrido, esculpido del terreno, malla de la carretera).
 - **`AI/`:** `AIDriver`, con *pure pursuit*, perfil de velocidad según la curvatura, errores y recuperación.
-- **`Systems/`:** `RaceManager`, `RaceParticipant`, `RallyInput`, superficies, `GameBootstrap` y utilidades de mallas y ruido procedurales.
-- **`UI/`:** `RaceHUD`, `StageMenus`, `UIFactory`, `TouchControls`, `TouchPedal`, `TouchJoystick`.
+- **`Systems/`:** `RaceManager`, `RaceParticipant`, `RallyInput`, `CarCatalog` (coches elegibles), `MobilePerformance`, superficies,
+  `GameBootstrap` y utilidades de mallas y ruido procedurales.
+- **`UI/`:** `MainMenu`, `RaceHUD`, `StageMenus`, `CoDriver`, `UIFactory`, `TouchControls`, `TouchPedal`, `TouchJoystick`.
 - **`Audio/`:** `CarAudio`, `StageAudio` y `ProceduralAudio` (síntesis provisional; se pueden asignar clips reales).
 - **`VFX/`:** polvo y piedras, marcas de derrape, clima y postprocesado según la velocidad.
 - **`Editor/`:** el generador del tramo, las fábricas de assets y `WebBuild` (build web por línea de comandos).
-- **`Plugins/WebGL/RallyMotion.jslib`** (en `Assets/`): lectura de sensores de movimiento en el navegador.
+- **`Plugins/WebGL/`** (en `Assets/`): `RallyMotion.jslib` (sensores de movimiento) y `RallySpeech.jslib` (voz del copiloto).

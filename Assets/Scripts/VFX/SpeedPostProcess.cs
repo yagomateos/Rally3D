@@ -14,6 +14,9 @@ namespace Rally.VFX
     {
         private const float MsToKph = 3.6f;
 
+        /// <summary>Phones: keep only the speed vignette (motion blur and lens distortion are too costly).</summary>
+        public static bool LowSpec { get; set; }
+
         [SerializeField] private Volume volume;
         [Tooltip("Car rigidbody. If empty, the player car inside the 'Cars' object is used.")]
         [SerializeField] private Rigidbody carBody;
@@ -54,7 +57,8 @@ namespace Rally.VFX
             if (!runtimeProfile.TryGet(out motionBlur)) motionBlur = runtimeProfile.Add<MotionBlur>();
             if (!runtimeProfile.TryGet(out lensDistortion)) lensDistortion = runtimeProfile.Add<LensDistortion>();
 
-            vignette.active = motionBlur.active = lensDistortion.active = true;
+            vignette.active = true;
+            motionBlur.active = lensDistortion.active = !LowSpec;
             vignette.intensity.overrideState = true;
             motionBlur.intensity.overrideState = true;
             lensDistortion.intensity.overrideState = true;

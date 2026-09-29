@@ -172,6 +172,7 @@ namespace Rally.UI
 
         private void Update()
         {
+            ApplyVisibility();
             // Touch laptops / tablets that do not report as mobile: show the controls on the first touch.
             if (!visible)
             {
@@ -228,6 +229,14 @@ namespace Rally.UI
         private void SetVisible(bool show)
         {
             visible = show;
+            ApplyVisibility();
+        }
+
+        // Shown on phones, except under the main menu.
+        private void ApplyVisibility()
+        {
+            bool show = visible && race.CurrentState != RaceManager.State.Menu;
+            if (group.blocksRaycasts == show && group.alpha == (show ? 1f : 0f)) return;
             group.alpha = show ? 1f : 0f;
             group.interactable = show;
             group.blocksRaycasts = show;
@@ -242,13 +251,12 @@ namespace Rally.UI
 
         private void ResetCar()
         {
-            if (race.Player != null && race.CurrentState == RaceManager.State.Racing && !race.Player.HasFinished && !race.IsPaused)
-                race.Player.ResetToTrack();
+            race.PlayerReset(); // same rules and +5 s penalty as the keyboard / gamepad reset
         }
 
         private void Pause()
         {
-            if (race.CurrentState != RaceManager.State.Intro && !race.ResultsShown && !race.IsPaused)
+            if (!race.BeforeStart && !race.ResultsShown && !race.IsPaused)
             {
                 ReleaseAll();
                 race.SetPaused(true);

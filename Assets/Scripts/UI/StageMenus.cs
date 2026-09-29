@@ -39,11 +39,12 @@ namespace Rally.UI
             gameObject.AddComponent<GraphicRaycaster>();
             root = UIFactory.Stretch("Menus", transform);
 
+            new GameObject("MainMenu").AddComponent<MainMenu>(); // removes itself unless the stage opens on the menu
             BuildIntro();
             BuildPause();
             BuildResults();
 
-            Show(intro, true);
+            Show(intro, race.CurrentState == RaceManager.State.Intro); // hidden under the main menu
             // The title card has no buttons of its own: let taps reach the phone controls under it
             // (e.g. the MANDO / BOTONES layout switch). Starting the stage is read from input, not from UI.
             intro.blocksRaycasts = false;
@@ -136,18 +137,17 @@ namespace Rally.UI
 
             pauseDefault = UIFactory.Button("Resume", pause.transform, c, new Vector2(0f, 40f), new Vector2(420f, 70f), "CONTINUAR", () => race.SetPaused(false));
             UIFactory.Button("Restart", pause.transform, c, new Vector2(0f, -45f), new Vector2(420f, 70f), "REPETIR TRAMO", () => race.Restart());
-            if (RaceManager.CanQuit)
-                UIFactory.Button("Quit", pause.transform, c, new Vector2(0f, -130f), new Vector2(420f, 70f), "SALIR", () => race.Quit());
+            // Back to the main menu (car choice, options). Quitting the game lives in the main menu.
+            UIFactory.Button("Menu", pause.transform, c, new Vector2(0f, -130f), new Vector2(420f, 70f), "SALIR AL MENÚ", () => race.ExitToMenu());
 
             if (Application.isMobilePlatform)
             {
                 // Phones: tilt sensitivity (cycles BAJA / MEDIA / ALTA / MUY ALTA, remembered between sessions)
                 // and a sensor diagnosis line, so a player can report why tilt steering does not work.
-                float y = RaceManager.CanQuit ? -215f : -130f;
-                var sensitivity = UIFactory.Button("Sensitivity", pause.transform, c, new Vector2(0f, y), new Vector2(520f, 70f), "",
+                var sensitivity = UIFactory.Button("Sensitivity", pause.transform, c, new Vector2(0f, -215f), new Vector2(520f, 70f), "",
                     () => CycleSensitivity());
                 sensitivityLabel = sensitivity.GetComponentInChildren<Text>();
-                sensorStatus = UIFactory.Label("Sensor", pause.transform, c, new Vector2(0f, y - 100f), new Vector2(1400f, 34f),
+                sensorStatus = UIFactory.Label("Sensor", pause.transform, c, new Vector2(0f, -300f), new Vector2(1400f, 34f),
                     "", 24, TextAnchor.MiddleCenter, UIFactory.TextDim, FontStyle.Normal);
             }
         }
@@ -203,12 +203,10 @@ namespace Rally.UI
             resultStandings = UIFactory.Label("Standings", panel.transform, new Vector2(0.5f, 1f), new Vector2(0f, -420f), new Vector2(880f, 100f),
                 "", 24, TextAnchor.MiddleCenter, UIFactory.TextDim, FontStyle.Normal);
 
-            float restartX = RaceManager.CanQuit ? -150f : 0f;
-            resultsDefault = UIFactory.Button("Restart", panel.transform, new Vector2(0.5f, 0f), new Vector2(restartX, 60f), new Vector2(270f, 64f),
+            resultsDefault = UIFactory.Button("Restart", panel.transform, new Vector2(0.5f, 0f), new Vector2(-150f, 60f), new Vector2(270f, 64f),
                 "REPETIR", () => race.Restart());
-            if (RaceManager.CanQuit)
-                UIFactory.Button("Quit", panel.transform, new Vector2(0.5f, 0f), new Vector2(150f, 60f), new Vector2(270f, 64f),
-                    "SALIR", () => race.Quit());
+            UIFactory.Button("Menu", panel.transform, new Vector2(0.5f, 0f), new Vector2(150f, 60f), new Vector2(270f, 64f),
+                "MENÚ", () => race.ExitToMenu());
         }
 
         private void OnResults()

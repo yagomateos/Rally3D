@@ -47,6 +47,26 @@ namespace Rally.Car
                  "top speed (never beyond the car's full lock). 1 = off.")]
         [SerializeField, Range(1f, 2f)] private float touchHighSpeedAssist = 1.6f;
 
+        /// <summary>
+        /// Phones only (main menu option): the car accelerates by itself unless braking, as many mobile racing
+        /// games offer, so tilt players only steer and brake.
+        /// </summary>
+        public static bool AcelerarSolo
+        {
+            get
+            {
+                if (autoThrottleCache < 0) autoThrottleCache = PlayerPrefs.GetInt("Rally.AutoThrottle", 0);
+                return autoThrottleCache == 1;
+            }
+            set
+            {
+                autoThrottleCache = value ? 1 : 0; // takes effect at once, also when changed in the menu
+                PlayerPrefs.SetInt("Rally.AutoThrottle", autoThrottleCache);
+                PlayerPrefs.Save();
+            }
+        }
+        private static int autoThrottleCache = -1;
+
         /// <summary>Tilt sensitivity presets offered in the pause menu, with their Spanish labels.</summary>
         public static readonly float[] SensitivityLevels = { 0.75f, 1f, 1.3f, 1.65f };
         public static readonly string[] SensitivityNames = { "BAJA", "MEDIA", "ALTA", "MUY ALTA" };
@@ -169,6 +189,7 @@ namespace Rally.Car
             // Touch pedals behave exactly like a held key.
             float throttleTarget = Mathf.Max(Mathf.Clamp01(input.Throttle.ReadValue<float>()), touchThrottle ? 1f : 0f);
             float brakeTarget = Mathf.Max(Mathf.Clamp01(input.Brake.ReadValue<float>()), touchBrake ? 1f : 0f);
+            if (Application.isMobilePlatform && AcelerarSolo && brakeTarget < 0.1f) throttleTarget = 1f;
             throttle = Mathf.MoveTowards(throttle, throttleTarget, pedalRate * dt);
             brake = Mathf.MoveTowards(brake, brakeTarget, pedalRate * 1.5f * dt);
         }

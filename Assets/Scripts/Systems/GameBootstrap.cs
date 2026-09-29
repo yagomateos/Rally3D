@@ -24,5 +24,9 @@ namespace Rally.Systems
 #endif
             Physics.simulationMode = SimulationMode.FixedUpdate;
         }
+
+        // Start (not Awake) so the camera and volumes exist, and still before the other scripts' Start
+        // thanks to the execution order above (the speed post-process clones its profile in Start).
+        private void Start() => MobilePerformance.Apply();
     }
 }

@@ -18,6 +18,9 @@ namespace Rally.VFX
 
         private ParticleSystem motes, rain, wisps;
 
+        /// <summary>Particle amount multiplier (lower on phones, see MobilePerformance).</summary>
+        public static float Density { get; set; } = 1f;
+
         public void Configure(Transform target, Material mote, Material rainMat, Material fogMat)
         {
             followTarget = target;
@@ -30,7 +33,7 @@ namespace Rally.VFX
         {
             if (followTarget == null && Camera.main != null) followTarget = Camera.main.transform;
 
-            motes = Create("Motes", moteMaterial, 500, ParticleSystemRenderMode.Billboard, 0f);
+            motes = Create("Motes", moteMaterial, Mathf.RoundToInt(500 * Density), ParticleSystemRenderMode.Billboard, 0f);
             var shape = motes.shape;
             shape.enabled = true;
             shape.shapeType = ParticleSystemShapeType.Box;
@@ -41,13 +44,13 @@ namespace Rally.VFX
             main.startSpeed = 0.2f;
             main.startColor = new Color(1f, 1f, 1f, 0.5f);
             var emission = motes.emission;
-            emission.rateOverTime = motesPerSecond;
+            emission.rateOverTime = motesPerSecond * Density;
             var noise = motes.noise;
             noise.enabled = true;
             noise.strength = 0.3f;
             noise.frequency = 0.2f;
 
-            rain = Create("Drizzle", drizzleMaterial, 1500, ParticleSystemRenderMode.Stretch, 1f);
+            rain = Create("Drizzle", drizzleMaterial, Mathf.RoundToInt(1500 * Density), ParticleSystemRenderMode.Stretch, 1f);
             var rshape = rain.shape;
             rshape.enabled = true;
             rshape.shapeType = ParticleSystemShapeType.Box;
@@ -60,12 +63,12 @@ namespace Rally.VFX
             rmain.startColor = new Color(0.85f, 0.88f, 0.92f, 0.35f);
             rain.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             var remission = rain.emission;
-            remission.rateOverTime = 900f * drizzle;
+            remission.rateOverTime = 900f * drizzle * Density;
             var renderer = rain.GetComponent<ParticleSystemRenderer>();
             renderer.velocityScale = 0.045f;
             renderer.lengthScale = 1f;
 
-            wisps = Create("FogWisps", fogMaterial, 60, ParticleSystemRenderMode.Billboard, 0f);
+            wisps = Create("FogWisps", fogMaterial, Mathf.RoundToInt(60 * Density), ParticleSystemRenderMode.Billboard, 0f);
             var wshape = wisps.shape;
             wshape.enabled = true;
             wshape.shapeType = ParticleSystemShapeType.Box;
@@ -77,7 +80,7 @@ namespace Rally.VFX
             wmain.startSpeed = 0.3f;
             wmain.startColor = new Color(0.8f, 0.83f, 0.86f, 0.1f);
             var wemission = wisps.emission;
-            wemission.rateOverTime = fogWispsPerSecond;
+            wemission.rateOverTime = fogWispsPerSecond * Density;
             var col = wisps.colorOverLifetime;
             col.enabled = true;
             var g = new Gradient();

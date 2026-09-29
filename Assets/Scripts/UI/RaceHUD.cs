@@ -32,6 +32,10 @@ namespace Rally.UI
         private RectTransform progressTrack;
         private readonly Dictionary<RaceParticipant, RectTransform> carMarkers = new Dictionary<RaceParticipant, RectTransform>();
         private CanvasGroup hudGroup;
+        private RectTransform damageFill;
+        private Image damageFillImage;
+        private GameObject damageGroup;
+        private Rally.Car.CarDamage playerDamage;
 
         private float messageTimer;
         private float displayedSpeed;
@@ -50,10 +54,12 @@ namespace Rally.UI
             BuildMessages();
             BuildHints();
             new GameObject("TouchControls").AddComponent<TouchControls>(); // hidden unless on a phone / touched
+            gameObject.AddComponent<CoDriver>().Build(race, root);          // pace notes, top centre
 
             race.CountdownTick += t => ShowMessage(t.ToString(), "", 0.9f);
             race.Go += () => ShowMessage("¡YA!", "", 1.1f);
             race.CheckpointPassed += OnCheckpoint;
+            race.PenaltyAdded += seconds => ShowMessage("", $"+{seconds:0} s  PENALIZACIÓN", messageDuration);
             race.PlayerResultsReady += () => hudGroup.alpha = 0.35f;
         }
 
@@ -109,6 +115,16 @@ namespace Rally.UI
             bestText = UIFactory.Label("Best", root, anchor, new Vector2(48f, -214f), new Vector2(330f, 26f),
                 "MEJOR  " + RaceManager.FormatTime(race.BestTime), 20, TextAnchor.UpperLeft, UIFactory.TextDim);
             UIFactory.AddShadow(bestText, 1.5f);
+
+            // Damage bar under the best time (hidden when damage is switched off in the options).
+            damageGroup = UIFactory.Anchored("Damage", root, anchor, new Vector2(48f, -248f), new Vector2(330f, 26f)).gameObject;
+            UIFactory.Label("Label", damageGroup.transform, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(100f, 26f),
+                "DAÑOS", 18, TextAnchor.MiddleLeft, UIFactory.TextDim);
+            var track = UIFactory.Panel("Track", damageGroup.transform, new Vector2(0f, 0.5f), new Vector2(96f, 0f), new Vector2(230f, 10f),
+                new Color(1f, 1f, 1f, 0.18f));
+            damageFillImage = UIFactory.Panel("Fill", track.transform, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(0f, 10f), UIFactory.Accent);
+            damageFill = damageFillImage.rectTransform;
+            damageGroup.SetActive(Rally.Car.CarDamage.Setting != Rally.Car.CarDamage.Mode.Desactivados);
         }
 
         private void BuildPositionPanel()
@@ -209,6 +225,7 @@ namespace Rally.UI
             UIFactory.AddShadow(messageText, 3f, 0.6f);
             subMessageText = UIFactory.Label("SubMessage", root, anchor, new Vector2(0f, 92f), new Vector2(1200f, 50f),
                 "", 34, TextAnchor.MiddleCenter, UIFactory.Accent);
+            subMessageText.supportRichText = true; // split times are coloured green / red
             UIFactory.AddShadow(subMessageText, 2f, 0.6f);
             warningText = UIFactory.Label("Warning", root, anchor, new Vector2(0f, -150f), new Vector2(1200f, 60f),
                 "", 44, TextAnchor.MiddleCenter, new Color(1f, 0.28f, 0.2f));
@@ -229,7 +246,10 @@ namespace Rally.UI
         private void OnCheckpoint(RaceParticipant participant, Checkpoint checkpoint, float time)
         {
             if (!participant.IsPlayer || checkpoint.IsFinish) return;
-            ShowMessage("", $"CONTROL {checkpoint.Index + 1}   {RaceManager.FormatTime(time)}", messageDuration);
+            string split = "";
+            if (race.TryGetSplitDelta(checkpoint.Index, time, out float delta))
+                split = $"   <color=#{(delta <= 0f ? "5BE37A" : "FF5A4A")}>{(delta <= 0f ? "-" : "+")}{Mathf.Abs(delta):0.00}</color>";
+            ShowMessage("", $"CONTROL {checkpoint.Index + 1}   {RaceManager.FormatTime(time)}{split}", messageDuration);
         }
 
         private void ShowMessage(string main, string sub, float duration)
@@ -242,14 +262,26 @@ namespace Rally.UI
         private void Update()
         {
             if (race == null || race.Player == null) return;
+            // Hidden under the main menu; comes back when the stage starts (results dim it to 0.35 later).
+            if (race.CurrentState == RaceManager.State.Menu) { hudGroup.alpha = 0f; return; }
+            if (hudGroup.alpha == 0f) hudGroup.alpha = 1f;
             var player = race.Player;
             var car = player.Car;
 
             // Timer
             float shownTime = player.HasFinished ? player.FinishTime
-                : race.CurrentState == RaceManager.State.Racing ? race.StageTime : 0f;
+                : race.CurrentState == RaceManager.State.Racing ? race.PlayerTime : 0f;
             timeText.text = shownTime > 0f ? RaceManager.FormatTime(shownTime) : "00:00.000";
             bestText.text = "MEJOR  " + RaceManager.FormatTime(race.BestTime);
+
+            // Damage: bar grows and turns red.
+            if (damageGroup.activeSelf)
+            {
+                if (playerDamage == null) playerDamage = player.GetComponent<Rally.Car.CarDamage>();
+                float dmg = playerDamage != null ? playerDamage.Damage01 : 0f;
+                damageFill.sizeDelta = new Vector2(230f * dmg, 10f);
+                damageFillImage.color = Color.Lerp(new Color(1f, 0.8f, 0.2f), new Color(1f, 0.2f, 0.15f), dmg);
+            }
 
             // Position & checkpoints
             positionText.text = $"{race.GetPosition(player)}/{race.Participants.Count}";
@@ -263,6 +295,8 @@ namespace Rally.UI
             foreach (var pair in carMarkers)
             {
                 pair.Value.anchorMin = pair.Value.anchorMax = new Vector2(pair.Key.Progress01, 0.5f);
+                var markerImage = pair.Value.GetComponent<Image>();
+                if (markerImage.color != pair.Key.Color) markerImage.color = pair.Key.Color; // follows the car picked in the menu
                 pair.Value.anchoredPosition = Vector2.zero;
             }
 
@@ -331,6 +365,8 @@ namespace Rally.UI
                 else if (player.MissedCheckpoint) warning = "CONTROL SALTADO  —  " + reset;
                 else if (player.IsWrongWay) warning = "SENTIDO CONTRARIO";
                 else if (player.IsOffTrack) warning = "VUELVE AL TRAMO  —  " + reset;
+                else if (playerDamage != null && playerDamage.Damage01 > 0.75f && Rally.Car.CarDamage.Setting == Rally.Car.CarDamage.Mode.Completos)
+                    warning = "COCHE MUY DAÑADO";
             }
             bool blink = Mathf.Repeat(Time.unscaledTime * 2.5f, 1f) > 0.3f;
             warningText.text = blink ? warning : "";

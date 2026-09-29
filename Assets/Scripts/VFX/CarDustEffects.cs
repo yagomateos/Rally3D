@@ -42,6 +42,9 @@ namespace Rally.VFX
 
         private CarController car;
         private float emissionScale = 1f;
+
+        /// <summary>Soft particle material, reused for engine smoke by <see cref="CarDamage"/>.</summary>
+        public Material DustMaterial => dustMaterial;
         private ParticleSystem cloud;
         private ParticleSystem puffs;
         private ParticleSystem debris;

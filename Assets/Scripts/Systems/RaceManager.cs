@@ -9,12 +9,32 @@ using UnityEngine.SceneManagement;
 namespace Rally.Systems
 {
     /// <summary>
-    /// Stage flow: title card → countdown → racing → finished. Owns the stage clock, positions,
-    /// best time, pause and restart.
+    /// Stage flow: main menu → title card → countdown → racing → finished. Owns the stage clock, positions,
+    /// best time, pause, restart and the way back to the main menu.
     /// </summary>
     public class RaceManager : MonoBehaviour
     {
-        public enum State { Intro, Countdown, Racing, Finished }
+        public enum State { Menu, Intro, Countdown, Racing, Finished }
+
+        /// <summary>
+        /// Whether the next load of the stage opens on the main menu. "Repetir tramo" clears it (straight to the
+        /// title card); "Salir al menú" sets it. Starts true, so launching the game shows the menu.
+        /// </summary>
+        public static bool OpenMenuOnLoad { get; set; } = true;
+
+        /// <summary>
+        /// Rivals on the stage (main menu option). Off = the real rally format: alone against the clock,
+        /// and no bumping at the start.
+        /// </summary>
+        public static bool RivalsEnabled
+        {
+            get => PlayerPrefs.GetInt("Rally.Rivals", 1) == 1;
+            set { PlayerPrefs.SetInt("Rally.Rivals", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        // Also with "Enter Play Mode" domain reload disabled, every play session starts on the menu.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => OpenMenuOnLoad = true;
 
         [SerializeField] private StageDefinition stage;
         [SerializeField] private TrackPath path;
@@ -31,8 +51,15 @@ namespace Rally.Systems
         public event Action<RaceParticipant> ParticipantFinished;
         public event Action PlayerResultsReady;
         public event Action<bool> PauseChanged;
+        /// <summary>Seconds added to the player's time (a reset they asked for).</summary>
+        public event Action<float> PenaltyAdded;
+
+        /// <summary>Time added each time the player asks for a reset (automatic recovery from the roof is free).</summary>
+        public const float ResetPenalty = 5f;
 
         public State CurrentState { get; private set; } = State.Intro;
+        /// <summary>Main menu or title card: nothing to pause, restart or reset yet.</summary>
+        public bool BeforeStart => CurrentState == State.Menu || CurrentState == State.Intro;
         public bool IsPaused { get; private set; }
         public float StageTime { get; private set; }
         public float BestTime { get; private set; }
@@ -47,6 +74,9 @@ namespace Rally.Systems
 
         private string BestTimeKey => $"BestTime_{stage.stageNumber}_{stage.stageName}";
         private readonly List<RaceParticipant> standings = new List<RaceParticipant>();
+        private string SplitsKey => BestTimeKey + "_Splits";
+        private float[] bestSplits = new float[0];
+        private readonly List<float> runSplits = new List<float>();
         private int lastTick;
 
         public void Configure(StageDefinition def, TrackPath trackPath, Checkpoint[] ordered, RaceParticipant[] cars)
@@ -60,9 +90,24 @@ namespace Rally.Systems
         private void Awake()
         {
             Instance = this;
+            CurrentState = OpenMenuOnLoad ? State.Menu : State.Intro;
+            OpenMenuOnLoad = false;
             Time.timeScale = 1f;
             AudioListener.pause = false;
             BestTime = PlayerPrefs.GetFloat(BestTimeKey, 0f);
+            bestSplits = LoadSplits();
+
+            if (!RivalsEnabled)
+            {
+                // Against the clock: only the player's car stays (before the HUD builds its standings and map).
+                var keep = new List<RaceParticipant>();
+                foreach (var p in participants)
+                {
+                    if (p.IsPlayer) keep.Add(p);
+                    else p.gameObject.SetActive(false);
+                }
+                participants = keep.ToArray();
+            }
         }
 
         private void OnDestroy()
@@ -79,9 +124,12 @@ namespace Rally.Systems
                 p.CheckpointPassed += OnCheckpointPassed;
                 p.Finished += OnParticipantFinished;
                 p.Car.ControlEnabled = false;
+                if (p.GetComponent<CarDamage>() == null) p.gameObject.AddComponent<CarDamage>();
                 if (p.IsPlayer) Player = p;
             }
             standings.AddRange(participants);
+            // The car picked in the main menu, also after "Repetir tramo" (which reloads the stage without the menu).
+            CarCatalog.Apply(this, CarCatalog.Selected);
         }
 
         private void Update()
@@ -89,7 +137,7 @@ namespace Rally.Systems
             var input = RallyInput.Instance;
             if (input == null) return;
 
-            if (input.Pause.WasPressedThisFrame() && CurrentState != State.Intro && !ResultsShown)
+            if (input.Pause.WasPressedThisFrame() && !BeforeStart && !ResultsShown)
                 SetPaused(!IsPaused);
             if (IsPaused) return;
 
@@ -104,15 +152,14 @@ namespace Rally.Systems
                     break;
                 case State.Racing:
                     StageTime += Time.deltaTime;
-                    if (Player != null && !Player.HasFinished && input.ResetCar.WasPressedThisFrame())
-                        Player.ResetToTrack();
+                    if (input.ResetCar.WasPressedThisFrame()) PlayerReset();
                     break;
                 case State.Finished:
                     StageTime += Time.deltaTime;
                     break;
             }
 
-            if (input.RestartStage.WasPressedThisFrame() && CurrentState != State.Intro) Restart();
+            if (input.RestartStage.WasPressedThisFrame() && !BeforeStart) Restart();
             if (ResultsShown && input.Confirm.WasPressedThisFrame()) Restart();
         }
 
@@ -136,7 +183,7 @@ namespace Rally.Systems
         // Clicking outside the game on the itch.io page takes keyboard focus away mid-stage: pause.
         private void OnApplicationFocus(bool hasFocus)
         {
-            if (!hasFocus && CurrentState != State.Intro && !ResultsShown) SetPaused(true);
+            if (!hasFocus && !BeforeStart && !ResultsShown) SetPaused(true);
         }
 #endif
 
@@ -165,9 +212,50 @@ namespace Rally.Systems
             Go?.Invoke();
         }
 
+        /// <summary>The player asked to be put back on the road: costs <see cref="ResetPenalty"/> seconds.</summary>
+        public void PlayerReset()
+        {
+            if (Player == null || Player.HasFinished || CurrentState != State.Racing || IsPaused) return;
+            if (!Player.ResetToTrack()) return;
+            Player.AddPenalty(ResetPenalty);
+            PenaltyAdded?.Invoke(ResetPenalty);
+        }
+
+        /// <summary>Player's running time, penalties included.</summary>
+        public float PlayerTime => StageTime + (Player != null ? Player.Penalty : 0f);
+
         private void OnCheckpointPassed(RaceParticipant participant, Checkpoint checkpoint)
         {
-            CheckpointPassed?.Invoke(participant, checkpoint, StageTime);
+            float time = participant.IsPlayer ? StageTime + participant.Penalty : StageTime;
+            if (participant.IsPlayer) runSplits.Add(time);
+            CheckpointPassed?.Invoke(participant, checkpoint, time);
+        }
+
+        /// <summary>Difference with the best run at this checkpoint (negative = faster). False if there is no best run yet.</summary>
+        public bool TryGetSplitDelta(int checkpointIndex, float time, out float delta)
+        {
+            delta = 0f;
+            if (checkpointIndex < 0 || checkpointIndex >= bestSplits.Length) return false;
+            delta = time - bestSplits[checkpointIndex];
+            return true;
+        }
+
+        private float[] LoadSplits()
+        {
+            string raw = PlayerPrefs.GetString(SplitsKey, "");
+            if (string.IsNullOrEmpty(raw)) return new float[0];
+            var parts = raw.Split(';');
+            var result = new float[parts.Length];
+            for (int i = 0; i < parts.Length; i++)
+                float.TryParse(parts[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result[i]);
+            return result;
+        }
+
+        private void SaveSplits()
+        {
+            var parts = new string[runSplits.Count];
+            for (int i = 0; i < parts.Length; i++) parts[i] = runSplits[i].ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+            PlayerPrefs.SetString(SplitsKey, string.Join(";", parts));
         }
 
         private void OnParticipantFinished(RaceParticipant participant)
@@ -190,6 +278,7 @@ namespace Rally.Systems
                 NewBest = true;
                 BestTime = participant.FinishTime;
                 PlayerPrefs.SetFloat(BestTimeKey, BestTime);
+                SaveSplits();
                 PlayerPrefs.Save();
             }
             Invoke(nameof(ShowResults), resultsDelay);
@@ -232,6 +321,19 @@ namespace Rally.Systems
         }
 
         public void Restart()
+        {
+            OpenMenuOnLoad = false;
+            ReloadStage();
+        }
+
+        /// <summary>Back to the main menu (reloads the stage so every car, clock and effect starts clean).</summary>
+        public void ExitToMenu()
+        {
+            OpenMenuOnLoad = true;
+            ReloadStage();
+        }
+
+        private static void ReloadStage()
         {
             Time.timeScale = 1f;
             AudioListener.pause = false;

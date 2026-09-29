@@ -43,6 +43,9 @@ namespace Rally.Systems
         public int CheckpointCount => checkpoints != null ? checkpoints.Length : 0;
         public bool HasFinished { get; private set; }
         public float FinishTime { get; private set; }
+        /// <summary>Time added for resets asked for by the player (included in <see cref="FinishTime"/>).</summary>
+        public float Penalty { get; private set; }
+        public void AddPenalty(float seconds) => Penalty += seconds;
         public bool IsWrongWay { get; private set; }
         public bool IsOffTrack { get; private set; }
         public bool MissedCheckpoint { get; private set; }
@@ -126,7 +129,7 @@ namespace Rally.Systems
             if (checkpoint.IsFinish)
             {
                 HasFinished = true;
-                FinishTime = clock != null ? clock() : 0f;
+                FinishTime = (clock != null ? clock() : 0f) + Penalty;
                 IsWrongWay = false;
                 Finished?.Invoke(this);
             }

@@ -48,6 +48,13 @@ namespace Rally.Car
         public SurfaceType DominantSurface { get; private set; } = SurfaceType.Dirt;
         public Vector3 LocalAcceleration { get; private set; }
 
+        /// <summary>Engine power left after collision damage (set by <see cref="CarDamage"/>; separate from the AI's
+        /// <see cref="PowerMultiplier"/>).</summary>
+        public float DamagePowerScale { get; set; } = 1f;
+
+        /// <summary>Steering pull from a bent corner, added to the steering input (set by <see cref="CarDamage"/>).</summary>
+        public float DamageSteerBias { get; set; }
+
         public float PowerMultiplier
         {
             get => powerMultiplier;
@@ -78,6 +85,21 @@ namespace Rally.Car
             Drivetrain = new CarDrivetrain(tuning);
             foreach (var w in wheels) w.Setup(tuning);
             if (wheels.Length > 0) wheels[0].Collider.ConfigureVehicleSubsteps(6f, 14, 18);
+        }
+
+        /// <summary>
+        /// Swaps in a different tuning at runtime (car selection gives the player its own copy, so rivals and the
+        /// asset on disk are untouched). Call while the car is stationary, before the start.
+        /// </summary>
+        public void ApplyTuning(CarTuning newTuning)
+        {
+            if (newTuning == null || Body == null) return;
+            tuning = newTuning;
+            Body.mass = tuning.mass;
+            Body.ResetCenterOfMass();
+            Body.centerOfMass += tuning.centerOfMassOffset;
+            Drivetrain = new CarDrivetrain(tuning);
+            foreach (var w in wheels) w.Setup(tuning);
         }
 
         /// <summary>Stops the car dead, used when resetting to the track.</summary>
@@ -180,7 +202,7 @@ namespace Rally.Car
             if (IsDrifting && Mathf.Sign(steerInput) == Mathf.Sign(SlipAngle))
                 maxAngle = Mathf.Max(maxAngle, Mathf.Min(tuning.maxSteerAngle, Mathf.Abs(SlipAngle) + 6f));
 
-            float target = steerInput * maxAngle;
+            float target = Mathf.Clamp(steerInput + DamageSteerBias, -1.6f, 1.6f) * maxAngle;
             bool returning = Mathf.Abs(target) < Mathf.Abs(SteerAngle) || Mathf.Sign(target) != Mathf.Sign(SteerAngle);
             float rate = returning ? tuning.steerReturnSpeed : tuning.steerSpeed;
             SteerAngle = Mathf.MoveTowards(SteerAngle, target, rate * dt);
@@ -195,7 +217,7 @@ namespace Rally.Car
             foreach (var w in wheels) drivenRpm += w.Collider.rpm;
             drivenRpm /= wheels.Length;
 
-            float wheelTorque = Drivetrain.Step(dt, drivenRpm, ForwardSpeed, drive, IsReversing, GroundedWheels > 0) * powerMultiplier;
+            float wheelTorque = Drivetrain.Step(dt, drivenRpm, ForwardSpeed, drive, IsReversing, GroundedWheels > 0) * powerMultiplier * DamagePowerScale;
 
             float frontShare = (1f - tuning.rearTorqueBias) * 0.5f;
             float rearShare = tuning.rearTorqueBias * 0.5f;
