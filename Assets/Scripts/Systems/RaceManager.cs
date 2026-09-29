@@ -377,12 +377,20 @@ namespace Rally.Systems
             true;
 #endif
 
+        /// <summary>Raised on the web when the player chooses SALIR: the menus show a "you left the game" screen.</summary>
+        public static event Action WebQuitRequested;
+
         public void Quit()
         {
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #elif UNITY_WEBGL
-            // Application.Quit() on the web only stops the player and leaves a frozen canvas.
+            // A page cannot close its own tab, and Application.Quit() only freezes the canvas: stop the game,
+            // leave fullscreen and let the menus show an exit screen instead.
+            Time.timeScale = 0f;
+            AudioListener.pause = true;
+            Screen.fullScreen = false;
+            WebQuitRequested?.Invoke();
 #else
             Application.Quit();
 #endif

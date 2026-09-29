@@ -34,11 +34,11 @@ namespace Rally.VFX
 
         [Header("Visibility")]
         [Tooltip("Dust cloud opacity multiplier. Lower = the road ahead stays visible behind other cars.")]
-        [SerializeField, Range(0f, 1f)] private float cloudOpacity = 0.55f;
+        [SerializeField, Range(0f, 1f)] private float cloudOpacity = 0.7f;
         [Tooltip("Dust cloud lifetime multiplier. Lower = clouds clear sooner instead of walling off the stage.")]
-        [SerializeField, Range(0.2f, 1f)] private float cloudLifetimeScale = 0.55f;
+        [SerializeField, Range(0.2f, 1f)] private float cloudLifetimeScale = 0.65f;
         [Tooltip("Cloud and puff emission of rival cars relative to the player's (their dust is always in front of the camera).")]
-        [SerializeField, Range(0f, 1f)] private float rivalDustScale = 0.4f;
+        [SerializeField, Range(0f, 1f)] private float rivalDustScale = 0.55f;
 
         private CarController car;
         private float emissionScale = 1f;

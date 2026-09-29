@@ -15,7 +15,7 @@ namespace Rally.EditorTools
             EnsureLayer(VehicleLayerIndex, VehicleLayer);
 
             PlayerSettings.companyName = "Rally3D";
-            PlayerSettings.productName = "Rally 3D — Stage 01";
+            PlayerSettings.productName = "Rally 3D"; // several stages now; shown in the browser tab
             PlayerSettings.colorSpace = ColorSpace.Linear;
             PlayerSettings.runInBackground = true;
 

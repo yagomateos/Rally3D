@@ -1,4 +1,6 @@
-# Rally 3D — Tramo 01 «Pinar de Valdeniebla»
+# Rally 3D
+
+Dos tramos: **Tramo 01 «Pinar de Valdeniebla»** (tierra, pinar y lluvia) y **Tramo 02 «Puerto de Peña Blanca»** (nieve y hielo).
 
 Prototipo de rally arcade-realista hecho con **Unity 6 (6000.0.84f1)**, **URP 17** y el **Input System**.
 Todo (terreno, carretera, texturas, árboles, decorado, coches, cielo y sonidos) se genera por código:
@@ -10,6 +12,10 @@ botones táctiles o mando en pantalla). La versión web está preparada para pub
 ![Menú principal](docs/capturas/pc-menu.jpg)
 
 ## Capturas
+
+| Tramo 02 — nieve: salida | Tramo 02 — nieve: en carrera |
+|---|---|
+| ![Salida del tramo de nieve](docs/capturas/nieve-salida.jpg) | ![Conduciendo en la nieve](docs/capturas/nieve-carrera.jpg) |
 
 | Elegir coche | Copiloto: notas de curva |
 |---|---|
@@ -39,8 +45,9 @@ botones táctiles o mando en pantalla). La versión web está preparada para pub
 
 ## Cómo se juega
 
-1. **Menú principal:** JUGAR, CONTROLES, OPCIONES y SALIR (SALIR solo fuera del navegador).
-2. **JUGAR → elige tu coche** con las flechas y pulsa EMPEZAR. Hay tres coches:
+1. **Menú principal:** JUGAR, CONTROLES, OPCIONES y SALIR.
+   En el navegador, SALIR detiene el juego y muestra «Has salido del juego», porque una página no puede cerrar su pestaña.
+2. **JUGAR → elige tramo → elige tu coche** con las flechas y pulsa EMPEZAR. Hay tres coches:
    - **VALDENIEBLA #7**, equilibrado.
    - **AZUR #3**, el más rápido pero con menos agarre.
    - **CARMESÍ #11**, con mucho agarre y menos punta.
@@ -53,13 +60,14 @@ botones táctiles o mando en pantalla). La versión web está preparada para pub
    - En cada control ves la **diferencia con tu mejor tiempo**: verde si vas más rápido, rojo si vas más lento.
    - Los **choques abollan el coche**, le quitan potencia y hacen que la dirección tire hacia el lado dañado.
      Reiniciar no repara el coche; repetir el tramo, sí.
-4. **Pausa:** CONTINUAR, REPETIR TRAMO, **SALIR AL MENÚ** (y la sensibilidad de la inclinación en el móvil).
+4. **Pausa:** CONTINUAR, REPETIR TRAMO, **SALIR AL MENÚ**, **SALIR DEL JUEGO** (y la sensibilidad de la inclinación en el móvil).
 
 ### Opciones
 
 | Opción | Valores |
 |---|---|
 | Volumen | 100 / 75 / 50 / 25 / 0 % |
+| Dificultad | FÁCIL (por defecto en el móvil) · NORMAL (por defecto en PC) · DIFÍCIL |
 | Daños | COMPLETOS · SOLO VISUALES · DESACTIVADOS |
 | Copiloto | VOZ Y TEXTO · SOLO TEXTO · DESACTIVADO |
 | Rivales | SÍ · NO (contra el reloj, como en un rally real) |
@@ -155,6 +163,25 @@ Ajustes del proyecto que ya vienen preparados para esto:
   El teclado y los rivales no cambian.
 - **Controles táctiles creados por código** (`TouchControls`, `TouchPedal`, `TouchJoystick`): modos BOTONES y MANDO, multitáctil.
 
+### Tramo 02: nieve
+- **Generado con el mismo sistema** (`Rally ▸ Build Snow Stage 02 (full)`, o `StageBuilder.BuildSnowFromCommandLine` en batch).
+  `StageTheme` hace que cada archivo generado para la nieve lleve el sufijo `_Snow`, **sin tocar nada del tramo 1**,
+  y aplica colores de invierno a las texturas: nieve en el terreno, nieve compacta en la pista, hielo donde había asfalto,
+  nieve blanda donde había barro y nieve en los pinos y los tejados.
+- **Recorrido:** el del tramo 1 en espejo (así nunca se cruza consigo mismo), algo más estrecho y con montañas más altas.
+- **Tabla de agarre de nieve** (`SurfaceDatabase_Snow`): nieve compacta 0,66 · nieve con grava 0,75 · nieve blanda 0,55 ·
+  hielo 0,45 · nieve profunda fuera de pista 0,5. El polvo es una nube de nieve blanca.
+  Los coches y **la IA** usan esta tabla, así que los rivales frenan antes en la nieve.
+- **Ambiente:** luz fría, niebla blanca más densa y **nevada** en lugar de llovizna.
+
+### Sonido
+- **Motor grabado:** «racing car engine sound loops» de *domasx2* ([OpenGameArt](https://opengameart.org/content/racing-car-engine-sound-loops)),
+  con licencia **CC0**. Se ha suavizado el punto de empalme del bucle para que no haga clic,
+  y la versión «sin acelerar» se ha creado filtrando la original. El tono sigue a las revoluciones (grabación a unas 2.300 rpm).
+  Se importa sin comprimir (PCM), porque la compresión AAC de la web mete un pequeño silencio en cada repetición.
+  Créditos en `Assets/Resources/Audio/CREDITS.txt`.
+- El resto de sonidos (neumáticos, viento, golpes, ambiente) siguen siendo sintetizados.
+
 ### Menú, coches y reglas
 - **Menú principal** (`MainMenu`): se construye por código sobre la escena real, con una cámara que gira alrededor del coche (`MenuCamera`).
   La carrera tiene un estado `Menu` previo al título. **SALIR AL MENÚ** recarga el tramo con el menú; **REPETIR TRAMO** lo recarga sin él.
@@ -166,6 +193,9 @@ Ajustes del proyecto que ya vienen preparados para esto:
   - **Abolladuras reales** de la malla de la carrocería hacia dentro.
   - **Humo** cuando el frontal está muy dañado.
   - En modo COMPLETOS, **menos potencia** y **tirón de la dirección**. Esto va aparte del multiplicador de potencia que usa la IA.
+- **Dificultad y ayuda de alcance:** los rivales tienen un ritmo según la dificultad (93 % / 100 % / 104 %).
+  Cuando uno te saca más de 60 m, levanta el pie poco a poco, hasta un 18 % / 12 % / 5 % a 250 m.
+  Así un choque no acaba la carrera; a los rivales que van detrás no se les da ventaja.
 - **Penalización y parciales:** +5 s por cada reinicio pedido por el jugador; el reinicio automático tras volcar es gratis.
   Los tiempos parciales del mejor recorrido se guardan y se comparan en cada control.
 - **Copiloto** (`Pacenotes`, `CoDriver`, `Plugins/WebGL/RallySpeech.jslib`):
@@ -200,8 +230,9 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA07_HardFrontalHit_DamagesCarAndReducesPower` | Un choque frontal a 72 km/h daña el coche, quita potencia y abolla la carrocería **hacia dentro** | ✅ |
 | `QA08_Pacenotes_CallCornersBothWaysAndTheThreeJumps` | Notas de curva a ambos lados, grados válidos, en orden y los 3 saltos del tramo | ✅ |
 | `QA09_CoDriver_CallsTheNextCornerOnScreen` | Al acercarse a una curva, el copiloto muestra la nota correcta | ✅ |
+| `QA10_SnowStage_UsesSnowGripForCarsAndAI` | El tramo de nieve carga con su tabla de agarre en todos los coches y en la IA, el hielo resbala y hay 3 saltos | ✅ |
 
-Se pasaron después de cada cambio (9 en total: 8 de PlayMode y 1 de EditMode).
+Se pasaron después de cada cambio (10 en total: 9 de PlayMode y 1 de EditMode).
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.

@@ -34,6 +34,52 @@ namespace Rally.AI
         [SerializeField] private float stuckTime = 2.5f;
         [SerializeField] private int maxReverseAttempts = 2;
 
+        // ------------------------------------------------------------------ difficulty
+
+        public enum Level { Facil = 0, Normal = 1, Dificil = 2 }
+        public static readonly string[] LevelNames = { "FÁCIL", "NORMAL", "DIFÍCIL" };
+        private static readonly float[] LevelPace = { 0.93f, 1f, 1.04f };        // rivals' overall pace
+        private static readonly float[] LevelMaxEase = { 0.18f, 0.12f, 0.05f };  // how much they ease off when far ahead
+        private const float EaseFromGap = 60f, EaseFullGap = 250f;              // metres ahead of the player
+
+        private static int levelCache = -1;
+        /// <summary>Main menu option. Default: FÁCIL on phones (harder to drive), NORMAL elsewhere.</summary>
+        public static Level Difficulty
+        {
+            get
+            {
+                if (levelCache < 0) levelCache = PlayerPrefs.GetInt("Rally.Difficulty", Application.isMobilePlatform ? 0 : 1);
+                return (Level)Mathf.Clamp(levelCache, 0, 2);
+            }
+            set
+            {
+                levelCache = (int)value;
+                PlayerPrefs.SetInt("Rally.Difficulty", levelCache);
+                PlayerPrefs.Save();
+            }
+        }
+
+        private float paceFactor = 1f;
+
+        /// <summary>
+        /// Rivals' pace this frame: the difficulty level, and a moderate catch-up: a rival far ahead of the player
+        /// eases off a little, so one crash does not end the race. Rivals behind get no boost.
+        /// </summary>
+        private float TargetPace()
+        {
+            int level = (int)Difficulty;
+            float pace = LevelPace[level];
+            var race = RaceManager.Instance;
+            var player = race != null ? race.Player : null;
+            if (player != null && !player.HasFinished && !participant.HasFinished)
+            {
+                float ahead = participant.Distance - player.Distance;
+                float t = Mathf.InverseLerp(EaseFromGap, EaseFullGap, ahead);
+                pace *= 1f - LevelMaxEase[level] * t;
+            }
+            return pace;
+        }
+
         /// <summary>Optional cap used for the post-finish cool-down lap.</summary>
         public float SpeedCapKph { get; set; } = float.MaxValue;
 
@@ -158,7 +204,8 @@ namespace Rally.AI
 
             // --- Speed control against the profile.
             int index = Mathf.Clamp(Mathf.RoundToInt((distance + 3f) / path.Spacing), 0, speedProfile.Length - 1);
-            float targetSpeed = Mathf.Min(speedProfile[index] * mistakeFactor, SpeedCapKph / 3.6f);
+            paceFactor = Mathf.MoveTowards(paceFactor, TargetPace(), Time.deltaTime * 0.2f); // gentle, never a sudden brake
+            float targetSpeed = Mathf.Min(speedProfile[index] * mistakeFactor * paceFactor, SpeedCapKph / 3.6f);
             if (participant.HasFinished && distance > path.Length - 45f) targetSpeed = 0f; // park at the end of the stop zone
             float error = targetSpeed - speed;
 

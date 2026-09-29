@@ -52,11 +52,13 @@ namespace Rally.UI
             Show(results, false);
 
             race.PauseChanged += OnPauseChanged;
+            RaceManager.WebQuitRequested += ShowQuitScreen;
             race.PlayerResultsReady += OnResults;
         }
 
         private void OnDestroy()
         {
+            RaceManager.WebQuitRequested -= ShowQuitScreen;
             if (race == null) return;
             race.PauseChanged -= OnPauseChanged;
             race.PlayerResultsReady -= OnResults;
@@ -139,15 +141,16 @@ namespace Rally.UI
             UIFactory.Button("Restart", pause.transform, c, new Vector2(0f, -45f), new Vector2(420f, 70f), "REPETIR TRAMO", () => race.Restart());
             // Back to the main menu (car choice, options). Quitting the game lives in the main menu.
             UIFactory.Button("Menu", pause.transform, c, new Vector2(0f, -130f), new Vector2(420f, 70f), "SALIR AL MENÚ", () => race.ExitToMenu());
+            UIFactory.Button("Quit", pause.transform, c, new Vector2(0f, -215f), new Vector2(420f, 70f), "SALIR DEL JUEGO", () => race.Quit());
 
             if (Application.isMobilePlatform)
             {
                 // Phones: tilt sensitivity (cycles BAJA / MEDIA / ALTA / MUY ALTA, remembered between sessions)
                 // and a sensor diagnosis line, so a player can report why tilt steering does not work.
-                var sensitivity = UIFactory.Button("Sensitivity", pause.transform, c, new Vector2(0f, -215f), new Vector2(520f, 70f), "",
+                var sensitivity = UIFactory.Button("Sensitivity", pause.transform, c, new Vector2(0f, -300f), new Vector2(520f, 70f), "",
                     () => CycleSensitivity());
                 sensitivityLabel = sensitivity.GetComponentInChildren<Text>();
-                sensorStatus = UIFactory.Label("Sensor", pause.transform, c, new Vector2(0f, -300f), new Vector2(1400f, 34f),
+                sensorStatus = UIFactory.Label("Sensor", pause.transform, c, new Vector2(0f, -380f), new Vector2(1400f, 34f),
                     "", 24, TextAnchor.MiddleCenter, UIFactory.TextDim, FontStyle.Normal);
             }
         }
@@ -175,6 +178,28 @@ namespace Rally.UI
             var input = PlayerInput;
             if (sensitivityLabel == null || input == null) return;
             sensitivityLabel.text = "SENSIBILIDAD INCLINACIÓN:  " + Rally.Car.PlayerCarInput.SensitivityNames[input.NivelSensibilidad];
+        }
+
+        // ------------------------------------------------------------------ quit (web)
+
+        /// <summary>Web only: a browser tab cannot be closed by the page, so SALIR ends here.</summary>
+        private void ShowQuitScreen()
+        {
+            GetComponent<Canvas>().sortingOrder = 50; // in front of the main menu too
+            var screen = Screen("Quit", new Color(0.01f, 0.01f, 0.02f, 0.97f));
+            screen.transform.SetAsLastSibling();
+            var c = new Vector2(0.5f, 0.5f);
+            var title = UIFactory.Label("Title", screen.transform, c, new Vector2(0f, 120f), new Vector2(1400f, 100f),
+                "HAS SALIDO DEL JUEGO", 72, TextAnchor.MiddleCenter, UIFactory.TextMain);
+            UIFactory.AddShadow(title, 3f);
+            UIFactory.Panel("Line", screen.transform, c, new Vector2(0f, 60f), new Vector2(160f, 5f), UIFactory.Accent);
+            UIFactory.Label("Info", screen.transform, c, new Vector2(0f, 0f), new Vector2(1400f, 40f),
+                "GRACIAS POR JUGAR. YA PUEDES CERRAR ESTA PESTAÑA.", 30, TextAnchor.MiddleCenter, UIFactory.TextDim);
+            var again = UIFactory.Button("Again", screen.transform, c, new Vector2(0f, -120f), new Vector2(440f, 76f), "VOLVER A JUGAR", () => race.ExitToMenu());
+            Show(pause, false);
+            Show(results, false);
+            Show(screen, true);
+            EventSystem.current?.SetSelectedGameObject(again.gameObject);
         }
 
         // ------------------------------------------------------------------ results

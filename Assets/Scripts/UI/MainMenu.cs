@@ -22,7 +22,7 @@ namespace Rally.UI
         private Button firstStageButton;
         private int stageIndex;
         private Button playButton, startButton, volumeButton, controlsBack, optionsBack;
-        private Text carName, carDescription, volumeLabel, sensitivityLabel, damageLabel, coDriverLabel, rivalsLabel, autoLabel;
+        private Text carName, carDescription, volumeLabel, sensitivityLabel, damageLabel, coDriverLabel, rivalsLabel, autoLabel, difficultyLabel;
         private Image[][] statBars;
         private int carIndex;
         private MenuCamera menuCamera;
@@ -111,8 +111,8 @@ namespace Rally.UI
             playButton = MenuButton(t, "Play", -380f, "JUGAR", () => Open(stageScreen, firstStageButton));
             MenuButton(t, "Controls", -484f, "CONTROLES", () => Open(controlsScreen, controlsBack));
             MenuButton(t, "Options", -588f, "OPCIONES", () => { RefreshOptions(); Open(optionsScreen, volumeButton); });
-            if (RaceManager.CanQuit)
-                MenuButton(t, "Quit", -692f, "SALIR", () => race.Quit());
+            // On the web this shows an exit screen (a page cannot close its own tab); elsewhere it quits.
+            MenuButton(t, "Quit", -692f, "SALIR", () => race.Quit());
 
             UIFactory.Label("Best", t, new Vector2(0f, 0f), new Vector2(120f, 60f), new Vector2(700f, 36f),
                 "MEJOR TIEMPO  " + RaceManager.FormatTime(race.BestTime), 26, TextAnchor.MiddleLeft, UIFactory.TextDim);
@@ -137,7 +137,7 @@ namespace Rally.UI
                 label.alignment = TextAnchor.UpperLeft;
                 label.text = "";
                 UIFactory.Label("Number", card.transform, new Vector2(0f, 1f), new Vector2(24f, -14f), new Vector2(580f, 30f),
-                    stage.number + (i == StageCatalog.Current ? "   ·   AQUÍ" : ""), 22, TextAnchor.MiddleLeft, UIFactory.Accent);
+                    stage.number + (i == StageCatalog.Current ? "   ·   AQUÍ" : ""), 22, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.75f)); // readable on the orange highlight too
                 UIFactory.Label("Name", card.transform, new Vector2(0f, 1f), new Vector2(24f, -44f), new Vector2(580f, 46f),
                     stage.name, 36, TextAnchor.MiddleLeft, UIFactory.TextMain);
                 UIFactory.Label("Info", card.transform, new Vector2(0f, 1f), new Vector2(24f, -94f), new Vector2(580f, 28f),
@@ -202,6 +202,11 @@ namespace Rally.UI
             }
             volumeButton = Row("Volume", CycleVolume);
             volumeLabel = volumeButton.GetComponentInChildren<Text>();
+            difficultyLabel = Row("Difficulty", () =>
+            {
+                Rally.AI.AIDriver.Difficulty = (Rally.AI.AIDriver.Level)(((int)Rally.AI.AIDriver.Difficulty + 1) % 3);
+                RefreshOptions();
+            }).GetComponentInChildren<Text>();
             damageLabel = Row("Damage", CycleDamage).GetComponentInChildren<Text>();
             coDriverLabel = Row("CoDriver", CycleCoDriver).GetComponentInChildren<Text>();
             rivalsLabel = Row("Rivals", () => { RaceManager.RivalsEnabled = !RaceManager.RivalsEnabled; RefreshOptions(); ApplyRivalsNow(); })
@@ -353,6 +358,7 @@ namespace Rally.UI
         {
             volumeLabel.text = $"VOLUMEN:  {Mathf.RoundToInt(PlayerPrefs.GetFloat(VolumeKey, 1f) * 100f)} %";
             damageLabel.text = "DAÑOS:  " + CarDamage.ModeNames[(int)CarDamage.Setting];
+            difficultyLabel.text = "DIFICULTAD:  " + Rally.AI.AIDriver.LevelNames[(int)Rally.AI.AIDriver.Difficulty];
             coDriverLabel.text = "COPILOTO:  " + CoDriver.ModeNames[(int)CoDriver.Setting];
             rivalsLabel.text = RaceManager.RivalsEnabled ? "RIVALES:  SÍ" : "RIVALES:  NO (CONTRA EL RELOJ)";
             if (autoLabel != null) autoLabel.text = "ACELERAR SOLO:  " + (PlayerCarInput.AcelerarSolo ? "SÍ" : "NO");
