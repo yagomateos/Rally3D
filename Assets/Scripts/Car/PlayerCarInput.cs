@@ -336,13 +336,17 @@ namespace Rally.Car
         public CarInput ReadInput()
         {
             var input = RallyInput.Instance;
-            return new CarInput
+            var result = new CarInput
             {
                 steer = touchSteering ? steer * HighSpeedAssist() : steer,
                 throttle = throttle,
                 brake = brake,
                 handbrake = touchHandbrake || (input != null && input.Handbrake.IsPressed())
             };
+            if (participant == null) participant = GetComponent<Rally.Systems.RaceParticipant>();
+            return DrivingAssist.Apply(result, car, participant);
         }
+
+        private Rally.Systems.RaceParticipant participant;
     }
 }

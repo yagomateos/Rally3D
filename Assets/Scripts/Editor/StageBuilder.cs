@@ -243,7 +243,7 @@ namespace Rally.EditorTools
             FogZoneBuilder.Build(def, path);
             FogZoneBuilder.EnsureController();
 
-            if (coast && lib.sheep != null) AddSheepCrossings(path, lib.sheep.GetComponent<Sheep>());
+            if ((coast || StageTheme.Current == StageTheme.Kind.Forest) && lib.sheep != null) AddSheepCrossings(path, lib.sheep.GetComponent<Sheep>());
 
             new GameObject("StageAudio").AddComponent<StageAudio>();
             new GameObject("HUD").AddComponent<RaceHUD>();

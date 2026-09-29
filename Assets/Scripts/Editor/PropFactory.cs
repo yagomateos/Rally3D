@@ -297,8 +297,9 @@ namespace Rally.EditorTools
                 lib.streetLight = SavePrefab(StreetLight(lib));
                 lib.curveSign = SavePrefab(CurveSign(lib, false));
                 lib.curveSignLeft = SavePrefab(CurveSign(lib, true));
-                lib.sheep = SavePrefab(Sheep());
             }
+            // Sheep in the road on stage 1 (forest) and stage 4 (coast).
+            if (StageTheme.Coast || StageTheme.Current == StageTheme.Kind.Forest) lib.sheep = SavePrefab(Sheep());
         }
 
         private static GameObject MarkerPole(AssetLibrary lib)

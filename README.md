@@ -238,7 +238,9 @@ Ajustes del proyecto que ya vienen preparados para esto:
     Con el sol a 9° las sombras de las colinas dejaban la carretera casi negra en la web.
   - *Volume* cálido: temperatura +20, tinte rosado, más saturación y *bloom* para farolas y sol.
 - Pinos mediterráneos menos densos, para que se vean el mar y la carretera. Sin lluvia ni bancos de niebla.
-- **Ovejas que cruzan** (`SheepCrossing`, `Sheep`):
+- **Ovejas en la carretera** (`SheepCrossing`, `Sheep`), en el tramo 04 y también en el tramo 01:
+  - Aparecen ya **dentro de la carretera**, de una a tres ovejas repartidas por el carril, cruzando muy despacio
+    (0,3 m/s) para cortar el paso. Salen cuando te faltan unos 9 s para llegar, así que ya están ahí cuando las ves.
   - El generador marca 7 puntos donde la carretera gira menos de 20° en los 100 m anteriores, para que se vea venir.
   - En cada partida cada punto tiene un 30 % de probabilidad, con al menos una oveja por partida (de media, dos).
   - Sale siempre por el lado de tierra. Por el lado del mar hay guardarraíl y la oveja se quedaba detrás sin llegar a cruzar.
@@ -312,6 +314,17 @@ Ajustes del proyecto que ya vienen preparados para esto:
   y como mucho 50 ms de física por fotograma.
 
 ### Interfaz y juego
+- **Cuenta atrás fuera de la carretera:** a más de 6 m del borde, la pantalla parpadea en rojo y aparece
+  «¡FUERA DE LA CARRETERA!» con una cuenta atrás de 5 s y una alarma en cada segundo.
+  Si no vuelves, el coche regresa solo al punto donde dejó la carretera, sin penalización. Si vuelves antes, se cancela.
+- **Ayuda de conducción** (`DrivingAssist`, opción AYUDA DE CONDUCCIÓN: NO / MEDIA / ALTA; MEDIA por defecto en móvil):
+  - Mezcla tu giro con el que sigue la carretera y frena por ti si llegas demasiado rápido a una curva.
+  - Sigues conduciendo tú: tu giro conserva su peso y puedes sacar el coche de la trazada.
+  - En el test, con ALTA y sin tocar el volante, el coche recorre la primera curva sin salirse.
+- **Cámara en el móvil:** un poco más alta y mirando más adelante.
+  En pantallas más estrechas que 16:9 (el móvil en vertical), el campo de visión se ajusta para ver lo mismo a los lados que en 16:9.
+- **Nieve:** la pista es de nieve pisada y sucia, más gris, con rodadas, y los bordes están pisados.
+  Antes se confundía con la nieve virgen de alrededor.
 - **Menús con mando:** el stick izquierdo mueve la selección igual que la cruceta. Funciona también con mandos que
   el navegador presenta como *joystick* genérico. En cada lista, bajar desde el último botón vuelve al primero y subir
   desde el primero va al último (menú principal, ELIGE TRAMO, OPCIONES y PAUSA).
@@ -375,6 +388,9 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA19_LeftStick_NavigatesMenuAndWrapsRound` | Con un mando virtual, el stick izquierdo recorre el menú de pausa y da la vuelta arriba y abajo | ✅ |
 | `QA20_MapEdge_HasInvisibleWalls` | Un coche lanzado a 126 km/h hacia el borde del mapa choca con la pared invisible y no cae | ✅ |
 | `QA21_RoadsideProps_CollideOrGetKnockedFlying` | Los espectadores tienen colisión; un poste de baliza sale volando y el coche sigue a más de 43 km/h | ✅ |
+| `QA23_SheepFlock_StandsInTheRoad` | En el tramo 01 aparece un rebaño en la carretera y sigue en medio 4 s después | ✅ |
+| `QA24_OffRoad_CountdownThenBackOnTheRoad` | Fuera de la carretera empieza una cuenta atrás de 5 s; al llegar a cero el coche vuelve a la carretera sin penalización | ✅ |
+| `QA25_DrivingAssist_FollowsTheRoad` | Con la ayuda en ALTA y sin girar, el coche sigue la carretera por la primera curva | ✅ |
 | `QA22_Celebration_ConfettiAndMusic` | La celebración lanza más de 150 papelitos de confeti y suena la música | ✅ |
 | `QA18_RightStick_LooksInAnyDirection` | El stick derecho mira a la derecha, a la izquierda y atrás, y la vista vuelve al frente al soltarlo | ✅ |
 | `QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit` | La oveja cruza la carretera y bala con sonido 3D; al atropellarla a 75 km/h sale despedida, el coche sigue a más de 43 km/h y casi no se daña | ✅ |
@@ -382,7 +398,7 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA15_DesertStage_UsesSandGripAndLooseSandOffRoad` | El desierto carga su tabla en coches e IA; la arena suelta agarra mucho menos y frena más; hay polvo denso, no llueve y hay 3 saltos | ✅ |
 | `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (25 en total: 24 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode).
+Se pasaron después de cada cambio (28 en total: 27 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode).
 Hay dos pruebas manuales (*Explicit*): la medición de tiempos por dificultad y `SheepCrossing_Screenshots`, que renderiza una oveja cruzando para revisarla.
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;

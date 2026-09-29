@@ -51,6 +51,10 @@ namespace Rally.CameraSystem
         [Tooltip("Seconds to swing round when the look-back key is pressed or released.")]
         [SerializeField] private float lookBackTime = 0.14f;
 
+        [Header("Phones")]
+        [SerializeField] private float mobileExtraHeight = 0.4f;
+        [SerializeField] private float mobileExtraLookAhead = 3f;
+
         [Tooltip("Right stick deflection below this is ignored (the stick at rest).")]
         [SerializeField] private float lookStickDeadzone = 0.3f;
 
@@ -88,6 +92,12 @@ namespace Rally.CameraSystem
         {
             TouchLookBack = false; // never carry a held button over a scene reload
             ExternalLook = Vector2.zero;
+            if (Application.isMobilePlatform)
+            {
+                // Small screen with thumbs over the lower corners: a bit higher and looking further down the road.
+                height += mobileExtraHeight;
+                lookAhead += mobileExtraLookAhead;
+            }
             cam = GetComponent<Camera>();
             currentDistance = distance;
         }
@@ -140,6 +150,14 @@ namespace Rally.CameraSystem
 
             float targetFov = Mathf.Lerp(baseFov, maxFov, speed01 * speed01);
             if (CurrentMode != Mode.Chase && CurrentMode != Mode.FarChase) targetFov += 6f;
+            // Unity's field of view is vertical: on a screen narrower than 16:9 (a phone held upright) the sides
+            // shrank until the road barely showed. Keep at least the horizontal view of a 16:9 screen.
+            const float referenceAspect = 16f / 9f;
+            if (cam.aspect < referenceAspect && cam.aspect > 0.1f)
+            {
+                float half = Mathf.Tan(targetFov * 0.5f * Mathf.Deg2Rad) * referenceAspect / cam.aspect;
+                targetFov = Mathf.Min(100f, Mathf.Atan(half) * 2f * Mathf.Rad2Deg);
+            }
             cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFov, 1f - Mathf.Exp(-fovSharpness * dt));
 
             basePosition = transform.position;

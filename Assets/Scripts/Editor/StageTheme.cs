@@ -48,19 +48,21 @@ namespace Rally.EditorTools
                 case "T_Grass":
                 case "T_Meadow":
                 case "T_ForestFloor":
-                case "T_VergeDirt":
                 case "T_Mud":
                     return Keep(SnowColor(0.55f + (lum - 0.3f) * 1.2f), Mathf.Max(c.a, 0.35f));
+                case "T_VergeDirt": // trodden, grubby snow along the road edges
+                    return Keep(Color.Lerp(new Color(0.55f, 0.56f, 0.6f), new Color(0.75f, 0.77f, 0.82f), Mathf.Clamp01(lum * 1.4f)), c.a);
                 case "T_Gravel":
                     return Keep(Color.Lerp(c, SnowColor(0.8f), 0.6f), c.a);
                 case "T_Rock":
                     return Keep(Color.Lerp(c, SnowColor(0.85f), 0.85f * Patches(u, v, 8f, 0.35f, 0.6f)), c.a);
 
                 // Road: packed snow with the ruts' shading, gravel showing through, slush, ice.
+                // Packed, dirty snow with darker ruts: clearly greyer than the fresh snow around it, so the road reads.
                 case "T_Road_Dirt":
-                    return Keep(Color.Lerp(new Color(0.76f, 0.79f, 0.84f), new Color(0.93f, 0.95f, 0.98f), Mathf.Clamp01(lum * 1.6f)), Mathf.Max(c.a, 0.45f));
+                    return Keep(Color.Lerp(new Color(0.42f, 0.43f, 0.46f), new Color(0.7f, 0.72f, 0.76f), Mathf.Clamp01(lum * 1.6f)), Mathf.Max(c.a, 0.45f));
                 case "T_Road_Gravel":
-                    return Keep(Color.Lerp(c, new Color(0.86f, 0.88f, 0.92f), 0.55f), Mathf.Max(c.a, 0.4f));
+                    return Keep(Color.Lerp(c, new Color(0.62f, 0.64f, 0.68f), 0.55f), Mathf.Max(c.a, 0.4f));
                 case "T_Road_Mud":
                     return Keep(Color.Lerp(c, new Color(0.62f, 0.63f, 0.62f), 0.55f), Mathf.Max(c.a, 0.8f));
                 case "T_Road_Asphalt":

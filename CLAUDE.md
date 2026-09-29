@@ -124,7 +124,8 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Paredes invisibles en el borde del mapa (`MapBounds`, creadas en runtime), props ligeros derribables (`Knockable`, no estáticos),
   navegación de menús con stick y con vuelta (`MenuNavigation.WrapColumn`) y celebración al ganar (`Celebration`).
 - Un prop que el coche pueda derribar debe llevar `Knockable` (collider trigger hasta el golpe); los sólidos, collider normal.
-- Controles de móvil y 25 tests (24 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Cuenta atrás fuera de la carretera con vuelta automática, ayuda de conducción (`DrivingAssist`), ovejas en la carretera en los tramos 01 y 04.
+- Controles de móvil y 28 tests (27 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

@@ -70,9 +70,17 @@ namespace Rally.Track
             nextBleat = Random.Range(0.2f, 1f);
         }
 
-        /// <summary>Starts crossing: walks along <paramref name="direction"/> for <paramref name="seconds"/>, then leaves.</summary>
-        public void Walk(Vector3 direction, float seconds)
+        /// <summary>
+        /// Starts crossing: walks along <paramref name="direction"/> for <paramref name="seconds"/>, then leaves.
+        /// <paramref name="speed"/> overrides the walking pace (a slow amble keeps it on the road longer).
+        /// </summary>
+        public void Walk(Vector3 direction, float seconds, float speed = -1f)
         {
+            if (speed > 0f)
+            {
+                stepRate *= speed / walkSpeed;
+                walkSpeed = speed;
+            }
             walkDirection = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
             walkTimeLeft = seconds;
             transform.rotation = Quaternion.LookRotation(walkDirection);

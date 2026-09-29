@@ -102,6 +102,87 @@ namespace Rally.Tests
             Assert.Greater(pole.GetComponent<Rigidbody>().linearVelocity.magnitude, 3f, "The pole should fly off.");
         }
 
+        /// <summary>QA-23: on stage 1 a flock appears standing in the road ahead and stays in the way.</summary>
+        [UnityTest]
+        public IEnumerator QA23_SheepFlock_StandsInTheRoad()
+        {
+            yield return LoadStage();
+            yield return StartRace();
+            var crossing = Object.FindFirstObjectByType<SheepCrossing>();
+            Assert.IsNotNull(crossing, "Stage 1 should have sheep too.");
+            Assert.GreaterOrEqual(crossing.CrossingPoints.Count, 2);
+            float at = Player.Distance + 80f;
+            var flock = crossing.SpawnFlockOnRoad(at);
+            Assert.GreaterOrEqual(flock.Length, 1);
+            yield return new WaitForSeconds(4f);
+            foreach (var sheep in flock)
+            {
+                float d = Race.Path.Project(sheep.transform.position, at);
+                float lateral = Mathf.Abs(Race.Path.LateralOffset(sheep.transform.position, d));
+                Assert.Less(lateral, Race.Path.WidthAt(d) * 0.5f, "The sheep should still be on the road, in the way.");
+            }
+        }
+
+        /// <summary>QA-24: off the road a countdown runs, and at zero the car is put back on the road for free.</summary>
+        [UnityTest]
+        public IEnumerator QA24_OffRoad_CountdownThenBackOnTheRoad()
+        {
+            yield return LoadStage();
+            yield return StartRace();
+            float d = Player.Distance + 60f;
+            Vector3 off = Race.Path.PositionAt(d) + Race.Path.RightAt(d) * (Race.Path.WidthAt(d) * 0.5f + 14f);
+            off.y = GroundHeight(off) + 0.5f;
+            Quaternion rot = Quaternion.LookRotation(Race.Path.TangentAt(d));
+            Place(Player, off, rot);
+            float penaltyBefore = Player.Penalty;
+            // Hold the car where it is (it may be on a slope) until the countdown puts it back on the road.
+            bool started = false;
+            for (float t = 0f; t < 7f; t += Time.deltaTime)
+            {
+                if (Player.OffRoadTimeLeft >= 0f)
+                {
+                    if (!started) Assert.Greater(Player.OffRoadTimeLeft, 4f, "The countdown should start from about 5 s.");
+                    started = true;
+                    Player.Car.Body.position = off;
+                    Player.Car.Body.rotation = rot;
+                    Player.Car.Body.linearVelocity = Vector3.zero;
+                }
+                else if (started) break; // reset happened
+                yield return null;
+            }
+            Assert.IsTrue(started, "A countdown should run off the road.");
+            yield return new WaitForSeconds(0.2f);
+            float lateral = Mathf.Abs(Player.LateralOffset);
+            Assert.Less(lateral, Race.Path.WidthAt(Player.Distance) * 0.5f + 3f, "At zero the car should be back on the road.");
+            Assert.AreEqual(-1f, Player.OffRoadTimeLeft, "No countdown once back on the road.");
+            Assert.AreEqual(penaltyBefore, Player.Penalty, "The automatic return costs no time.");
+        }
+
+        /// <summary>QA-25: with the driving assist on ALTA and no steering at all, the car follows the road round a bend.</summary>
+        [UnityTest]
+        public IEnumerator QA25_DrivingAssist_FollowsTheRoad()
+        {
+            var before = Rally.Car.DrivingAssist.Setting;
+            try
+            {
+                Rally.Car.DrivingAssist.Setting = Rally.Car.DrivingAssist.Level.Alta;
+                yield return LoadStage();
+                yield return StartRace();
+                Player.Car.Body.linearVelocity = Race.Path.TangentAt(Player.Distance) * 22f;
+                float worst = 0f;
+                for (float t = 0f; t < 8f; t += Time.deltaTime)
+                {
+                    yield return null;
+                    float half = Race.Path.WidthAt(Player.Distance) * 0.5f;
+                    worst = Mathf.Max(worst, Mathf.Abs(Player.LateralOffset) - half);
+                }
+                Debug.Log($"[QA25] travelled to {Player.Distance:0} m, worst {worst:0.0} m past the road edge");
+                Assert.Greater(Player.Distance, Race.Path.StartDistance + 120f, "The car should have covered the first bend.");
+                Assert.Less(worst, 1.5f, "With the assist the car should stay on the road with no steering input.");
+            }
+            finally { Rally.Car.DrivingAssist.Setting = before; }
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()

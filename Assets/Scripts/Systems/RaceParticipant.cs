@@ -28,6 +28,10 @@ namespace Rally.Systems
         [SerializeField] private float freeSpotStep = 7f;
         [Tooltip("Seconds a car may lie on its roof or side before it is put back on the road.")]
         [SerializeField] private float flippedRecoveryDelay = 3f;
+        [Tooltip("Beyond the road edge by more than this, the off-road countdown starts.")]
+        [SerializeField] private float offRoadCountdownMargin = 6f;
+        [Tooltip("Seconds off the road before the car is put back where it left it (no penalty).")]
+        [SerializeField] private float offRoadCountdownSeconds = 5f;
 
         public event Action<RaceParticipant, Checkpoint> CheckpointPassed;
         public event Action<RaceParticipant> Finished;
@@ -48,6 +52,10 @@ namespace Rally.Systems
         public void AddPenalty(float seconds) => Penalty += seconds;
         public bool IsWrongWay { get; private set; }
         public bool IsOffTrack { get; private set; }
+
+        /// <summary>Seconds left before an automatic return to the road, or -1 while on the road.</summary>
+        public float OffRoadTimeLeft { get; private set; } = -1f;
+        private float offRoadTimer;
         public bool MissedCheckpoint { get; private set; }
         public float LateralOffset { get; private set; }
         /// <summary>On its roof or side and (almost) stopped: the car cannot continue on its own.</summary>
@@ -109,6 +117,29 @@ namespace Rally.Systems
                                Distance > checkpoints[NextCheckpoint].DistanceAlongTrack + missedCheckpointMargin;
 
             UpdateFlipped();
+            UpdateOffRoadCountdown(halfWidth);
+        }
+
+        /// <summary>
+        /// Off the road (well past the edge) during the race: a countdown runs, and if the car isn't back in time it
+        /// is put back on the road where it left it, free of charge. Driving back onto the road cancels it.
+        /// </summary>
+        private void UpdateOffRoadCountdown(float halfWidth)
+        {
+            bool off = Car.ControlEnabled && Mathf.Abs(LateralOffset) > halfWidth + offRoadCountdownMargin;
+            if (!off)
+            {
+                offRoadTimer = 0f;
+                OffRoadTimeLeft = -1f;
+                return;
+            }
+            offRoadTimer += Time.deltaTime;
+            OffRoadTimeLeft = Mathf.Max(0f, offRoadCountdownSeconds - offRoadTimer);
+            if (offRoadTimer >= offRoadCountdownSeconds && ResetToTrack())
+            {
+                offRoadTimer = 0f;
+                OffRoadTimeLeft = -1f;
+            }
         }
 
         private void UpdateFlipped()

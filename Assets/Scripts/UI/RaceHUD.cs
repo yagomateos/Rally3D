@@ -28,6 +28,11 @@ namespace Rally.UI
         private Text timeText, bestText, positionText, checkpointText, progressText;
         private Text speedText, gearText, messageText, subMessageText, warningText, standingsText;
         private Image[] revSegments;
+        private CanvasGroup offRoadGroup;
+        private Image offRoadFlash;
+        private Text offRoadNumber;
+        private AudioSource alarm;
+        private int lastAlarmSecond = -1;
         private RectTransform progressFill;
         private RectTransform progressTrack;
         private readonly Dictionary<RaceParticipant, RectTransform> carMarkers = new Dictionary<RaceParticipant, RectTransform>();
@@ -232,6 +237,64 @@ namespace Rally.UI
             warningText = UIFactory.Label("Warning", root, anchor, new Vector2(0f, -150f), new Vector2(1200f, 60f),
                 "", 44, TextAnchor.MiddleCenter, new Color(1f, 0.28f, 0.2f));
             UIFactory.AddShadow(warningText, 2f, 0.7f);
+            BuildOffRoadCountdown();
+        }
+
+        /// <summary>
+        /// Red alarm while the player is off the road: the screen edges pulse red and a big countdown shows the seconds
+        /// left before the car is put back where it left the road. A two-tone beep marks every second.
+        /// </summary>
+        private void BuildOffRoadCountdown()
+        {
+            var c = new Vector2(0.5f, 0.5f);
+            var group = UIFactory.Stretch("OffRoad", root);
+            offRoadGroup = group.gameObject.AddComponent<CanvasGroup>();
+            offRoadGroup.alpha = 0f;
+            offRoadGroup.blocksRaycasts = false;
+            offRoadGroup.interactable = false;
+
+            offRoadFlash = group.gameObject.AddComponent<Image>();
+            offRoadFlash.sprite = null;
+            offRoadFlash.color = new Color(1f, 0.05f, 0.05f, 0f);
+            offRoadFlash.raycastTarget = false;
+
+            var plate = UIFactory.Panel("Plate", group, c, new Vector2(0f, -60f), new Vector2(760f, 230f), new Color(0.35f, 0f, 0f, 0.62f));
+            plate.raycastTarget = false;
+            UIFactory.Panel("Edge", plate.transform, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(760f, 6f), new Color(1f, 0.15f, 0.1f));
+            var title = UIFactory.Label("Title", plate.transform, new Vector2(0.5f, 1f), new Vector2(0f, -38f), new Vector2(740f, 44f),
+                "¡FUERA DE LA CARRETERA!", 36, TextAnchor.MiddleCenter, UIFactory.TextMain);
+            UIFactory.AddShadow(title, 2f);
+            offRoadNumber = UIFactory.Label("Seconds", plate.transform, c, new Vector2(0f, -10f), new Vector2(300f, 120f),
+                "5", 110, TextAnchor.MiddleCenter, new Color(1f, 0.25f, 0.2f));
+            UIFactory.AddShadow(offRoadNumber, 3f, 0.8f);
+            UIFactory.Label("Hint", plate.transform, new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(740f, 30f),
+                "VUELVE O TE DEVOLVEMOS A LA CARRETERA", 22, TextAnchor.MiddleCenter, UIFactory.TextDim, FontStyle.Normal);
+
+            alarm = gameObject.AddComponent<AudioSource>();
+            alarm.spatialBlend = 0f;
+            alarm.playOnAwake = false;
+        }
+
+        private void UpdateOffRoadCountdown(RaceParticipant player)
+        {
+            float left = race.CurrentState == RaceManager.State.Racing && !player.HasFinished ? player.OffRoadTimeLeft : -1f;
+            bool show = left >= 0f;
+            offRoadGroup.alpha = Mathf.MoveTowards(offRoadGroup.alpha, show ? 1f : 0f, Time.unscaledDeltaTime * 6f);
+            if (!show) { lastAlarmSecond = -1; return; }
+
+            int second = Mathf.CeilToInt(left);
+            float frac = second - left; // 0 at each new second → pulse
+            offRoadNumber.text = Mathf.Max(1, second).ToString();
+            float pulse = 1f + 0.35f * Mathf.Exp(-frac * 7f);
+            offRoadNumber.rectTransform.localScale = new Vector3(pulse, pulse, 1f);
+            offRoadFlash.color = new Color(1f, 0.05f, 0.05f, 0.05f + 0.16f * Mathf.Exp(-frac * 4f));
+            if (second != lastAlarmSecond)
+            {
+                lastAlarmSecond = second;
+                // Two-tone alarm; higher on the last second.
+                alarm.PlayOneShot(Rally.Audio.ProceduralAudio.Beep(second <= 1 ? 1180f : 880f, 0.14f), 0.55f);
+                alarm.PlayOneShot(Rally.Audio.ProceduralAudio.Beep(second <= 1 ? 1480f : 660f, 0.14f), 0.35f);
+            }
         }
 
         private void BuildHints()
@@ -327,6 +390,7 @@ namespace Rally.UI
             }
 
             UpdateWarnings(player);
+            UpdateOffRoadCountdown(player);
         }
 
         private void UpdateStandings()
@@ -366,7 +430,7 @@ namespace Rally.UI
                 if (player.IsFlipped) warning = "COCHE VOLCADO  —  " + reset;
                 else if (player.MissedCheckpoint) warning = "CONTROL SALTADO  —  " + reset;
                 else if (player.IsWrongWay) warning = "SENTIDO CONTRARIO";
-                else if (player.IsOffTrack) warning = "VUELVE AL TRAMO  —  " + reset;
+                else if (player.IsOffTrack && player.OffRoadTimeLeft < 0f) warning = "VUELVE AL TRAMO  —  " + reset;
                 else if (playerDamage != null && playerDamage.Damage01 > 0.75f && Rally.Car.CarDamage.Setting == Rally.Car.CarDamage.Mode.Completos)
                     warning = "COCHE MUY DAÑADO";
             }
