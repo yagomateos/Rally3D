@@ -17,6 +17,10 @@ botones táctiles o mando en pantalla). La versión web está preparada para pub
 |---|---|
 | ![Salida del tramo de nieve](docs/capturas/nieve-salida.jpg) | ![Conduciendo en la nieve](docs/capturas/nieve-carrera.jpg) |
 
+| Elegir tramo | Salir del juego (en el navegador) |
+|---|---|
+| ![Elección de tramo](docs/capturas/pc-elegir-tramo.jpg) | ![Pantalla de salida](docs/capturas/pc-salir.jpg) |
+
 | Elegir coche | Copiloto: notas de curva |
 |---|---|
 | ![Elección de coche con estadísticas](docs/capturas/pc-elegir-coche.jpg) | ![Aviso del copiloto IZQUIERDA 5 LARGA](docs/capturas/pc-copiloto.jpg) |
