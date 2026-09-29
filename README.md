@@ -197,15 +197,15 @@ Ajustes del proyecto que ya vienen preparados para esto:
 
   | Superficie | Agarre | Resistencia | Polvo |
   |---|---|---|---|
-  | Pista de arena dura | 0,93 | 7 | 1,7 |
-  | Hamada (roca y grava) | 0,86 | 8 | 1,4 |
-  | Arena blanda | 0,68 | 22 | 1,9 |
-  | Asfalto viejo | 1,20 | 2,8 | 0,45 |
-  | **Arena suelta fuera de pista** | **0,55** | **30** | 2,0 |
+  | Pista de arena dura | 0,93 | 7 | 1,3 |
+  | Hamada (roca y grava) | 0,86 | 8 | 1,1 |
+  | Arena blanda | 0,68 | 22 | 1,5 |
+  | Asfalto viejo | 1,20 | 2,8 | 0,35 |
+  | **Arena suelta fuera de pista** | **0,55** | **30** | 1,6 |
 
   Salirse de la pista cuesta mucho más que en el tramo 1 (hierba: 0,72 / 16).
-  El polvo es más denso que en tierra, pero mantiene el límite de opacidad y el 55 % para los rivales,
-  así que el coche de delante sigue viéndose. La IA usa la misma tabla.
+  El polvo es algo más denso que en tierra (se rebajó un 20–25 % tras probarlo), mantiene el límite de opacidad
+  y el 55 % para los rivales, así que el coche de delante sigue viéndose. La IA usa la misma tabla.
 - **Ambiente:**
   - Cielo despejado nuevo, con franja de calima en el horizonte.
   - Sol alto y fuerte con sombras marcadas; niebla cálida suave (la mitad de visibilidad a unos 300 m).
@@ -237,6 +237,17 @@ Ajustes del proyecto que ya vienen preparados para esto:
     Con el sol a 9° las sombras de las colinas dejaban la carretera casi negra en la web.
   - *Volume* cálido: temperatura +20, tinte rosado, más saturación y *bloom* para farolas y sol.
 - Pinos mediterráneos menos densos, para que se vean el mar y la carretera. Sin lluvia ni bancos de niebla.
+- **Ovejas que cruzan** (`SheepCrossing`, `Sheep`):
+  - El generador marca 7 puntos donde la carretera es casi recta los 100 m anteriores, para que se vea venir.
+  - En cada partida cada punto tiene un 30 % de probabilidad: de media salen dos ovejas y a veces ninguna.
+  - La oveja echa a andar cuando te faltan unos 5 s para llegar: está en la carretera cuando llegas,
+    pero da tiempo a frenar o esquivarla.
+  - **Bala** cada 2–4 s con sonido 3D: solo se oye cuando estás cerca.
+  - Si la atropellas, **chilla** y sale despedida.
+  - Pesa 70 kg: el coche apenas pierde velocidad (de 75 a 67 km/h en el test) y apenas se daña.
+    Ahora el daño depende de la masa de lo que golpeas; contra los rivales, que pesan como tu coche, no cambia nada.
+  - El balido y el chillido se sintetizan por código, como el resto de sonidos: tono con formantes de vocal «e»
+    y el temblor rápido característico.
 
 ### Sonido
 - Todos los sonidos son **sintetizados por código** (`ProceduralAudio`): motor, turbo, neumáticos, viento, golpes y ambiente.
@@ -301,6 +312,11 @@ Ajustes del proyecto que ya vienen preparados para esto:
   en pantallas 4:3 y 3:2, y los textos de SALIDA / META ya no pisan la barra de progreso.
 - **Barra de progreso:** nunca se quitó (el historial de git lo confirma), pero en la nieve y con coches blancos no se veía.
   Ahora tiene una placa oscura detrás, una pista más opaca y marcadores con contorno. Los marcadores se mueven en tiempo real.
+- **Cámara a mucha velocidad:** antes el campo de visión se abría de 58° a 74°, la cámara se alejaba 1,3 m y se añadía
+  distorsión de lente, y el coche y la carretera se veían lejanos.
+  - Ahora el campo de visión llega a 66°, la cámara se aleja 0,6 m y la distorsión se queda en la mitad.
+  - La cámara sube hasta 0,5 m para mirar la carretera desde un poco más arriba.
+  - El oscurecimiento de los bordes a velocidad baja de 0,38 a 0,3.
 - **Mirar atrás** (`RallyCamera`): mantener Q, R3 o ATRÁS gira la cámara 180° en unos 0,15 s con una curva suave, y vuelve igual.
   En las cámaras de persecución la cámara rodea el coche y no atraviesa el suelo ni las paredes.
   El giro se aplica sobre la pose normal de la cámara, así que al soltar no hay saltos.
@@ -328,11 +344,12 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA12_LowSpeedPushFromBehind_MovesRivalSmoothly` | Empujando por detrás a un rival a 5 km/h, este pasa de 12 km/h, no sale volando y no se sube encima | ✅ |
 | `QA13_LookBack_TurnsCameraRoundSmoothlyAndBack` | Al mantener ATRÁS la cámara mira hacia atrás, vuelve al soltar y nunca gira más de 45° en un fotograma | ✅ |
 | `QA14_Terrain_StaysBelowTheRoad` (los cuatro tramos) | El terreno no asoma por encima de la carretera en ~14.000–17.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
+| `QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit` | La oveja cruza la carretera y bala con sonido 3D; al atropellarla a 75 km/h sale despedida, el coche sigue a más de 43 km/h y casi no se daña | ✅ |
 | `QA16_CoastStage_FastTarmacWithRailsLightsAndSigns` | Todo asfalto con agarre ≥ 1,4; limitador del jugador por encima de 200 km/h; señales de curva, farolas y guardarraíles; el mar por debajo de la carretera; sin lluvia ni saltos | ✅ |
 | `QA15_DesertStage_UsesSandGripAndLooseSandOffRoad` | El desierto carga su tabla en coches e IA; la arena suelta agarra mucho menos y frena más; hay polvo denso, no llueve y hay 3 saltos | ✅ |
 | `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (19 en total: 18 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
+Se pasaron después de cada cambio (20 en total: 19 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.

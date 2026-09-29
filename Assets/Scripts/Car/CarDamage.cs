@@ -39,6 +39,7 @@ namespace Rally.Car
         [SerializeField] private float maxDent = 0.16f;
 
         private CarController car;
+        private Rigidbody myBody;
         private float front, rear, left, right;
         private MeshFilter body;
         private Mesh bodyMesh;
@@ -59,6 +60,7 @@ namespace Rally.Car
         private void Awake()
         {
             car = GetComponent<CarController>();
+            myBody = GetComponent<Rigidbody>();
             var bodyTransform = transform.Find("Body");
             if (bodyTransform != null) body = bodyTransform.GetComponent<MeshFilter>();
         }
@@ -68,6 +70,10 @@ namespace Rally.Car
             if (Setting == Mode.Desactivados || collision.collider.isTrigger || collision.contactCount == 0) return;
             var contact = collision.GetContact(0);
             float impact = Mathf.Abs(Vector3.Dot(collision.relativeVelocity, contact.normal));
+            // Something light that gets knocked away (a sheep) hurts far less than a wall or another car.
+            var other = collision.rigidbody;
+            if (other != null && !other.isKinematic && myBody != null)
+                impact *= Mathf.Clamp01(other.mass / myBody.mass * 4f);
             if (impact < impactThreshold) return;
 
             float over = impact - impactThreshold;

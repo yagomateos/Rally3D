@@ -205,6 +205,56 @@ namespace Rally.Audio
             return Loopify(data);
         });
 
+        /// <summary>Sheep bleat, "beeeh": a voiced tone with vowel formants and the fast tremolo that makes it quaver.</summary>
+        public static AudioClip Bleat() => Cached("Bleat", (int)(SampleRate * 0.85f), n =>
+            Voice(n, new System.Random(61), t => Mathf.Lerp(185f, 232f, Mathf.Clamp01(t / 0.06f)) - t * 30f,
+                tremoloHz: 22f, tremoloDepth: 0.55f, formant1: 620f, formant2: 1900f, noise: 0.05f, drive: 1.2f, peak: 0.6f));
+
+        /// <summary>A sheep hit by a car: high, loud, rising then falling panicked bleat.</summary>
+        public static AudioClip SheepScream() => Cached("SheepScream", (int)(SampleRate * 1.1f), n =>
+            Voice(n, new System.Random(67), t => t < 0.25f ? Mathf.Lerp(360f, 540f, t / 0.25f) : Mathf.Lerp(540f, 300f, (t - 0.25f) / 0.85f),
+                tremoloHz: 31f, tremoloDepth: 0.7f, formant1: 850f, formant2: 2300f, noise: 0.16f, drive: 2.2f, peak: 0.95f));
+
+        /// <summary>
+        /// Harmonic voice: up to 24 harmonics of a gliding pitch, each weighted by two vowel formants, amplitude tremolo
+        /// (with a touch of matching vibrato), breath noise, soft clipping and a short attack / release.
+        /// </summary>
+        private static float[] Voice(int n, System.Random rng, System.Func<float, float> pitch, float tremoloHz, float tremoloDepth,
+            float formant1, float formant2, float noise, float drive, float peak)
+        {
+            var data = new float[n];
+            float phase = 0f, breath = 0f, max = 0.0001f;
+            float duration = (float)n / SampleRate;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / SampleRate;
+                float trem = Mathf.Sin(t * tremoloHz * Mathf.PI * 2f);
+                float f0 = pitch(t) * (1f + trem * 0.035f);
+                phase += f0 / SampleRate * Mathf.PI * 2f;
+                if (phase > Mathf.PI * 2000f) phase -= Mathf.PI * 2000f;
+
+                float v = 0f;
+                for (int h = 1; h <= 24; h++)
+                {
+                    float f = f0 * h;
+                    if (f > 6000f) break;
+                    float w = Mathf.Exp(-Sq((f - formant1) / 260f)) + 0.6f * Mathf.Exp(-Sq((f - formant2) / 420f)) + 0.12f / h;
+                    v += Mathf.Sin(phase * h) * w;
+                }
+                breath = Mathf.Lerp(breath, (float)rng.NextDouble() * 2f - 1f, 0.3f);
+                v += breath * noise * 3f;
+                v *= 1f - tremoloDepth * (0.5f + 0.5f * trem);
+                float env = Mathf.Clamp01(t / 0.04f) * Mathf.Clamp01((duration - t) / 0.15f);
+                v = (float)System.Math.Tanh(v * drive) * env;
+                data[i] = v;
+                max = Mathf.Max(max, Mathf.Abs(v));
+            }
+            for (int i = 0; i < n; i++) data[i] *= peak / max;
+            return data;
+        }
+
+        private static float Sq(float x) => x * x;
+
         public static AudioClip Beep(float frequency, float duration) => Cached($"Beep_{frequency}_{duration}", (int)(SampleRate * duration), n =>
         {
             var data = new float[n];

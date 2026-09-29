@@ -291,6 +291,7 @@ namespace Rally.EditorTools
                 lib.streetLight = SavePrefab(StreetLight(lib));
                 lib.curveSign = SavePrefab(CurveSign(lib, false));
                 lib.curveSignLeft = SavePrefab(CurveSign(lib, true));
+                lib.sheep = SavePrefab(Sheep());
             }
         }
 
@@ -318,6 +319,56 @@ namespace Rally.EditorTools
             col.height = h;
             col.center = new Vector3(0f, h * 0.5f, 0f);
             return go;
+        }
+
+        /// <summary>
+        /// Sheep for the coastal stage's road crossings: woolly body, dark face and ears, and four legs as separate
+        /// children pivoting at the hip so <see cref="Rally.Track.Sheep"/> can swing them while it walks.
+        /// </summary>
+        private static GameObject Sheep()
+        {
+            var wool = MaterialFactory.Opaque("Wool", new Color(0.93f, 0.91f, 0.86f), null, null, 0.08f, 0f, 1f, null, "Props");
+            var face = MaterialFactory.Opaque("SheepFace", new Color(0.13f, 0.12f, 0.11f), null, null, 0.2f, 0f, 1f, null, "Props");
+
+            var root = new GameObject("Sheep");
+            root.layer = 2; // Ignore Raycast: the chase camera doesn't jump in front of it
+
+            var bodyMb = new MeshBuilder();
+            bodyMb.Blob(0, new Vector3(0f, 0.78f, -0.05f), new Vector3(0.34f, 0.3f, 0.55f), 2, 0.12f, 91);
+            bodyMb.Blob(0, new Vector3(0f, 0.95f, 0.38f), new Vector3(0.2f, 0.17f, 0.18f), 1, 0.1f, 92); // wool on the neck
+            bodyMb.Blob(1, new Vector3(0f, 0.93f, 0.62f), new Vector3(0.12f, 0.14f, 0.2f), 1, 0.05f, 93);  // head
+            bodyMb.Box(1, new Vector3(0.14f, 1.02f, 0.56f), new Vector3(0.14f, 0.04f, 0.07f));            // ears
+            bodyMb.Box(1, new Vector3(-0.14f, 1.02f, 0.56f), new Vector3(0.14f, 0.04f, 0.07f));
+            var body = MeshObject("Body", SaveMesh(bodyMb.ToMesh("M_Sheep_Body")), wool, face);
+            body.transform.SetParent(root.transform, false);
+            body.layer = 2;
+
+            var legMb = new MeshBuilder();
+            legMb.Frustum(0, new Vector3(0f, -0.55f, 0f), 0.05f, 0.06f, 0.55f, 6);
+            Mesh legMesh = SaveMesh(legMb.ToMesh("M_Sheep_Leg"));
+            var legs = new Transform[4];
+            Vector3[] hips = { new Vector3(0.17f, 0.58f, 0.3f), new Vector3(-0.17f, 0.58f, 0.3f), new Vector3(0.17f, 0.58f, -0.35f), new Vector3(-0.17f, 0.58f, -0.35f) };
+            for (int i = 0; i < 4; i++)
+            {
+                var leg = MeshObject($"Leg{i}", legMesh, face);
+                leg.transform.SetParent(root.transform, false);
+                leg.transform.localPosition = hips[i];
+                leg.layer = 2;
+                legs[i] = leg.transform;
+            }
+
+            var col = root.AddComponent<BoxCollider>();
+            col.center = new Vector3(0f, 0.62f, 0.08f);
+            col.size = new Vector3(0.6f, 0.75f, 1.35f);
+            root.AddComponent<Rigidbody>();
+            var sheep = root.AddComponent<Rally.Track.Sheep>();
+            var so = new SerializedObject(sheep);
+            so.FindProperty("body").objectReferenceValue = body.transform;
+            var legsProp = so.FindProperty("legs");
+            legsProp.arraySize = 4;
+            for (int i = 0; i < 4; i++) legsProp.GetArrayElementAtIndex(i).objectReferenceValue = legs[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return root;
         }
 
         /// <summary>Curve warning sign on a post; the front (+z) faces approaching drivers.</summary>

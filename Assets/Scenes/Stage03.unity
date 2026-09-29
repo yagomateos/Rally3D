@@ -48150,7 +48150,7 @@ MonoBehaviour:
   height: 1.75
   lookHeight: 0.95
   lookAhead: 2.5
-  extraDistanceAtSpeed: 1.3
+  extraDistanceAtSpeed: 0.6
   speedForEffects: 44
   driftDistanceFactor: 0.9
   velocityYawBias: 0.45
@@ -48158,7 +48158,7 @@ MonoBehaviour:
   heightSmoothTime: 0.28
   positionSharpness: 11
   baseFov: 58
-  maxFov: 74
+  maxFov: 66
   fovSharpness: 3
   maxRoll: 3.5
   rollFromYawRate: 1.6
@@ -95463,9 +95463,9 @@ MonoBehaviour:
   carsRootName: Cars
   maxEffectKph: 180
   distortionStartKph: 100
-  vignetteIntensity: {x: 0.2, y: 0.38}
+  vignetteIntensity: {x: 0.2, y: 0.3}
   motionBlurIntensity: {x: 0.05, y: 0.3}
-  maxLensDistortion: -0.25
+  maxLensDistortion: -0.12
   smoothing: 3
 --- !u!114 &2091525422
 MonoBehaviour:

@@ -17,9 +17,9 @@ MonoBehaviour:
     grip: 0.93
     rollingResistance: 7
     bumpiness: 0.3
-    dustAmount: 1.7
+    dustAmount: 1.3
     dustColor: {r: 0.86, g: 0.73, b: 0.53, a: 1}
-    dustSize: 1.5
+    dustSize: 1.3
     debrisAmount: 0.4
     debrisColor: {r: 0.55, g: 0.43, b: 0.31, a: 1}
     rollingNoise: 0.55
@@ -29,7 +29,7 @@ MonoBehaviour:
     grip: 0.86
     rollingResistance: 8
     bumpiness: 0.55
-    dustAmount: 1.4
+    dustAmount: 1.1
     dustColor: {r: 0.78, g: 0.65, b: 0.49, a: 1}
     dustSize: 1.3
     debrisAmount: 1.2
@@ -41,9 +41,9 @@ MonoBehaviour:
     grip: 0.68
     rollingResistance: 22
     bumpiness: 0.2
-    dustAmount: 1.9
+    dustAmount: 1.5
     dustColor: {r: 0.92, g: 0.83, b: 0.66, a: 1}
-    dustSize: 1.6
+    dustSize: 1.4
     debrisAmount: 0.7
     debrisColor: {r: 0.86, g: 0.73, b: 0.53, a: 1}
     rollingNoise: 0.4
@@ -53,7 +53,7 @@ MonoBehaviour:
     grip: 1.2
     rollingResistance: 2.8
     bumpiness: 0.12
-    dustAmount: 0.45
+    dustAmount: 0.35
     dustColor: {r: 0.86, g: 0.73, b: 0.53, a: 1}
     dustSize: 1
     debrisAmount: 0
@@ -65,9 +65,9 @@ MonoBehaviour:
     grip: 0.55
     rollingResistance: 30
     bumpiness: 0.35
-    dustAmount: 2
+    dustAmount: 1.6
     dustColor: {r: 0.92, g: 0.83, b: 0.66, a: 1}
-    dustSize: 1.7
+    dustSize: 1.5
     debrisAmount: 0.7
     debrisColor: {r: 0.86, g: 0.73, b: 0.53, a: 1}
     rollingNoise: 0.4

@@ -27,9 +27,9 @@ namespace Rally.VFX
         [SerializeField] private float distortionStartKph = 100f;
 
         [Header("Targets (x = stopped, y = max speed)")]
-        [SerializeField] private Vector2 vignetteIntensity = new Vector2(0.2f, 0.38f);
+        [SerializeField] private Vector2 vignetteIntensity = new Vector2(0.2f, 0.3f);
         [SerializeField] private Vector2 motionBlurIntensity = new Vector2(0.05f, 0.3f);
-        [SerializeField, Range(-1f, 0f)] private float maxLensDistortion = -0.25f;
+        [SerializeField, Range(-1f, 0f)] private float maxLensDistortion = -0.12f;
 
         [Tooltip("How quickly effects follow the speed (higher = snappier).")]
         [SerializeField] private float smoothing = 3f;

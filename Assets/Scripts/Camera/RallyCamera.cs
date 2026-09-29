@@ -21,7 +21,9 @@ namespace Rally.CameraSystem
         [SerializeField] private float height = 1.75f;
         [SerializeField] private float lookHeight = 0.95f;
         [SerializeField] private float lookAhead = 2.5f;
-        [SerializeField] private float extraDistanceAtSpeed = 1.3f;
+        [SerializeField] private float extraDistanceAtSpeed = 0.6f;
+        [Tooltip("Extra camera height at top speed, so the view tilts down onto the road instead of skimming it.")]
+        [SerializeField] private float extraHeightAtSpeed = 0.5f;
         [SerializeField] private float speedForEffects = 44f;
         [SerializeField] private float driftDistanceFactor = 0.9f;
         [SerializeField, Range(0f, 1f)] private float velocityYawBias = 0.45f;
@@ -31,7 +33,7 @@ namespace Rally.CameraSystem
 
         [Header("Lens")]
         [SerializeField] private float baseFov = 58f;
-        [SerializeField] private float maxFov = 74f;
+        [SerializeField] private float maxFov = 66f; // 74 made the car and road look far away at speed
         [SerializeField] private float fovSharpness = 3f;
 
         [Header("Motion")]
@@ -183,7 +185,8 @@ namespace Rally.CameraSystem
             Quaternion yawRot = Quaternion.Euler(0f, yaw, 0f);
             Vector3 carPos = new Vector3(t.position.x, smoothedHeight, t.position.z);
             Vector3 pivot = carPos + Vector3.up * lookHeight;
-            Vector3 desired = pivot - yawRot * Vector3.forward * currentDistance + Vector3.up * (height * far - lookHeight);
+            Vector3 desired = pivot - yawRot * Vector3.forward * currentDistance
+                + Vector3.up * (height * far - lookHeight + extraHeightAtSpeed * speed01 * speed01);
 
             desired = ResolveCollision(pivot, desired);
 

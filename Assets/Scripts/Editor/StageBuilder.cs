@@ -243,6 +243,8 @@ namespace Rally.EditorTools
             FogZoneBuilder.Build(def, path);
             FogZoneBuilder.EnsureController();
 
+            if (coast && lib.sheep != null) AddSheepCrossings(path, lib.sheep.GetComponent<Sheep>());
+
             new GameObject("StageAudio").AddComponent<StageAudio>();
             new GameObject("HUD").AddComponent<RaceHUD>();
             new GameObject("Menus").AddComponent<StageMenus>();
@@ -352,6 +354,30 @@ namespace Rally.EditorTools
             Vector3 back = target.transform.position - target.transform.forward * 6f + Vector3.up * 2f;
             go.transform.SetPositionAndRotation(back, Quaternion.LookRotation(target.transform.position - back));
             return rally;
+        }
+
+        /// <summary>
+        /// Coastal stage: where a sheep may cross. Only on straight-ish stretches (it must be visible from far enough
+        /// to react), at least 380 m apart, away from the start and the finish.
+        /// </summary>
+        private static void AddSheepCrossings(TrackPath path, Sheep prefab)
+        {
+            var points = new List<float>();
+            float last = float.NegativeInfinity;
+            for (float d = path.StartDistance + 300f; d < path.FinishDistance - 250f; d += 10f)
+            {
+                if (d - last < 380f) continue;
+                // The road may bend less than 20° over the 100 m before the crossing (and 20 m past it), so the
+                // sheep is in view early enough to brake or steer round it.
+                Vector3 before = path.TangentAt(d - 100f), after = path.TangentAt(d + 20f);
+                float bend = Vector3.Angle(new Vector3(before.x, 0f, before.z), new Vector3(after.x, 0f, after.z));
+                if (bend > 20f) continue;
+                points.Add(d);
+                last = d;
+            }
+            var go = new GameObject("SheepCrossing");
+            go.AddComponent<SheepCrossing>().Configure(prefab, points.ToArray());
+            Debug.Log($"[Rally] {points.Count} sheep crossing points.");
         }
 
         /// <summary>Coastal stage: a sea plane out to the horizon, below the lowest point of the road.</summary>

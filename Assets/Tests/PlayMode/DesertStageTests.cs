@@ -36,7 +36,8 @@ namespace Rally.Tests
             var loose = sand.Get(SurfaceType.Grass);
             Assert.Less(loose.grip, piste.grip * 0.7f, "Loose sand off the road should have much less traction.");
             Assert.Greater(loose.rollingResistance, piste.rollingResistance * 3f, "Loose sand should drag.");
-            Assert.Greater(piste.dustAmount, 1.5f, "Dense dust behind the cars on the piste.");
+            Assert.Greater(piste.dustAmount, 1.1f, "More dust than stage 1's dirt behind the cars on the piste.");
+            Assert.Less(piste.dustAmount, 1.5f, "But not so much that it hides the road (reduced after playtesting).");
 
             var weather = Object.FindFirstObjectByType<Rally.VFX.WeatherEffects>();
             Assert.IsNotNull(weather, "No weather effects.");

@@ -120,7 +120,8 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Golpes y empuje a baja velocidad entre coches.
 - Menú principal, elección de coche, opciones, pausa con salir al menú / salir del juego.
 - Motor sintetizado (`ProceduralAudio`): el usuario **prefirió volver a él** en lugar de las grabaciones CC0.
-- Controles de móvil y 19 tests (18 PlayMode + 1 EditMode) más una medición *Explicit*.
+- Ovejas que cruzan en la costera (`SheepCrossing`/`Sheep`); el daño de choque escala con la masa del objeto golpeado.
+- Controles de móvil y 20 tests (19 PlayMode + 1 EditMode) más una medición *Explicit*.
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

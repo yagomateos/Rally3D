@@ -28,7 +28,7 @@ namespace Rally.EditorTools
         public GameObject markerPole, chevronSign, chevronSignLeft, tapePost, hayBale, tyreStack, logPile, fenceSegment;
 
         // Coastal stage only
-        public GameObject streetLight, curveSign, curveSignLeft;
+        public GameObject streetLight, curveSign, curveSignLeft, sheep;
         public Material lampGlow, curveSignFace;
     }
 }

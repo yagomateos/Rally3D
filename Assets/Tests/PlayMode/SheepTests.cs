@@ -1,0 +1,68 @@
+using System.Collections;
+using NUnit.Framework;
+using Rally.Car;
+using Rally.Systems;
+using Rally.Track;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+
+namespace Rally.Tests
+{
+    /// <summary>
+    /// QA-17: sheep on the coastal stage. It walks across the road, bleats with 3D sound, and when the player's car
+    /// hits it at speed it is knocked away screaming, while the car keeps most of its speed and takes little damage.
+    /// </summary>
+    public class SheepTests
+    {
+        [UnityTest]
+        public IEnumerator QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit()
+        {
+            yield return SceneManager.LoadSceneAsync("Stage04", LoadSceneMode.Single);
+            float t = 0f;
+            while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            var race = RaceManager.Instance;
+            Assert.IsNotNull(race?.Player, "Stage04 did not initialise a player.");
+
+            var crossing = Object.FindFirstObjectByType<SheepCrossing>();
+            Assert.IsNotNull(crossing, "The coastal stage needs sheep crossings.");
+            Assert.GreaterOrEqual(crossing.CrossingPoints.Count, 2, "At least two places where a sheep may cross.");
+
+            race.BeginCountdown();
+            t = 0f;
+            while (race.CurrentState != RaceManager.State.Racing && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+
+            // It walks across and bleats.
+            var player = race.Player;
+            float at = player.Distance + 60f;
+            var sheep = crossing.SpawnAt(at, 1);
+            Assert.IsNotNull(sheep);
+            var voice = sheep.GetComponent<AudioSource>();
+            Assert.IsNotNull(voice, "The sheep needs a voice.");
+            Assert.AreEqual(1f, voice.spatialBlend, "Bleats are 3D: only heard when close.");
+            float startOffset = race.Path.LateralOffset(sheep.transform.position, at);
+            yield return new WaitForSeconds(2f);
+            Assert.IsTrue(sheep.IsWalking);
+            float offset = race.Path.LateralOffset(sheep.transform.position, at);
+            Assert.Greater(Mathf.Abs(offset - startOffset), 1.3f, "The sheep should be walking across the road.");
+
+            // A car hits it at ~75 km/h.
+            var car = player.Car;
+            Vector3 forward = race.Path.TangentAt(player.Distance);
+            sheep.transform.position = car.Body.position + forward * 14f + Vector3.up * 0.1f;
+            sheep.GetComponent<Rigidbody>().position = sheep.transform.position;
+            car.Body.linearVelocity = forward * 21f;
+            t = 0f;
+            while (!sheep.WasHit && t < 3f) { t += Time.deltaTime; yield return new WaitForFixedUpdate(); }
+            Assert.IsTrue(sheep.WasHit, "The car should have hit the sheep.");
+            yield return new WaitForSeconds(0.3f);
+
+            float carSpeed = car.Body.linearVelocity.magnitude;
+            float damage = car.GetComponent<CarDamage>() != null ? car.GetComponent<CarDamage>().Damage01 : 0f;
+            Debug.Log($"[QA17] car speed after the hit {carSpeed * 3.6f:0} km/h, damage {damage:0.00}");
+            Assert.Greater(carSpeed, 12f, "A 70 kg sheep must not stop the car dead.");
+            Assert.Less(damage, 0.25f, "Hitting a sheep should only dent the car a little.");
+            Assert.Greater(sheep.GetComponent<Rigidbody>().linearVelocity.magnitude, 5f, "The sheep should be knocked away.");
+        }
+    }
+}
