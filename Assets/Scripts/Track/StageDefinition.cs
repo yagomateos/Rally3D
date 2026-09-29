@@ -46,10 +46,14 @@ namespace Rally.Track
         [Header("Look & rules")]
         [Tooltip("Line under the stage name on the title card and in the stage list.")]
         public string description = "GRAVA · TIERRA · BARRO · ASFALTO   ·   NUBLADO, MOJADO";
-        [Tooltip("0 = pine forest after rain. 1 = snow. 2 = desert (the builder makes each theme's own textures and materials).")]
+        [Tooltip("0 = pine forest after rain. 1 = snow. 2 = desert. 3 = coast at sunset (the builder makes each theme's own textures and materials).")]
         public int theme;
 
-        public const int ForestTheme = 0, SnowTheme = 1, DesertTheme = 2;
+        public const int ForestTheme = 0, SnowTheme = 1, DesertTheme = 2, CoastTheme = 3;
+
+        [Tooltip("Top speed of every car on this stage (the player's limiter and gearing, the rivals' speed plan). " +
+                 "Above 1 on the fast tarmac stage as a challenge.")]
+        [Range(1f, 1.3f)] public float topSpeedScale = 1f;
         [Tooltip("Grip / dust per surface for this stage. Empty = the table the cars were built with.")]
         public SurfaceDatabase surfaces;
 
@@ -151,6 +155,68 @@ namespace Rally.Track
                 TrackSegment.Straight(120, 12, G, O),          // finish straight
                 TrackSegment.Straight(115, 12, G, O),          // stop zone after the flying finish
             };
+        }
+
+        /// <summary>
+        /// Stage 4: coastal tarmac at sunset. All asphalt with high grip, long fast curves between the cliffs and
+        /// the sea, a fishing village, one hairpin and no jumps. Higher top speed for every car (the challenge).
+        /// Guard rails, street lights and curve warning signs are added by the builder for this theme.
+        /// </summary>
+        public void ResetToCoastStage()
+        {
+            const SurfaceType A = SurfaceType.Asphalt;
+            const RoadsideStyle O = RoadsideStyle.Open, V = RoadsideStyle.Village;
+
+            stageNumber = "TRAMO 04";
+            stageName = "COSTERA DE ASFALTO";
+            description = "ASFALTO · CURVAS RÁPIDAS · MÁS VELOCIDAD   ·   PUESTA DE SOL";
+            theme = CoastTheme;
+            topSpeedScale = 1.15f;
+            seed = 7043;
+            startPosition = new Vector2(180f, 140f);
+            startHeading = 10f;
+            hillAmplitude = 45f;
+            hillScale = 420f;
+            terrainMaxHeight = 220f;
+            maxRoadGradient = 0.09f; // smooth, fast tarmac
+
+            segments = new List<TrackSegment>
+            {
+                TrackSegment.Straight(120, 10, A, O),
+                TrackSegment.Turn(-35, 320, 9.5f, A, O),        // flat-out left
+                TrackSegment.Straight(130, 9.5f, A, O),
+                TrackSegment.Turn(50, 260, 9.5f, A, O),         // long fast right
+                TrackSegment.Straight(70, 9.5f, A, O),
+                TrackSegment.Turn(-70, 180, 9.5f, A, O),        // sweeping esses
+                TrackSegment.Turn(45, 220, 9.5f, A, O),
+                TrackSegment.Straight(140, 9.5f, A, O),
+                TrackSegment.Turn(-60, 150, 9, A, O),
+                TrackSegment.Straight(60, 9, A, O),
+                TrackSegment.Turn(-95, 110, 9, A, O),           // long medium left
+                TrackSegment.Straight(100, 8.5f, A, V),         // fishing village
+                TrackSegment.Turn(-40, 300, 8.5f, A, V),
+                TrackSegment.Straight(110, 8.5f, A, V),
+                TrackSegment.Turn(120, 60, 9, A, O),            // tightening right above the cliffs
+                TrackSegment.Straight(80, 9, A, O),
+                TrackSegment.Turn(55, 200, 9.5f, A, O),
+                TrackSegment.Turn(-45, 240, 9.5f, A, O),
+                TrackSegment.Straight(120, 9.5f, A, O),
+                TrackSegment.Turn(70, 140, 9, A, O),
+                TrackSegment.Straight(80, 9, A, O),
+                TrackSegment.Turn(-165, 28, 10, A, O),          // hairpin left
+                TrackSegment.Straight(100, 9.5f, A, O),
+                TrackSegment.Turn(40, 260, 10, A, O),
+                TrackSegment.Straight(120, 10, A, O),           // finish straight
+                TrackSegment.Straight(115, 10, A, O),           // stop zone after the flying finish
+            };
+        }
+
+        /// <summary>This stage's rules on a car's tuning copy (never on the shared asset).</summary>
+        public void ApplyToTuning(Rally.Car.CarTuning tuning)
+        {
+            if (topSpeedScale <= 1f) return;
+            tuning.maxSpeedKph *= topSpeedScale;
+            tuning.finalDrive /= topSpeedScale; // taller gearing so the engine can reach the higher limiter
         }
 
         public void ResetToDefaultStage()

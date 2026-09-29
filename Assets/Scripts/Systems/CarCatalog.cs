@@ -98,6 +98,7 @@ namespace Rally.Systems
             tuning.name = sharedTuning.name + CopySuffix;
             entry.modify(tuning);
             DifficultyData.ApplyToPlayer(tuning); // assists of the chosen difficulty level
+            if (race.Stage != null) race.Stage.ApplyToTuning(tuning); // e.g. the coastal stage's higher top speed
             controller.ApplyTuning(tuning);
             if (isCopy) UnityEngine.Object.Destroy(current);
         }

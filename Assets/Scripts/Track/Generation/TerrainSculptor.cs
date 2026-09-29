@@ -25,6 +25,11 @@ namespace Rally.Track.Generation
         public float Size { get; private set; }
         public float BaseHeight { get; private set; }
 
+        /// <summary>Coastal stage: direction (on the ground plane) towards the sea side of the map.</summary>
+        public static readonly Vector2 SeaDirection = new Vector2(Mathf.Cos(0.9f), Mathf.Sin(0.9f));
+        private const float CoastDrop = 75f;
+        private bool Coastal => def.theme == StageDefinition.CoastTheme;
+
         private float[,] coarseDistance;
         private int[,] coarseNearest;
         private float coarseCell;
@@ -55,11 +60,26 @@ namespace Rally.Track.Generation
             float d = RouteDistance(x, z);
             float mountainMask = Smooth(90f, 520f, d);
             float mountains = (Noise.Ridged(x / 420f, z / 420f, 4, seed + 9f) * 0.75f + 0.25f) * 120f * mountainMask;
+            float coast = 0f;
+            if (Coastal)
+            {
+                // Away from the road, the sea side of the map falls into the sea; the mountains stay inland.
+                float sea = SeaSide(x, z);
+                mountains *= 1f - sea;
+                coast = -CoastDrop * sea * Smooth(50f, 240f, d);
+            }
             // Gentle valley so the stage sits a little lower than its surroundings.
             float valley = (1f - Smooth(10f, 160f, d)) * -4f;
 
             float dunes = def.theme == StageDefinition.DesertTheme ? Dunes(x, z) * Smooth(35f, 170f, d) : 0f;
-            return BaseHeight + hills + detail + mountains + valley + dunes;
+            return BaseHeight + hills + detail + mountains + valley + dunes + coast;
+        }
+
+        /// <summary>0 inland .. 1 on the sea side of the map (coastal stage).</summary>
+        public float SeaSide(float x, float z)
+        {
+            Vector2 fromCentre = new Vector2(x - (Origin.x + Size * 0.5f), z - (Origin.z + Size * 0.5f));
+            return Smooth(-0.1f, 0.45f, Vector2.Dot(fromCentre, SeaDirection) / (Size * 0.5f));
         }
 
         private const float DuneWavelength = 110f;

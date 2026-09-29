@@ -123,9 +123,9 @@ namespace Rally.UI
             stageScreen = Screen("Stages", root, true);
             var t = stageScreen.transform;
             Title(t, "ELIGE TRAMO", new Vector2(120f, -80f));
-            // Compact cards so three stages plus DIFICULTAD and VOLVER fit a landscape phone (canvas ~966 high).
-            const float cardHeight = 140f, cardStep = 152f;
-            float y = -190f;
+            // Compact cards so four stages plus DIFICULTAD and VOLVER fit a landscape phone (canvas ~966 high).
+            const float cardHeight = 112f, cardStep = 120f;
+            float y = -180f;
             for (int i = 0; i < StageCatalog.Stages.Length; i++)
             {
                 int index = i;
@@ -138,14 +138,15 @@ namespace Rally.UI
                 var label = card.GetComponentInChildren<Text>();
                 label.alignment = TextAnchor.UpperLeft;
                 label.text = "";
-                UIFactory.Label("Number", card.transform, new Vector2(0f, 1f), new Vector2(24f, -10f), new Vector2(580f, 28f),
-                    stage.number + (i == StageCatalog.Current ? "   ·   AQUÍ" : ""), 21, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.75f)); // readable on the orange highlight too
-                UIFactory.Label("Name", card.transform, new Vector2(0f, 1f), new Vector2(24f, -36f), new Vector2(580f, 42f),
-                    stage.name, 33, TextAnchor.MiddleLeft, UIFactory.TextMain);
-                UIFactory.Label("Info", card.transform, new Vector2(0f, 1f), new Vector2(24f, -80f), new Vector2(580f, 26f),
-                    stage.description, 17, TextAnchor.MiddleLeft, UIFactory.TextDim, FontStyle.Normal);
-                UIFactory.Label("Best", card.transform, new Vector2(0f, 1f), new Vector2(24f, -106f), new Vector2(580f, 26f),
-                    "MEJOR TIEMPO  " + RaceManager.FormatTime(stage.BestTime), 19, TextAnchor.MiddleLeft, UIFactory.TextMain, FontStyle.Normal);
+                UIFactory.Label("Number", card.transform, new Vector2(0f, 1f), new Vector2(24f, -8f), new Vector2(300f, 26f),
+                    stage.number + (i == StageCatalog.Current ? "   ·   AQUÍ" : ""), 20, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.75f)); // readable on the orange highlight too
+                // Best time on the same top row, right-aligned, to keep the card short.
+                UIFactory.Label("Best", card.transform, new Vector2(0f, 1f), new Vector2(300f, -8f), new Vector2(296f, 26f),
+                    "MEJOR  " + RaceManager.FormatTime(stage.BestTime), 19, TextAnchor.MiddleRight, UIFactory.TextMain, FontStyle.Normal);
+                UIFactory.Label("Name", card.transform, new Vector2(0f, 1f), new Vector2(24f, -32f), new Vector2(580f, 40f),
+                    stage.name, 31, TextAnchor.MiddleLeft, UIFactory.TextMain);
+                UIFactory.Label("Info", card.transform, new Vector2(0f, 1f), new Vector2(24f, -74f), new Vector2(580f, 26f),
+                    stage.description, 16, TextAnchor.MiddleLeft, UIFactory.TextDim, FontStyle.Normal);
                 if (i == 0) firstStageButton = card;
                 y -= cardStep;
             }

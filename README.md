@@ -1,7 +1,7 @@
 # Rally 3D
 
-Tres tramos: **Tramo 01 «Pinar de Valdeniebla»** (tierra, pinar y lluvia), **Tramo 02 «Puerto de Peña Blanca»** (nieve y hielo)
-y **Tramo 03 «Dunas del Desierto»** (arena, rocas y calima).
+Cuatro tramos: **Tramo 01 «Pinar de Valdeniebla»** (tierra, pinar y lluvia), **Tramo 02 «Puerto de Peña Blanca»** (nieve y hielo),
+**Tramo 03 «Dunas del Desierto»** (arena, rocas y calima) y **Tramo 04 «Costera de Asfalto»** (asfalto rápido junto al mar, al atardecer).
 
 Prototipo de rally arcade-realista hecho con **Unity 6 (6000.0.84f1)**, **URP 17** y el **Input System**.
 Todo (terreno, carretera, texturas, árboles, decorado, coches, cielo y sonidos) se genera por código:
@@ -211,7 +211,31 @@ Ajustes del proyecto que ya vienen preparados para esto:
   - Sol alto y fuerte con sombras marcadas; niebla cálida suave (la mitad de visibilidad a unos 300 m).
   - Motas de polvo y bancos de calima en lugar de lluvia.
   - *Volume* con tonos cálidos: temperatura +16, más contraste y saturación, y *bloom* algo más fuerte.
-- **Menú:** las tarjetas de ELIGE TRAMO son más bajas para que los tres tramos, DIFICULTAD y VOLVER quepan en un móvil en horizontal.
+- **Menú:** las tarjetas de ELIGE TRAMO son más bajas para que los tramos, DIFICULTAD y VOLVER quepan en un móvil en horizontal.
+
+### Tramo 04: costera de asfalto
+![Tramo 04, Costera de Asfalto](docs/capturas/costera.jpg)
+
+- **Generación:** `Rally ▸ Build Coast Stage 04 (full)`, o `StageBuilder.BuildCoastFromCommandLine`. Sus archivos llevan el sufijo `_Coast`.
+- **Recorrido** de 3,48 km, todo en asfalto: curvas largas y rápidas (radios de 110 a 320 m),
+  un pueblo de pescadores, una curva a derechas que se cierra sobre el acantilado y una horquilla. Sin saltos.
+- **Mucho agarre** (`SurfaceDatabase_Coast`): asfalto nuevo 1,45 (el del pueblo del tramo 1 es 1,3).
+  Fuera de la carretera, matorral seco (0,7) y grava en las escapatorias (0,84).
+- **Velocidad máxima como reto:**
+  - `StageDefinition.topSpeedScale` = 1,15 solo en este tramo.
+  - Al coche del jugador (en su copia de ajustes) le sube el limitador de 185 a 213 km/h y le alarga el desarrollo para llegar.
+  - Los rivales planifican su velocidad punta un 15 % más alta.
+- **Guardarraíles:** en el lado del mar y en el exterior de cada curva, salvo en la salida y la llegada.
+- **Farolas:** una cada 60 m, en el lado de tierra, con la lámpara iluminada y *bloom*.
+  No llevan luces reales: decenas de luces irían demasiado lentas en la web.
+- **Señales de curva peligrosa:** unos 90 m antes de cada curva de radio menor de ~235 m,
+  a la derecha y con la flecha hacia el lado de la curva (8 en el tramo).
+- **Asfalto** con líneas pintadas (bordes blancos y línea central discontinua) y menos relieve y brillo que el asfalto viejo.
+- **Costa y puesta de sol:**
+  - Un lado del mapa baja hasta el mar, con acantilados de caliza; el mar queda siempre por debajo de la carretera.
+  - Sol bajo y anaranjado con sombras largas, cielo de atardecer y niebla ligera rosada.
+  - *Volume* cálido: temperatura +20, tinte rosado, más saturación y *bloom* para farolas y sol.
+- Pinos mediterráneos menos densos, para que se vean el mar y la carretera. Sin lluvia ni bancos de niebla.
 
 ### Sonido
 - Todos los sonidos son **sintetizados por código** (`ProceduralAudio`): motor, turbo, neumáticos, viento, golpes y ambiente.
@@ -302,11 +326,12 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA10_SnowStage_UsesSnowGripForCarsAndAI` | El tramo de nieve carga con su tabla de agarre en todos los coches y en la IA, el hielo resbala y hay 3 saltos | ✅ |
 | `QA12_LowSpeedPushFromBehind_MovesRivalSmoothly` | Empujando por detrás a un rival a 5 km/h, este pasa de 12 km/h, no sale volando y no se sube encima | ✅ |
 | `QA13_LookBack_TurnsCameraRoundSmoothlyAndBack` | Al mantener ATRÁS la cámara mira hacia atrás, vuelve al soltar y nunca gira más de 45° en un fotograma | ✅ |
-| `QA14_Terrain_StaysBelowTheRoad` (tramos 01, 02 y 03) | El terreno no asoma por encima de la carretera en ~14.000–17.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
+| `QA14_Terrain_StaysBelowTheRoad` (los cuatro tramos) | El terreno no asoma por encima de la carretera en ~14.000–17.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
+| `QA16_CoastStage_FastTarmacWithRailsLightsAndSigns` | Todo asfalto con agarre ≥ 1,4; limitador del jugador por encima de 200 km/h; señales de curva, farolas y guardarraíles; el mar por debajo de la carretera; sin lluvia ni saltos | ✅ |
 | `QA15_DesertStage_UsesSandGripAndLooseSandOffRoad` | El desierto carga su tabla en coches e IA; la arena suelta agarra mucho menos y frena más; hay polvo denso, no llueve y hay 3 saltos | ✅ |
 | `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (17 en total: 16 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
+Se pasaron después de cada cambio (19 en total: 18 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.

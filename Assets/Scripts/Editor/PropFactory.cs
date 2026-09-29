@@ -282,6 +282,16 @@ namespace Rally.EditorTools
             lib.fenceSegment = SavePrefab(Fence(lib));
             for (int i = 0; i < 3; i++) lib.houses.Add(SavePrefab(House(i, lib)));
             for (int i = 0; i < 6; i++) lib.spectators.Add(SavePrefab(Spectator(i, lib)));
+
+            if (StageTheme.Coast)
+            {
+                // Glowing lamp heads, no real lights: dozens of point lights would be far too slow on the web.
+                lib.lampGlow = MaterialFactory.Emissive("LampGlow", new Color(1f, 0.86f, 0.62f), new Color(2.6f, 1.9f, 1.05f), "Props");
+                lib.curveSignFace = MaterialFactory.Cutout("CurveSign", Color.white, ProceduralTextures.CurveSign(), 0.5f, false, "Props", 0.3f);
+                lib.streetLight = SavePrefab(StreetLight(lib));
+                lib.curveSign = SavePrefab(CurveSign(lib, false));
+                lib.curveSignLeft = SavePrefab(CurveSign(lib, true));
+            }
         }
 
         private static GameObject MarkerPole(AssetLibrary lib)
@@ -291,6 +301,38 @@ namespace Rally.EditorTools
             mb.Box(1, new Vector3(0f, 1.0f, 0.05f), new Vector3(0.07f, 0.14f, 0.015f));
             mb.Box(1, new Vector3(0f, 1.0f, -0.05f), new Vector3(0.07f, 0.14f, 0.015f));
             return Build("MarkerPole", mb, lib.whitePaint, lib.redReflector);
+        }
+
+        /// <summary>Street light: pole, arm reaching towards the road (+z) and a glowing lamp head.</summary>
+        private static GameObject StreetLight(AssetLibrary lib)
+        {
+            var mb = new MeshBuilder();
+            const float h = 7f;
+            mb.Frustum(0, Vector3.zero, 0.1f, 0.06f, h, 8);
+            mb.Box(0, new Vector3(0f, h - 0.1f, 0.8f), new Vector3(0.07f, 0.07f, 1.6f));
+            mb.Box(0, new Vector3(0f, h - 0.1f, 1.55f), new Vector3(0.3f, 0.12f, 0.6f));
+            mb.Box(1, new Vector3(0f, h - 0.19f, 1.55f), new Vector3(0.24f, 0.04f, 0.5f));
+            var go = Build("StreetLight", mb, lib.darkMetal, lib.lampGlow);
+            var col = go.AddComponent<CapsuleCollider>();
+            col.radius = 0.12f;
+            col.height = h;
+            col.center = new Vector3(0f, h * 0.5f, 0f);
+            return go;
+        }
+
+        /// <summary>Curve warning sign on a post; the front (+z) faces approaching drivers.</summary>
+        private static GameObject CurveSign(AssetLibrary lib, bool pointsLeft)
+        {
+            var mb = new MeshBuilder();
+            mb.Box(0, new Vector3(0f, 1.1f, -0.03f), new Vector3(0.07f, 2.2f, 0.07f));
+            mb.QuadUV(1, new Vector3(0.5f, 1.6f, 0.01f), new Vector3(-0.5f, 1.6f, 0.01f),
+                new Vector3(-0.5f, 2.6f, 0.01f), new Vector3(0.5f, 2.6f, 0.01f), pointsLeft);
+            var go = Build(pointsLeft ? "CurveSign_Left" : "CurveSign_Right", mb, lib.darkMetal, lib.curveSignFace);
+            var col = go.AddComponent<CapsuleCollider>();
+            col.radius = 0.08f;
+            col.height = 2.6f;
+            col.center = new Vector3(0f, 1.3f, 0f);
+            return go;
         }
 
         private static GameObject ChevronSign(AssetLibrary lib, bool pointsLeft)

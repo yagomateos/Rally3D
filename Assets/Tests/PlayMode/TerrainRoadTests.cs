@@ -19,7 +19,7 @@ namespace Rally.Tests
         private const float Tolerance = 0.03f;
 
         [UnityTest]
-        public IEnumerator QA14_Terrain_StaysBelowTheRoad([Values("Stage01", "Stage02", "Stage03")] string scene)
+        public IEnumerator QA14_Terrain_StaysBelowTheRoad([Values("Stage01", "Stage02", "Stage03", "Stage04")] string scene)
         {
             yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
             float t = 0f;

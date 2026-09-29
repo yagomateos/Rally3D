@@ -26,5 +26,9 @@ namespace Rally.EditorTools
         public readonly List<GameObject> spectators = new List<GameObject>();
         public readonly List<GameObject> houses = new List<GameObject>();
         public GameObject markerPole, chevronSign, chevronSignLeft, tapePost, hayBale, tyreStack, logPile, fenceSegment;
+
+        // Coastal stage only
+        public GameObject streetLight, curveSign, curveSignLeft;
+        public Material lampGlow, curveSignFace;
     }
 }

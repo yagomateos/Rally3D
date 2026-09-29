@@ -187,5 +187,44 @@ namespace Rally.Systems
 
             return new[] { piste, hamada, softSand, tarmac, looseSand };
         }
+
+        /// <summary>
+        /// Coastal tarmac table: fresh, grippy asphalt (more than stage 1's village tarmac), a gravel run-off,
+        /// dusty verges and dry Mediterranean scrub off the road. Almost no dust on the tarmac.
+        /// </summary>
+        public static SurfaceProperties[] CreateCoast()
+        {
+            var verge = SurfaceProperties.Default;
+            verge.grip = 0.9f; verge.rollingResistance = 7f; verge.bumpiness = 0.35f;
+            verge.dustAmount = 0.8f; verge.dustColor = new Color(0.66f, 0.58f, 0.46f, 1f); verge.dustSize = 1f;
+
+            var runOff = SurfaceProperties.Default;
+            runOff.type = SurfaceType.Gravel;
+            runOff.grip = 0.84f; runOff.rollingResistance = 9f; runOff.bumpiness = 0.5f;
+            runOff.dustAmount = 1.2f; runOff.dustColor = new Color(0.7f, 0.68f, 0.63f, 1f); runOff.dustSize = 1.1f;
+            runOff.debrisAmount = 1.1f; runOff.debrisColor = new Color(0.55f, 0.53f, 0.5f, 1f);
+            runOff.rollingNoise = 0.85f; runOff.skidNoise = 0.7f; runOff.skidMarkOpacity = 0.4f;
+
+            var dryEarth = SurfaceProperties.Default;
+            dryEarth.type = SurfaceType.Mud;
+            dryEarth.grip = 0.78f; dryEarth.rollingResistance = 14f; dryEarth.bumpiness = 0.4f;
+            dryEarth.dustAmount = 0.9f; dryEarth.dustColor = new Color(0.6f, 0.5f, 0.38f, 1f); dryEarth.dustSize = 1f;
+
+            var tarmac = SurfaceProperties.Default;
+            tarmac.type = SurfaceType.Asphalt;
+            tarmac.grip = 1.45f; tarmac.rollingResistance = 2.3f; tarmac.bumpiness = 0.05f;
+            tarmac.dustAmount = 0.03f; tarmac.dustColor = new Color(0.6f, 0.6f, 0.6f, 1f); tarmac.dustSize = 0.6f;
+            tarmac.debrisAmount = 0f;
+            tarmac.rollingNoise = 0.2f; tarmac.skidNoise = 1f; tarmac.skidMarkOpacity = 0.75f;
+
+            var scrub = SurfaceProperties.Default;
+            scrub.type = SurfaceType.Grass;
+            scrub.grip = 0.7f; scrub.rollingResistance = 18f; scrub.bumpiness = 0.7f;
+            scrub.dustAmount = 0.6f; scrub.dustColor = new Color(0.58f, 0.52f, 0.38f, 1f); scrub.dustSize = 0.9f;
+            scrub.debrisAmount = 0.6f; scrub.debrisColor = new Color(0.35f, 0.33f, 0.2f, 1f);
+            scrub.rollingNoise = 0.45f; scrub.skidNoise = 0.3f; scrub.skidMarkOpacity = 0.35f;
+
+            return new[] { verge, runOff, dryEarth, tarmac, scrub };
+        }
     }
 }

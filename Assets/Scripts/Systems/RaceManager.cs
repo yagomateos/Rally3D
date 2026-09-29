@@ -228,7 +228,7 @@ namespace Rally.Systems
             foreach (var p in participants)
             {
                 var ai = p.GetComponent<AIDriver>();
-                if (ai != null && !p.IsPlayer) ai.ApplyDifficulty();
+                if (ai != null && !p.IsPlayer) ai.ApplyDifficulty(stage != null ? stage.topSpeedScale : 1f);
             }
             CarCatalog.Apply(this, CarCatalog.Selected);
 

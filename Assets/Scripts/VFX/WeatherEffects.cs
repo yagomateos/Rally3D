@@ -20,16 +20,20 @@ namespace Rally.VFX
         [SerializeField] private bool snow;
         [Tooltip("Calima instead of drizzle (the desert stage): no rain, warm dust hanging in the air and low haze.")]
         [SerializeField] private bool haze;
+        [Tooltip("Clear evening (the coastal stage): no rain and no fog banks, just a few specks of sea air in the light.")]
+        [SerializeField] private bool clear;
 
         private ParticleSystem motes, rain, wisps;
 
         /// <summary>Particle amount multiplier (lower on phones, see MobilePerformance).</summary>
         public static float Density { get; set; } = 1f;
 
-        public void Configure(Transform target, Material mote, Material rainMat, Material fogMat, bool snowfall = false, bool calima = false)
+        public void Configure(Transform target, Material mote, Material rainMat, Material fogMat, bool snowfall = false, bool calima = false,
+            bool clearSky = false)
         {
             snow = snowfall;
             haze = calima;
+            clear = clearSky;
             followTarget = target;
             moteMaterial = mote;
             drizzleMaterial = rainMat;
@@ -124,6 +128,13 @@ namespace Rally.VFX
                 wmain.startSize = new ParticleSystem.MinMaxCurve(18f, 32f);
                 wmain.startSpeed = 0.8f;
                 wemission.rateOverTime = fogWispsPerSecond * 1.5f * Density;
+            }
+            if (clear)
+            {
+                remission.rateOverTime = 0f;
+                wemission.rateOverTime = 0f;
+                main.startColor = new Color(1f, 0.85f, 0.7f, 0.3f);
+                emission.rateOverTime = motesPerSecond * 0.4f * Density;
             }
 
             foreach (var ps in new[] { motes, rain, wisps }) ps.Play();

@@ -21,6 +21,7 @@ namespace Rally.EditorTools
         private const int DetailResolution = 512;
         private const float GrassPerCellAt1024 = 12f;
         private const float DesertPlantDensity = 0.12f; // scattered cacti and scrub instead of a forest
+        private const float CoastPlantDensity = 0.45f;  // open Mediterranean pine woods: the sea and the road stay in view
         private const int SurfaceMapResolution = 512;
 
         public static void CreateLayers(AssetLibrary lib)
@@ -231,6 +232,7 @@ namespace Rally.EditorTools
                 else if (style == RoadsideStyle.Village) density = 0.06f;
                 else density = 0.1f;
                 if (StageTheme.Desert) density *= DesertPlantDensity;
+                if (StageTheme.Coast) density *= CoastPlantDensity;
                 // Natural clearings.
                 float clearing = Noise.Fbm(wx / 90f, wz / 90f, 2, 2f, 0.5f, 7f);
                 density *= Mathf.Clamp01(0.65f + clearing * 1.4f);
@@ -274,6 +276,7 @@ namespace Rally.EditorTools
                 float off = route.Widths[i] * 0.5f + 4f + (float)rng.NextDouble() * 10f;
                 Vector2 q = p + right * side * off;
                 Vector3 world = new Vector3(q.x, 0f, q.y);
+                world.y = terrain.SampleHeight(world) + terrain.transform.position.y;
                 if (sculptor.RouteDistance(q.x, q.y) < route.Widths[i] * 0.5f + 3.5f || blocked(world)) continue;
                 trees.Add(new TreeInstance
                 {

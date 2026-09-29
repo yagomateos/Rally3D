@@ -425,7 +425,8 @@ namespace Rally.EditorTools
                 {
                     bool village = route.Roadside[i] == RoadsideStyle.Village;
                     bool gap = (i / 25) % 4 == 3; // driveways
-                    if (!village || gap) { prevTop = null; continue; }
+                    bool coastalRail = !village && CoastalRail(i, side);
+                    if (!coastalRail && (!village || gap)) { prevTop = null; continue; }
 
                     float half = route.Widths[i] * 0.5f;
                     Vector3 p = Beside(i, side * (half + 1.3f));
@@ -452,6 +453,70 @@ namespace Rally.EditorTools
             railGo.AddComponent<MeshCollider>().sharedMesh = railMesh;
             var postGo = PropFactory.MeshObject("Posts", PropFactory.SaveMesh(posts.ToMesh("M_GuardRailPosts")), lib.darkMetal);
             postGo.transform.SetParent(parent, false);
+        }
+
+        /// <summary>
+        /// Coastal stage: rails on the sea side of the road and on the outside of every real corner, but not at
+        /// the start and finish areas (gantries, spectators).
+        /// </summary>
+        private bool CoastalRail(int i, float side)
+        {
+            if (!StageTheme.Coast) return false;
+            float along = i * route.Spacing;
+            if (along < def.startLineDistance + 60f || along > route.Length - def.finishLineOffset - 40f) return false;
+            Vector2 outward = Right(i) * side;
+            bool seaSide = Vector2.Dot(outward, TerrainSculptor.SeaDirection) > 0.25f;
+            float k = Curvature(i, 10);
+            bool outsideOfCorner = Mathf.Abs(k) > 1f / 400f && Mathf.Sign(k) == -side;
+            return seaSide || outsideOfCorner;
+        }
+
+        /// <summary>Coastal stage: street lights every 60 m on the inland side, lamp arm over the road.</summary>
+        public void PlaceStreetLights()
+        {
+            if (lib.streetLight == null) return;
+            var parent = Group("StreetLights");
+            for (int i = 20; i < route.Count - 20; i += 30)
+            {
+                float side = Vector2.Dot(Right(i), TerrainSculptor.SeaDirection) > 0f ? -1f : 1f; // inland
+                float half = route.Widths[i] * 0.5f;
+                Vector3 p = Beside(i, side * (half + 2.4f));
+                if (IsBlocked(p)) continue;
+                Vector3 toRoad = new Vector3(-Right(i).x, 0f, -Right(i).y) * side;
+                Place(lib.streetLight, p + Vector3.down * 0.1f, Quaternion.LookRotation(toRoad), parent).name = "StreetLight";
+                Reserve(p, 1.5f);
+            }
+        }
+
+        /// <summary>
+        /// Coastal stage: a curve warning sign about 90 m before every corner tighter than ~235 m radius, on the right
+        /// of the road, facing approaching drivers, arrow pointing the way the road bends.
+        /// </summary>
+        public int PlaceCurveSigns()
+        {
+            if (lib.curveSign == null) return 0;
+            var parent = Group("CurveSigns");
+            int placed = 0;
+            int i = 60;
+            while (i < route.Count - 10)
+            {
+                float k = Curvature(i);
+                if (Mathf.Abs(k) < 1f / 235f) { i++; continue; }
+                float sign = Mathf.Sign(k);
+                int signAt = Mathf.Max(5, i - 45);
+                float half = route.Widths[signAt] * 0.5f;
+                Vector3 p = Beside(signAt, half + 2f);
+                if (!IsBlocked(p))
+                {
+                    Place(sign < 0f ? lib.curveSignLeft : lib.curveSign, p, Quaternion.LookRotation(-Tangent3(signAt)), parent).name = "CurveSign";
+                    Reserve(p, 1.5f);
+                    placed++;
+                }
+                // Skip to the end of this corner.
+                while (i < route.Count - 10 && Mathf.Abs(Curvature(i)) > 1f / 300f && Mathf.Sign(Curvature(i)) == sign) i++;
+                i += 20;
+            }
+            return placed;
         }
 
         public void BuildVillage()

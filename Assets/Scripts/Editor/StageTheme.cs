@@ -8,16 +8,18 @@ namespace Rally.EditorTools
     /// overwritten) and generated textures are recoloured for winter: snow on the ground, packed snow on the road,
     /// ice instead of tarmac, slush instead of mud and snow on the pine needles and roofs.
     /// <see cref="Kind.Desert"/> works the same way with a "_Desert" suffix: sand dunes, packed-sand tracks,
-    /// red sandstone, sun-faded tarmac, cactus-green "needles" and dry leaves.
+    /// red sandstone, sun-faded tarmac, cactus-green "needles" and dry leaves. <see cref="Kind.Coast"/> ("_Coast"):
+    /// dry Mediterranean grass, pale limestone, dark fresh tarmac with painted lines and whitewashed walls.
     /// </summary>
     public static class StageTheme
     {
-        public enum Kind { Forest = 0, Snow = 1, Desert = 2 }
+        public enum Kind { Forest = 0, Snow = 1, Desert = 2, Coast = 3 }
 
         public static Kind Current { get; set; } = Kind.Forest;
         public static bool Snow => Current == Kind.Snow;
         public static bool Desert => Current == Kind.Desert;
-        private static string Suffix => Snow ? "_Snow" : Desert ? "_Desert" : "";
+        public static bool Coast => Current == Kind.Coast;
+        private static string Suffix => Snow ? "_Snow" : Desert ? "_Desert" : Coast ? "_Coast" : "";
 
         /// <summary>Asset name for the current theme ("Road_Dirt" → "Road_Dirt_Snow" in the snow build).</summary>
         public static string Name(string baseName) =>
@@ -37,6 +39,7 @@ namespace Rally.EditorTools
         public static Color Recolor(string texture, Color c, float u, float v)
         {
             if (Desert) return RecolorDesert(texture, c, u, v);
+            if (Coast) return RecolorCoast(texture, c, u, v);
             if (!Snow) return c;
             float lum = Luminance(c);
             switch (texture)
@@ -85,6 +88,50 @@ namespace Rally.EditorTools
         private static readonly Color SandShadow = new Color(0.74f, 0.57f, 0.38f);
         private static readonly Color SandLight = new Color(0.93f, 0.8f, 0.6f);
         private static Color SandColor(float detail) => Color.Lerp(SandShadow, SandLight, Mathf.Clamp01(detail));
+
+        /// <summary>Coastal version of one albedo pixel (the asphalt also gets its painted lines here).</summary>
+        private static Color RecolorCoast(string texture, Color c, float u, float v)
+        {
+            float lum = Luminance(c);
+            switch (texture)
+            {
+                case "T_Grass":
+                case "T_Meadow":
+                    return Keep(Color.Lerp(c, new Color(0.62f, 0.6f, 0.36f), 0.55f), c.a); // sun-dried grass
+                case "T_ForestFloor":
+                    return Keep(Color.Lerp(c, new Color(0.46f, 0.38f, 0.26f), 0.45f), c.a); // pine-needle litter
+                case "T_Rock":
+                    return Keep(new Color(0.74f, 0.7f, 0.62f) * (0.6f + 0.7f * lum), c.a); // limestone cliffs
+                case "T_Gravel":
+                case "T_Road_Gravel":
+                    return Keep(Color.Lerp(c, new Color(0.7f, 0.68f, 0.64f), 0.5f), c.a);
+                case "T_Mud":
+                case "T_Road_Mud":
+                    return Keep(Color.Lerp(c, new Color(0.56f, 0.46f, 0.34f), 0.6f), c.a); // dry earth
+                case "T_VergeDirt":
+                case "T_Road_Dirt":
+                    return Keep(Color.Lerp(c, new Color(0.62f, 0.54f, 0.42f), 0.5f), c.a);
+                case "T_Road_Asphalt":
+                    return RoadLines(Keep(new Color(0.19f, 0.19f, 0.2f) * (0.75f + 0.55f * lum), c.a), u, v);
+                case "T_Needles":
+                    return Keep(Color.Lerp(c, new Color(0.24f, 0.34f, 0.2f), 0.4f), c.a); // Mediterranean pines
+                case "T_Plaster":
+                    return Keep(new Color(0.94f, 0.92f, 0.87f) * (0.9f + 0.15f * lum), c.a); // whitewashed walls
+            }
+            return c;
+        }
+
+        /// <summary>
+        /// White edge lines and a dashed centre line. u runs across the road (0..1 edge to edge), v along it
+        /// (one texture length = 9 m, so the dash is 4.5 m on, 4.5 m off).
+        /// </summary>
+        private static Color RoadLines(Color c, float u, float v)
+        {
+            var paint = new Color(0.9f, 0.9f, 0.86f, c.a);
+            bool edge = (u > 0.035f && u < 0.06f) || (u > 0.94f && u < 0.965f);
+            bool centre = Mathf.Abs(u - 0.5f) < 0.012f && v < 0.5f;
+            return edge || centre ? paint : c;
+        }
 
         /// <summary>Desert version of one albedo pixel: the original detail survives as shading.</summary>
         private static Color RecolorDesert(string texture, Color c, float u, float v)

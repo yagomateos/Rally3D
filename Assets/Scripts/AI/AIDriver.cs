@@ -60,12 +60,15 @@ namespace Rally.AI
         // This rival's own values, as authored; difficulty multipliers are applied to these, never compounded.
         private float baseSkill, baseTopSpeed, baseMistakes, baseNoise, basePower;
 
-        /// <summary>Scales this rival's skill for the chosen difficulty (called when the countdown starts).</summary>
-        public void ApplyDifficulty()
+        /// <summary>
+        /// Scales this rival's skill for the chosen difficulty (called when the countdown starts). <paramref name="stageTopSpeed"/>
+        /// is the stage's top speed rule (the fast tarmac stage raises it for every car).
+        /// </summary>
+        public void ApplyDifficulty(float stageTopSpeed = 1f)
         {
             var l = DifficultyData.Current;
             corneringSkill = baseSkill * l.corneringSkill;
-            topSpeedKph = baseTopSpeed * l.topSpeed;
+            topSpeedKph = baseTopSpeed * l.topSpeed * stageTopSpeed;
             mistakeChance = Mathf.Clamp01(baseMistakes * l.mistakes);
             steeringNoise = Mathf.Clamp01(baseNoise * l.steeringNoise);
             car.PowerMultiplier = basePower * l.power;

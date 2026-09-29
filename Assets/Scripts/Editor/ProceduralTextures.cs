@@ -264,6 +264,93 @@ namespace Rally.EditorTools
             return tex;
         }
 
+        /// <summary>
+        /// Curve warning sign: white triangle with a red border and a black arrow bending right (mirrored with the
+        /// UVs for left-hand curves). Transparent outside the triangle (cut-out material).
+        /// </summary>
+        public static Texture2D CurveSign()
+        {
+            const int size = 256;
+            var px = new Color[size * size];
+            Vector2 top = new Vector2(0.5f, 0.95f), left = new Vector2(0.05f, 0.14f), right = new Vector2(0.95f, 0.14f);
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                var p = new Vector2((x + 0.5f) / size, (y + 0.5f) / size);
+                float inside = Mathf.Min(EdgeDistance(p, left, right), Mathf.Min(EdgeDistance(p, right, top), EdgeDistance(p, top, left)));
+                Color c;
+                if (inside < 0f) c = new Color(0.5f, 0.5f, 0.5f, 0f);
+                else if (inside < 0.085f) c = new Color(0.78f, 0.06f, 0.05f, 1f);
+                else
+                {
+                    bool stem = Mathf.Abs(p.x - 0.42f) < 0.035f && p.y > 0.26f && p.y < 0.46f;
+                    bool arc = Mathf.Abs(Vector2.Distance(p, new Vector2(0.62f, 0.45f)) - 0.2f) < 0.035f && p.x < 0.62f && p.y > 0.45f;
+                    bool head = p.x >= 0.6f && p.x <= 0.75f && Mathf.Abs(p.y - 0.65f) < (0.75f - p.x) * 0.65f;
+                    c = stem || arc || head ? new Color(0.05f, 0.05f, 0.05f, 1f) : new Color(0.95f, 0.95f, 0.93f, 1f);
+                }
+                px[y * size + x] = c;
+            }
+            return TextureBaker.Save("T_CurveSign", size, size, px, TextureBaker.Kind.AlphaSprite, TextureWrapMode.Clamp, TextureWrapMode.Clamp, 256);
+        }
+
+        /// <summary>Signed distance from p to the edge a→b (positive on the inner side of a counter-clockwise triangle).</summary>
+        private static float EdgeDistance(Vector2 p, Vector2 a, Vector2 b)
+        {
+            Vector2 e = b - a;
+            return (e.x * (p.y - a.y) - e.y * (p.x - a.x)) / e.magnitude;
+        }
+
+        /// <summary>
+        /// Sunset sky: deep violet-blue overhead through pink to a glowing orange band at the horizon, a large low
+        /// sun and a few lit streaks of cloud.
+        /// </summary>
+        public static Texture2D SunsetSky()
+        {
+            const int w = 1024, h = 512;
+            var px = new Color[w * h];
+            Color zenith = new Color(0.2f, 0.24f, 0.46f);
+            Color mid = new Color(0.72f, 0.46f, 0.52f);
+            Color glow = new Color(1f, 0.62f, 0.3f);
+            Color ground = new Color(0.28f, 0.22f, 0.24f);
+            Vector2 sun = new Vector2(0.62f, 0.545f);
+
+            for (int y = 0; y < h; y++)
+            {
+                float v = (y + 0.5f) / h;
+                float elevation = (v - 0.5f) * 2f;
+                for (int x = 0; x < w; x++)
+                {
+                    float u = (x + 0.5f) / w;
+                    float du = Mathf.Min(Mathf.Abs(u - sun.x), 1f - Mathf.Abs(u - sun.x));
+                    float toward = Mathf.Exp(-du * 4f); // the sky is hotter on the sun's side
+                    Color c;
+                    if (elevation < 0f)
+                    {
+                        c = Color.Lerp(Color.Lerp(mid, glow, toward * 0.6f), ground, S(0f, 0.2f, -elevation));
+                    }
+                    else
+                    {
+                        c = Color.Lerp(mid, zenith, S(0.08f, 0.75f, elevation));
+                        c = Color.Lerp(c, glow, (1f - S(0f, 0.22f, elevation)) * (0.45f + 0.55f * toward));
+
+                        float e = Mathf.Max(0.05f, elevation);
+                        float cy = Mathf.Log(1f / e + 1f) * 0.25f;
+                        float streak = Noise.TileFbm(u, (cy * 3f) % 1f, 6, 4, 0.5f, 321) * 0.5f + 0.5f;
+                        float cloud = S(0.58f, 0.78f, streak) * S(0.04f, 0.25f, elevation) * (1f - S(0.4f, 0.8f, elevation));
+                        Color lit = Color.Lerp(new Color(0.55f, 0.32f, 0.42f), new Color(1f, 0.7f, 0.45f), toward);
+                        c = Color.Lerp(c, lit, cloud * 0.7f);
+
+                        float d = Mathf.Sqrt(du * du * 4f + (v - sun.y) * (v - sun.y));
+                        c += new Color(1f, 0.72f, 0.4f) * (Mathf.Exp(-d * 6f) * 0.45f);
+                        c += new Color(1f, 0.9f, 0.7f) * (Mathf.Exp(-d * 60f) * 1.2f);
+                    }
+                    c.a = 1f;
+                    px[y * w + x] = c;
+                }
+            }
+            return TextureBaker.Save("T_Sky_Sunset", w, h, px, TextureBaker.Kind.Albedo, TextureWrapMode.Repeat, TextureWrapMode.Clamp, 2048);
+        }
+
         public static Texture2D Checker()
         {
             var (tex, _) = TextureBaker.Bake("T_Checker", 256, 64, (u, v) =>
