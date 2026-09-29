@@ -14,9 +14,12 @@ namespace Rally.EditorTools
     public static class TerrainBuilder
     {
         private const string Folder = "Assets/Art/Terrain";
-        private const int HeightmapResolution = 2049;
-        private const int AlphamapResolution = 1024;
-        private const int DetailResolution = 1024;
+        // Sized for the web download: each stage's terrain was 19.8 MB at 2049 / 1024 / 1024, most of the web build.
+        // The road is its own mesh, so ~2 m between height samples is enough (QA14 checks the terrain stays below it).
+        private const int HeightmapResolution = 1025;
+        private const int AlphamapResolution = 512;
+        private const int DetailResolution = 512;
+        private const float GrassPerCellAt1024 = 12f;
         private const int SurfaceMapResolution = 512;
 
         public static void CreateLayers(AssetLibrary lib)
@@ -98,8 +101,9 @@ namespace Rally.EditorTools
             terrain.detailObjectDensity = 1f;
             terrain.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
 
+            // No grass in the snow: it was nearly invisible there and cost a detail layer in the download.
             EditorUtility.DisplayProgressBar("Rally", "Growing grass", 0.5f);
-            PaintGrass(data, splat, route, sculptor, lib);
+            if (!StageTheme.Snow) PaintGrass(data, splat, route, sculptor, lib);
 
             var surfaceMap = go.AddComponent<TerrainSurfaceMap>();
             surfaceMap.SetData(SurfaceMapResolution, sculptor.Origin, sculptor.Size, BuildSurfaceMap(splat));
@@ -132,6 +136,8 @@ namespace Rally.EditorTools
 
             int res = DetailResolution;
             var layer = new int[res, res];
+            // Same blades per square metre whatever the detail resolution.
+            float perCell = GrassPerCellAt1024 * (1024f / res) * (1024f / res);
             int alphaRes = splat.GetLength(0);
             float cell = sculptor.Size / res;
             for (int z = 0; z < res; z++)
@@ -150,7 +156,7 @@ namespace Rally.EditorTools
                 int ax = Mathf.Min(alphaRes - 1, x * alphaRes / res), az = Mathf.Min(alphaRes - 1, z * alphaRes / res);
                 float green = splat[az, ax, (int)Layer.Grass] + splat[az, ax, (int)Layer.Meadow] * 1.2f + splat[az, ax, (int)Layer.ForestFloor] * 0.25f;
                 float n = Noise.Hash01(x, z, 99);
-                layer[z, x] = Mathf.FloorToInt(Mathf.Clamp01(green - 0.2f) * 12f * (0.5f + n));
+                layer[z, x] = Mathf.FloorToInt(Mathf.Clamp01(green - 0.2f) * perCell * (0.5f + n));
             }
             data.SetDetailLayer(0, 0, 0, layer);
         }

@@ -8,7 +8,7 @@ TerrainLayer:
   m_PrefabAsset: {fileID: 0}
   m_Name: TL_Gravel_Snow
   m_DiffuseTexture: {fileID: 2800000, guid: 2da1d287829bf4ee28460360825ce0d6, type: 3}
-  m_NormalMapTexture: {fileID: 2800000, guid: 41b8dcf942abc42788504a4bc90e3ff7, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: 16ece49767c48448a8f7eaf1a2b7c9fe, type: 3}
   m_MaskMapTexture: {fileID: 0}
   m_TileSize: {x: 3, y: 3}
   m_TileOffset: {x: 0, y: 0}

@@ -18,6 +18,7 @@ namespace Rally.EditorTools
             PlayerSettings.productName = "Rally 3D"; // several stages now; shown in the browser tab
             PlayerSettings.colorSpace = ColorSpace.Linear;
             PlayerSettings.runInBackground = true;
+            PlayerSettings.SplashScreen.show = false; // ~2.7 MB and ~2 s less before the web game starts
 
             Physics.defaultSolverIterations = 8;
             Physics.defaultSolverVelocityIterations = 2;

@@ -9,6 +9,7 @@ namespace Rally.EditorTools
     public static class TextureBaker
     {
         public const string Folder = "Assets/Art/Textures/Generated";
+        private const int WebNormalMaxSize = 512;
 
         public enum Kind { Albedo, Normal, AlphaSprite, Linear }
 
@@ -56,7 +57,9 @@ namespace Rally.EditorTools
                     recoloured[i] = StageTheme.Recolor(name, pixels[i], (i % width + 0.5f) / width, (i / width + 0.5f) / height);
                 pixels = recoloured;
             }
-            name = StageTheme.Name(name);
+            // Normal maps are the same in every theme, so all stages share one file instead of a "_Snow" copy.
+            // The PNG is rewritten in place, so its GUID (and every stage's reference to it) survives a rebuild.
+            if (kind != Kind.Normal) name = StageTheme.Name(name);
             var tex = new Texture2D(width, height, TextureFormat.RGBA32, false, kind != Kind.Albedo && kind != Kind.AlphaSprite);
             tex.SetPixels(pixels);
             tex.Apply();
@@ -77,6 +80,15 @@ namespace Rally.EditorTools
             importer.anisoLevel = 8;
             importer.maxTextureSize = maxSize;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            if (kind == Kind.Normal && Mathf.Max(width, height) > WebNormalMaxSize)
+            {
+                // Web download: large normal maps (the road's) at half size; the relief barely changes.
+                var web = importer.GetPlatformTextureSettings("WebGL");
+                web.overridden = true;
+                web.maxTextureSize = WebNormalMaxSize;
+                web.textureCompression = TextureImporterCompression.CompressedHQ;
+                importer.SetPlatformTextureSettings(web);
+            }
             importer.SaveAndReimport();
             return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }

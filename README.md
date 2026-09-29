@@ -269,9 +269,10 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA10_SnowStage_UsesSnowGripForCarsAndAI` | El tramo de nieve carga con su tabla de agarre en todos los coches y en la IA, el hielo resbala y hay 3 saltos | ✅ |
 | `QA12_LowSpeedPushFromBehind_MovesRivalSmoothly` | Empujando por detrás a un rival a 5 km/h, este pasa de 12 km/h, no sale volando y no se sube encima | ✅ |
 | `QA13_LookBack_TurnsCameraRoundSmoothlyAndBack` | Al mantener ATRÁS la cámara mira hacia atrás, vuelve al soltar y nunca gira más de 45° en un fotograma | ✅ |
+| `QA14_Terrain_StaysBelowTheRoad` (tramos 01 y 02) | El terreno no asoma por encima de la carretera en ~14.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
 | `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (13 en total: 12 de PlayMode y 1 de EditMode; el de medición solo se ejecuta a mano).
+Se pasaron después de cada cambio (15 en total: 14 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.
@@ -320,6 +321,26 @@ Por eso se compilaron aparte con el compilador de Unity (Roslyn), con los *defin
   - El plugin esperaba un permiso que Chrome para Android nunca concede antes de escuchar el sensor (código 32 en el diagnóstico).
   - El botón MANDO no se podía pulsar en la pantalla de título.
   - Solapes del HUD al traducir al castellano.
+
+### Tamaño y carga en la web
+Medido con el build anterior a los recortes, con la caché vacía:
+
+| Conexión | Hasta que el juego arranca |
+|---|---|
+| Red local | 10,9 s |
+| 20 Mbps | 23,6 s |
+| 10 Mbps | 44,3 s |
+
+El terreno de cada tramo ocupaba 19,8 MB, el 78 % del contenido. Recortes aplicados (en `TerrainBuilder`, `TextureBaker` y `ProjectSetup`):
+- **Terreno:** mapa de alturas de 2049 a 1025, pintura de 1024 a 512 y hierba de 1024 a 512 (misma densidad por m²).
+  Cada tramo pasa de **20 MB a 5,3 MB**. En la nieve ya no hay hierba (apenas se veía).
+- **Mapas de relieve (*normal maps*):** los dos tramos comparten el mismo archivo, porque eran idénticos
+  (se han borrado 19 copias `_N_Snow`). Los de la carretera van a 512 px solo en la versión web.
+- **Pantalla de inicio de Unity:** desactivada.
+
+`QA14` comprueba que el terreno, con menos resolución, sigue por debajo de la carretera. Con 1025 muestras asoma en 6 de ~27.000 puntos, como mucho 9 cm y en el borde de la calzada.
+Bajar más el lecho de la carretera lo evitaba, pero dejaba ver más el arcén y cambiaba el aspecto del tramo, así que se dejó como estaba.
+La descarga estimada baja de 51 MB a unos 33 MB. **Hipótesis a verificar** con el siguiente build.
 
 ### Pendiente de verificar en dispositivos reales
 - **iPhone / iPad:** no se ha probado el permiso de movimiento de Safari.
