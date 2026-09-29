@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 715230d731622402eb3d8142cdeb144e, type: 3}
+  m_Name: SurfaceDatabase
+  m_EditorClassIdentifier: 
+  surfaces:
+  - type: 0
+    grip: 1
+    rollingResistance: 6
+    bumpiness: 0.35
+    dustAmount: 1
+    dustColor: {r: 0.66, g: 0.56, b: 0.44, a: 1}
+    dustSize: 1
+    debrisAmount: 0.5
+    debrisColor: {r: 0.3, g: 0.24, b: 0.18, a: 1}
+    rollingNoise: 0.6
+    skidNoise: 0.6
+    skidMarkOpacity: 0.5
+  - type: 1
+    grip: 0.86
+    rollingResistance: 8
+    bumpiness: 0.5
+    dustAmount: 1.5
+    dustColor: {r: 0.72, g: 0.67, b: 0.58, a: 1}
+    dustSize: 1.3
+    debrisAmount: 1.2
+    debrisColor: {r: 0.42, g: 0.4, b: 0.37, a: 1}
+    rollingNoise: 0.85
+    skidNoise: 0.75
+    skidMarkOpacity: 0.45
+  - type: 2
+    grip: 0.62
+    rollingResistance: 30
+    bumpiness: 0.3
+    dustAmount: 0.15
+    dustColor: {r: 0.33, g: 0.27, b: 0.2, a: 1}
+    dustSize: 0.55
+    debrisAmount: 1.6
+    debrisColor: {r: 0.2, g: 0.15, b: 0.1, a: 1}
+    rollingNoise: 0.5
+    skidNoise: 0.35
+    skidMarkOpacity: 0.8
+  - type: 3
+    grip: 1.3
+    rollingResistance: 2.5
+    bumpiness: 0.08
+    dustAmount: 0.05
+    dustColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+    dustSize: 0.7
+    debrisAmount: 0
+    debrisColor: {r: 0.3, g: 0.24, b: 0.18, a: 1}
+    rollingNoise: 0.2
+    skidNoise: 1
+    skidMarkOpacity: 0.7
+  - type: 4
+    grip: 0.72
+    rollingResistance: 16
+    bumpiness: 0.7
+    dustAmount: 0.35
+    dustColor: {r: 0.45, g: 0.42, b: 0.32, a: 1}
+    dustSize: 0.8
+    debrisAmount: 0.6
+    debrisColor: {r: 0.22, g: 0.26, b: 0.14, a: 1}
+    rollingNoise: 0.45
+    skidNoise: 0.3
+    skidMarkOpacity: 0.35

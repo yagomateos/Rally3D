@@ -1,0 +1,282 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a979f905181e54afebd2e4945b9d0703, type: 3}
+  m_Name: Stage01
+  m_EditorClassIdentifier: 
+  stageNumber: TRAMO 01
+  stageName: PINAR DE VALDENIEBLA
+  seed: 1207
+  startPosition: {x: 180, y: 140}
+  startHeading: 0
+  sampleSpacing: 2
+  startLineDistance: 40
+  finishLineOffset: 130
+  checkpointCount: 10
+  segments:
+  - kind: 0
+    amount: 110
+    radius: 0
+    width: 11
+    surface: 1
+    roadside: 1
+    jumpHeight: 0
+  - kind: 1
+    amount: 30
+    radius: 260
+    width: 9
+    surface: 0
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 70
+    radius: 0
+    width: 9
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: -55
+    radius: 160
+    width: 9
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 0
+    amount: 50
+    radius: 0
+    width: 9
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: 85
+    radius: 60
+    width: 8.5
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 0
+    amount: 90
+    radius: 0
+    width: 8.5
+    surface: 0
+    roadside: 1
+    jumpHeight: 1.7
+  - kind: 1
+    amount: -40
+    radius: 110
+    width: 8
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: 45
+    radius: 100
+    width: 8
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: -35
+    radius: 120
+    width: 8
+    surface: 2
+    roadside: 0
+    jumpHeight: 0
+  - kind: 0
+    amount: 120
+    radius: 0
+    width: 8
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: -175
+    radius: 16
+    width: 9
+    surface: 0
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 60
+    radius: 0
+    width: 7.5
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: 55
+    radius: 70
+    width: 7
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: -60
+    radius: 60
+    width: 7
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 0
+    amount: 70
+    radius: 0
+    width: 7
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: 80
+    radius: 45
+    width: 7
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 0
+    amount: 45
+    radius: 0
+    width: 7
+    surface: 2
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: -30
+    radius: 150
+    width: 8
+    surface: 0
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 60
+    radius: 0
+    width: 8
+    surface: 3
+    roadside: 2
+    jumpHeight: 0
+  - kind: 1
+    amount: 60
+    radius: 90
+    width: 8
+    surface: 3
+    roadside: 2
+    jumpHeight: 0
+  - kind: 0
+    amount: 110
+    radius: 0
+    width: 8
+    surface: 3
+    roadside: 2
+    jumpHeight: 0
+  - kind: 1
+    amount: -70
+    radius: 80
+    width: 8
+    surface: 3
+    roadside: 2
+    jumpHeight: 0
+  - kind: 0
+    amount: 60
+    radius: 0
+    width: 8
+    surface: 3
+    roadside: 2
+    jumpHeight: 0
+  - kind: 1
+    amount: 35
+    radius: 180
+    width: 10
+    surface: 1
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 140
+    radius: 0
+    width: 10
+    surface: 1
+    roadside: 1
+    jumpHeight: 1.9
+  - kind: 1
+    amount: 75
+    radius: 60
+    width: 9.5
+    surface: 1
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 70
+    radius: 0
+    width: 9
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: -165
+    radius: 18
+    width: 9
+    surface: 0
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 70
+    radius: 0
+    width: 8
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: 50
+    radius: 90
+    width: 8
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 1
+    amount: -45
+    radius: 100
+    width: 8
+    surface: 0
+    roadside: 0
+    jumpHeight: 0
+  - kind: 0
+    amount: 70
+    radius: 0
+    width: 8.5
+    surface: 0
+    roadside: 1
+    jumpHeight: 1.5
+  - kind: 1
+    amount: 40
+    radius: 140
+    width: 9
+    surface: 1
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 120
+    radius: 0
+    width: 11
+    surface: 1
+    roadside: 1
+    jumpHeight: 0
+  - kind: 0
+    amount: 115
+    radius: 0
+    width: 11
+    surface: 1
+    roadside: 1
+    jumpHeight: 0
+  terrainMargin: 260
+  terrainMaxHeight: 220
+  hillAmplitude: 60
+  hillScale: 380
+  roadSmoothingDistance: 55
+  maxRoadGradient: 0.115

@@ -1,0 +1,115 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d80fca2a844f042e3a9fa4c9ed5c4034, type: 3}
+  m_Name: CarTuning
+  m_EditorClassIdentifier: 
+  mass: 1250
+  centerOfMassOffset: {x: 0, y: -0.12, z: 0.08}
+  aeroDrag: 0.42
+  downforce: 1.6
+  idleRpm: 900
+  maxRpm: 7600
+  peakTorque: 480
+  torqueCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.55
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.35
+      value: 0.88
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.62
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.85
+      value: 0.94
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.72
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  engineInertia: 0.35
+  engineBraking: 90
+  gearRatios:
+  - 3.3
+  - 2.25
+  - 1.7
+  - 1.36
+  - 1.12
+  - 0.94
+  reverseRatio: 3.2
+  finalDrive: 4.6
+  shiftUpRpm: 7100
+  shiftDownRpm: 3600
+  shiftTime: 0.18
+  drivetrainEfficiency: 0.88
+  rearTorqueBias: 0.58
+  maxReverseSpeedKph: 35
+  brakeTorque: 3400
+  frontBrakeBias: 0.62
+  handbrakeTorque: 5200
+  maxSteerAngle: 34
+  highSpeedSteerAngle: 11
+  steerAngleSpeedKph: 150
+  steerSpeed: 190
+  steerReturnSpeed: 260
+  wheelRadius: 0.34
+  wheelMass: 22
+  suspensionDistance: 0.24
+  spring: 38000
+  damper: 4200
+  targetPosition: 0.45
+  antiRollFront: 9000
+  antiRollRear: 6500
+  forwardStiffness: 1.35
+  sidewaysStiffness: 1.55
+  handbrakeRearGrip: 0.42
+  powerOversteerGrip: 0.86
+  yawStability: 1.6
+  driftSteerAssist: 0.9
+  maxYawRate: 2.4
+  airStabilization: 2.5
+  tractionControl: 0.35
+  maxSpeedKph: 185
