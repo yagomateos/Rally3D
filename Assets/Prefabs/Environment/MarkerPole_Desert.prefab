@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 1477623675516662321}
   - component: {fileID: 4359491839817699177}
   - component: {fileID: 685375167932971822}
+  - component: {fileID: 5419115971271424941}
+  - component: {fileID: 365750056025391106}
   m_Layer: 0
   m_Name: MarkerPole_Desert
   m_TagString: Untagged
@@ -87,3 +89,42 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!136 &5419115971271424941
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3029942072293984045}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.08
+  m_Height: 1.2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.6, z: 0}
+--- !u!114 &365750056025391106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3029942072293984045}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efbacf1e17ef449c08cffde57721d36b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mass: 6
+  carryFactor: 0.7
+  popUp: 3
+  hitVolume: 0.45

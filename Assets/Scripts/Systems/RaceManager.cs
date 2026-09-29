@@ -107,6 +107,7 @@ namespace Rally.Systems
         private void Awake()
         {
             Instance = this;
+            reloading = false;
             CurrentState = OpenMenuOnLoad ? State.Menu : State.Intro;
             OpenMenuOnLoad = false;
             Time.timeScale = 1f;
@@ -156,6 +157,7 @@ namespace Rally.Systems
                 }
             }
             standings.AddRange(participants);
+            MapBounds.Create(this); // invisible walls at the edge of the map (and back to the road from the sea)
             // The car picked in the main menu, also after "Repetir tramo" (which reloads the stage without the menu).
             CarCatalog.Apply(this, CarCatalog.Selected);
 
@@ -375,8 +377,14 @@ namespace Rally.Systems
             ReloadStage();
         }
 
+        // Set while a reload is on its way, so a button press seen twice (the focused REPETIR button and the Confirm
+        // key in the same frame) loads the stage once. Cleared when the new stage's manager wakes up.
+        private static bool reloading;
+
         private static void ReloadStage()
         {
+            if (reloading) return;
+            reloading = true;
             Time.timeScale = 1f;
             AudioListener.pause = false;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

@@ -84,7 +84,8 @@ namespace Rally.EditorTools
             var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             go.transform.SetPositionAndRotation(position, rotation);
             go.transform.localScale = Vector3.one * scale;
-            go.isStatic = true;
+            // Props that can be knocked flying must not be static-batched (their mesh would stay put when they move).
+            go.isStatic = go.GetComponent<Rally.Track.Knockable>() == null;
             return go;
         }
 

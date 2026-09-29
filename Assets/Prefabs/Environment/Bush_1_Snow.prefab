@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2218176209550700832}
   - component: {fileID: 8581299158658190592}
+  - component: {fileID: 1224303640616061044}
   m_Layer: 0
   m_Name: Bush_1_Snow
   m_TagString: Untagged
@@ -57,6 +58,29 @@ LODGroup:
     renderers:
     - renderer: {fileID: 3665957181923125943}
   m_Enabled: 1
+--- !u!136 &1224303640616061044
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2601132055749827881}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.96000004
+  m_Height: 2.24
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.8, z: 0}
 --- !u!1 &2729196751534689425
 GameObject:
   m_ObjectHideFlags: 0

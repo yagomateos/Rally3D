@@ -247,7 +247,8 @@ Ajustes del proyecto que ya vienen preparados para esto:
   - La oveja echa a andar cuando te faltan unos 5 s para llegar: está en la carretera cuando llegas,
     pero da tiempo a frenar o esquivarla.
   - **Bala** cada 2–4 s con sonido 3D: solo se oye cuando estás cerca.
-  - Si la atropellas, **chilla** y sale despedida.
+  - Si la atropellas, **chilla** y sale despedida en una parábola enorme, hacia delante y muy alto, dando volteretas
+    como en los dibujos animados. No rueda por el suelo: deja de chocar y se pierde a lo lejos (a 150 km/h, más de 100 m).
   - Pesa 70 kg: el coche apenas pierde velocidad (de 75 a 67 km/h en el test) y apenas se daña.
     Ahora el daño depende de la masa de lo que golpeas; contra los rivales, que pesan como tu coche, no cambia nada.
   - El balido y el chillido se sintetizan por código, como el resto de sonidos: tono con formantes de vocal «e»
@@ -311,6 +312,22 @@ Ajustes del proyecto que ya vienen preparados para esto:
   y como mucho 50 ms de física por fotograma.
 
 ### Interfaz y juego
+- **Menús con mando:** el stick izquierdo mueve la selección igual que la cruceta. Funciona también con mandos que
+  el navegador presenta como *joystick* genérico. En cada lista, bajar desde el último botón vuelve al primero y subir
+  desde el primero va al último (menú principal, ELIGE TRAMO, OPCIONES y PAUSA).
+- **Celebración al ganar** (`Celebration`): si llegas primero contra los rivales, el título pasa a «¡VICTORIA!».
+  Suena una fanfarria de metales, con redoble y platillo, seguida de una melodía alegre de victoria.
+  Se oyen vítores y aplausos del público, y cae confeti de colores: dos cañones desde las esquinas y luego lluvia desde arriba.
+  Todo se genera por código.
+- **Límites del mapa** (`MapBounds`): paredes invisibles en el borde del terreno, como en los videojuegos típicos;
+  ya no se puede caer al vacío. En la costera, un coche que se mete en el mar vuelve solo a la carretera.
+- **Objetos de la cuneta:**
+  - Los matorrales (que en el desierto y la costa parecen rocas) y los espectadores ahora son sólidos.
+  - Los postes de balizas, los postes de la cinta y las vallas se derriban: salen volando al golpearlos y apenas frenan
+    el coche. Si fueran sólidos, un poste de 10 cm lo pararía como un muro.
+  - Choques con objetos ligeros: el daño depende de su masa.
+- **Doble recarga corregida:** pulsar Enter en resultados con REPETIR seleccionado recargaba el tramo dos veces
+  (el botón y la tecla de confirmar). Lo destapó `QA04` al mejorar la navegación con mando.
 - **Idioma:** todos los textos en castellano (HUD, menús, avisos, botones y carteles SALIDA / META del escenario).
 - **HUD:** *Canvas Scaler* en Scale With Screen Size, 1920 × 1080 y Match 0,5. El nombre del tramo se ajusta solo
   en pantallas 4:3 y 3:2, y los textos de SALIDA / META ya no pisan la barra de progreso.
@@ -322,6 +339,7 @@ Ajustes del proyecto que ya vienen preparados para esto:
     distancia a cualquier velocidad.
   - Además, el campo de visión llega a 66° (antes 74°), la cámara se aleja 0,6 m (antes 1,3 m) y la distorsión se queda en la mitad.
   - La cámara sube hasta 0,5 m para mirar la carretera desde un poco más arriba.
+  - Distancia base al coche: 6,2 m (antes 5,6 m), un poco más atrás a petición tras probarla.
   - El oscurecimiento de los bordes a velocidad baja de 0,38 a 0,3.
 - **Mirar alrededor** (`RallyCamera`):
   - Con el mando, el **stick derecho** apunta la cámara hacia donde lo inclinas: arriba delante, derecha a la derecha,
@@ -354,13 +372,17 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA12_LowSpeedPushFromBehind_MovesRivalSmoothly` | Empujando por detrás a un rival a 5 km/h, este pasa de 12 km/h, no sale volando y no se sube encima | ✅ |
 | `QA13_LookBack_TurnsCameraRoundSmoothlyAndBack` | Al mantener ATRÁS la cámara mira hacia atrás, vuelve al soltar y nunca gira más de 45° en un fotograma | ✅ |
 | `QA14_Terrain_StaysBelowTheRoad` (los cuatro tramos) | El terreno no asoma por encima de la carretera en ~14.000–17.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
+| `QA19_LeftStick_NavigatesMenuAndWrapsRound` | Con un mando virtual, el stick izquierdo recorre el menú de pausa y da la vuelta arriba y abajo | ✅ |
+| `QA20_MapEdge_HasInvisibleWalls` | Un coche lanzado a 126 km/h hacia el borde del mapa choca con la pared invisible y no cae | ✅ |
+| `QA21_RoadsideProps_CollideOrGetKnockedFlying` | Los espectadores tienen colisión; un poste de baliza sale volando y el coche sigue a más de 43 km/h | ✅ |
+| `QA22_Celebration_ConfettiAndMusic` | La celebración lanza más de 150 papelitos de confeti y suena la música | ✅ |
 | `QA18_RightStick_LooksInAnyDirection` | El stick derecho mira a la derecha, a la izquierda y atrás, y la vista vuelve al frente al soltarlo | ✅ |
 | `QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit` | La oveja cruza la carretera y bala con sonido 3D; al atropellarla a 75 km/h sale despedida, el coche sigue a más de 43 km/h y casi no se daña | ✅ |
 | `QA16_CoastStage_FastTarmacWithRailsLightsAndSigns` | Todo asfalto con agarre ≥ 1,4; limitador del jugador por encima de 200 km/h; señales de curva, farolas y guardarraíles; el mar por debajo de la carretera; sin lluvia ni saltos | ✅ |
 | `QA15_DesertStage_UsesSandGripAndLooseSandOffRoad` | El desierto carga su tabla en coches e IA; la arena suelta agarra mucho menos y frena más; hay polvo denso, no llueve y hay 3 saltos | ✅ |
 | `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (21 en total: 20 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode).
+Se pasaron después de cada cambio (25 en total: 24 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode).
 Hay dos pruebas manuales (*Explicit*): la medición de tiempos por dificultad y `SheepCrossing_Screenshots`, que renderiza una oveja cruzando para revisarla.
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;

@@ -253,7 +253,13 @@ namespace Rally.EditorTools
                 mb.Blob(0, new Vector3(Mathf.Cos(a) * d, r * 0.6f, Mathf.Sin(a) * d), new Vector3(r, r * 0.8f, r), 1, 0.35f, seed * 11 + i);
             }
             low.Blob(0, new Vector3(0f, size * 0.45f, 0f), new Vector3(size, size * 0.7f, size), 0, 0.25f, seed);
-            return LodTree(name, mb, low, 0.1f, 0.03f, lib.leaves, lib.leaves);
+            var go = LodTree(name, mb, low, 0.1f, 0.03f, lib.leaves, lib.leaves);
+            // Solid: in the desert and on the coast these scrubs read as rocks, and driving through them looked wrong.
+            var col = go.AddComponent<CapsuleCollider>();
+            col.radius = size * 0.6f;
+            col.height = size * 1.4f;
+            col.center = new Vector3(0f, size * 0.5f, 0f);
+            return go;
         }
 
         private static GameObject Rock(string name, int seed, AssetLibrary lib)
@@ -301,7 +307,13 @@ namespace Rally.EditorTools
             mb.Frustum(0, Vector3.zero, 0.05f, 0.045f, 1.15f, 8);
             mb.Box(1, new Vector3(0f, 1.0f, 0.05f), new Vector3(0.07f, 0.14f, 0.015f));
             mb.Box(1, new Vector3(0f, 1.0f, -0.05f), new Vector3(0.07f, 0.14f, 0.015f));
-            return Build("MarkerPole", mb, lib.whitePaint, lib.redReflector);
+            var go = Build("MarkerPole", mb, lib.whitePaint, lib.redReflector);
+            var col = go.AddComponent<CapsuleCollider>();
+            col.radius = 0.08f;
+            col.height = 1.2f;
+            col.center = new Vector3(0f, 0.6f, 0f);
+            Knockable(go, 6f);
+            return go;
         }
 
         /// <summary>Street light: pole, arm reaching towards the road (+z) and a glowing lamp head.</summary>
@@ -424,7 +436,12 @@ namespace Rally.EditorTools
         {
             var mb = new MeshBuilder();
             mb.Box(0, new Vector3(0f, 0.55f, 0f), new Vector3(0.06f, 1.1f, 0.06f));
-            return Build("TapePost", mb, lib.wood);
+            var go = Build("TapePost", mb, lib.wood);
+            var col = go.AddComponent<BoxCollider>();
+            col.center = new Vector3(0f, 0.55f, 0f);
+            col.size = new Vector3(0.12f, 1.1f, 0.12f);
+            Knockable(go, 5f);
+            return go;
         }
 
         private static GameObject HayBale(AssetLibrary lib)
@@ -483,7 +500,12 @@ namespace Rally.EditorTools
             mb.Box(0, new Vector3(1.5f, 0.55f, 0f), new Vector3(0.1f, 1.1f, 0.1f));
             mb.Box(0, new Vector3(0f, 0.85f, 0.06f), new Vector3(3.1f, 0.1f, 0.04f));
             mb.Box(0, new Vector3(0f, 0.45f, 0.06f), new Vector3(3.1f, 0.1f, 0.04f));
-            return Build("FenceSegment", mb, lib.wood);
+            var go = Build("FenceSegment", mb, lib.wood);
+            var col = go.AddComponent<BoxCollider>();
+            col.center = new Vector3(0f, 0.55f, 0.03f);
+            col.size = new Vector3(3.1f, 1.1f, 0.2f);
+            Knockable(go, 25f);
+            return go;
         }
 
         private static GameObject House(int variant, AssetLibrary lib)
@@ -539,7 +561,21 @@ namespace Rally.EditorTools
             mb.Blob(2, new Vector3(0f, 1.66f, 0f) * s, new Vector3(0.12f, 0.14f, 0.13f) * s, 1, 0.05f, variant);
             if (variant % 3 == 1) mb.Box(1, new Vector3(0f, 1.8f, 0.02f) * s, new Vector3(0.26f, 0.06f, 0.3f) * s); // cap
             var cloth = lib.clothing[variant % lib.clothing.Length];
-            return Build($"Spectator_{variant}", mb, lib.clothing[4], cloth, lib.skin);
+            var go = Build($"Spectator_{variant}", mb, lib.clothing[4], cloth, lib.skin);
+            var col = go.AddComponent<CapsuleCollider>();
+            col.radius = 0.3f * s;
+            col.height = 1.85f * s;
+            col.center = new Vector3(0f, 0.92f * s, 0f);
+            return go;
+        }
+
+        /// <summary>Light prop a car knocks flying (trigger until hit; see <see cref="Rally.Track.Knockable"/>).</summary>
+        private static void Knockable(GameObject go, float mass)
+        {
+            var k = go.AddComponent<Rally.Track.Knockable>();
+            var so = new SerializedObject(k);
+            so.FindProperty("mass").floatValue = mass;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }

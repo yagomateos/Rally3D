@@ -96,6 +96,7 @@ GameObject:
   m_Component:
   - component: {fileID: 850944782922978570}
   - component: {fileID: 5523734616365535753}
+  - component: {fileID: 5691783978922659121}
   m_Layer: 0
   m_Name: Bush_0_Coast
   m_TagString: Untagged
@@ -143,6 +144,29 @@ LODGroup:
     renderers:
     - renderer: {fileID: 3746014021956865849}
   m_Enabled: 1
+--- !u!136 &5691783978922659121
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7702390822984287972}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.66
+  m_Height: 1.54
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.55, z: 0}
 --- !u!1 &7713700731059792220
 GameObject:
   m_ObjectHideFlags: 0

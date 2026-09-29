@@ -17,7 +17,7 @@ namespace Rally.CameraSystem
         [SerializeField] private CarController target;
 
         [Header("Chase")]
-        [SerializeField] private float distance = 5.6f;
+        [SerializeField] private float distance = 6.2f;
         [SerializeField] private float height = 1.75f;
         [SerializeField] private float lookHeight = 0.95f;
         [SerializeField] private float lookAhead = 2.5f;

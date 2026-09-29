@@ -96,6 +96,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8831752034483525106}
   - component: {fileID: 4682657859788699433}
+  - component: {fileID: 6981861996484922138}
   m_Layer: 0
   m_Name: Bush_0_V2
   m_TagString: Untagged
@@ -143,6 +144,29 @@ LODGroup:
     renderers:
     - renderer: {fileID: 2652319266030479259}
   m_Enabled: 1
+--- !u!136 &6981861996484922138
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9034013789124666150}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.66
+  m_Height: 1.54
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.55, z: 0}
 --- !u!1 &9112846329648548237
 GameObject:
   m_ObjectHideFlags: 0

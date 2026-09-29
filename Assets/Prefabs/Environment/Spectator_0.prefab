@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4998372455665637954}
   - component: {fileID: 1134622807551195592}
   - component: {fileID: 4438813796528817754}
+  - component: {fileID: 5850681874487807765}
   m_Layer: 0
   m_Name: Spectator_0
   m_TagString: Untagged
@@ -88,3 +89,26 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!136 &5850681874487807765
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3420056234525357974}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.285
+  m_Height: 1.7575
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.874, z: 0}

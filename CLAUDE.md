@@ -121,7 +121,10 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Menú principal, elección de coche, opciones, pausa con salir al menú / salir del juego.
 - Motor sintetizado (`ProceduralAudio`): el usuario **prefirió volver a él** en lugar de las grabaciones CC0.
 - Ovejas que cruzan en la costera (`SheepCrossing`/`Sheep`); el daño de choque escala con la masa del objeto golpeado.
-- Controles de móvil y 21 tests (20 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Paredes invisibles en el borde del mapa (`MapBounds`, creadas en runtime), props ligeros derribables (`Knockable`, no estáticos),
+  navegación de menús con stick y con vuelta (`MenuNavigation.WrapColumn`) y celebración al ganar (`Celebration`).
+- Un prop que el coche pueda derribar debe llevar `Knockable` (collider trigger hasta el golpe); los sólidos, collider normal.
+- Controles de móvil y 25 tests (24 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

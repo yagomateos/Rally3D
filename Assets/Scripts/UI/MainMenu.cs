@@ -51,6 +51,10 @@ namespace Rally.UI
             BuildCarSelect(root);
             BuildOptions(root);
             BuildControls(root);
+            // Controller: up / down wrap round in each list of buttons.
+            MenuNavigation.WrapColumn(mainScreen.transform);
+            MenuNavigation.WrapColumn(stageScreen.transform);
+            MenuNavigation.WrapColumn(optionsScreen.transform);
 
             var cam = Camera.main;
             if (cam != null)

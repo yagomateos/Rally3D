@@ -13,7 +13,7 @@ namespace Rally.UI
         private RectTransform root;
         private CanvasGroup intro, pause, results;
         private Text sensorStatus, sensitivityLabel;
-        private Text introPrompt, resultTime, resultBest, resultPosition, resultNewBest, resultStandings;
+        private Text introPrompt, resultTitle, resultTime, resultBest, resultPosition, resultNewBest, resultStandings;
         private Button pauseDefault, resultsDefault;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -43,6 +43,7 @@ namespace Rally.UI
             BuildIntro();
             BuildPause();
             BuildResults();
+            MenuNavigation.WrapColumn(pause.transform);
 
             Show(intro, race.CurrentState == RaceManager.State.Intro); // hidden under the main menu
             // The title card has no buttons of its own: let taps reach the phone controls under it
@@ -70,6 +71,7 @@ namespace Rally.UI
             var go = new GameObject("EventSystem", typeof(EventSystem));
             var module = go.AddComponent<InputSystemUIInputModule>();
             module.AssignDefaultActions();
+            MenuNavigation.UseSticks(module);
         }
 
         private static void Show(CanvasGroup group, bool visible)
@@ -213,9 +215,9 @@ namespace Rally.UI
 
             UIFactory.Label("Stage", panel.transform, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(880f, 36f),
                 $"{race.Stage.stageNumber}  ·  {race.Stage.stageName}", 26, TextAnchor.MiddleCenter, UIFactory.TextDim);
-            var title = UIFactory.Label("Title", panel.transform, new Vector2(0.5f, 1f), new Vector2(0f, -110f), new Vector2(880f, 80f),
+            resultTitle = UIFactory.Label("Title", panel.transform, new Vector2(0.5f, 1f), new Vector2(0f, -110f), new Vector2(880f, 80f),
                 "TRAMO COMPLETADO", 72, TextAnchor.MiddleCenter, UIFactory.TextMain);
-            UIFactory.AddShadow(title, 2f);
+            UIFactory.AddShadow(resultTitle, 2f);
 
             resultTime = UIFactory.Label("Time", panel.transform, new Vector2(0.5f, 1f), new Vector2(0f, -200f), new Vector2(880f, 64f),
                 "", 54, TextAnchor.MiddleCenter, UIFactory.Accent);
@@ -240,10 +242,16 @@ namespace Rally.UI
             resultTime.text = "TIEMPO: " + RaceManager.FormatTime(player.FinishTime);
             resultBest.text = "MEJOR: " + RaceManager.FormatTime(race.BestTime);
             resultNewBest.text = race.NewBest ? "¡NUEVO RÉCORD PERSONAL!" : "";
-            resultPosition.text = $"POSICIÓN  {race.GetPosition(player)} / {race.Participants.Count}";
+            int position = race.GetPosition(player);
+            resultPosition.text = $"POSICIÓN  {position} / {race.Participants.Count}";
             RefreshStandings();
 
+            // First against the rivals: victory title, music, cheering and confetti.
+            bool won = position == 1 && race.Participants.Count > 1;
+            resultTitle.text = won ? "¡VICTORIA!" : "TRAMO COMPLETADO";
+            resultTitle.color = won ? UIFactory.Accent : UIFactory.TextMain;
             Show(results, true);
+            if (won) Celebration.Play(results.transform);
             EventSystem.current?.SetSelectedGameObject(resultsDefault.gameObject);
         }
 

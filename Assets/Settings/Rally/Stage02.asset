@@ -17,6 +17,7 @@ MonoBehaviour:
   seed: 3311
   description: "NIEVE \xB7 HIELO \xB7 NIEVE BLANDA   \xB7   NEVANDO"
   theme: 1
+  topSpeedScale: 1
   surfaces: {fileID: 11400000, guid: 7a3d1985cce0944a399350466a4285c3, type: 2}
   startPosition: {x: 180, y: 140}
   startHeading: 35

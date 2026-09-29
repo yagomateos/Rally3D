@@ -202,7 +202,12 @@ MonoBehaviour:
   closeDistance: 6
   hearingDistance: 90
   minHitSpeed: 2.5
-  removeAfterHit: 8
+  removeAfterHit: 6
+  launchForward: 0.9
+  launchForwardExtra: 6
+  launchUp: 10
+  launchUpPerSpeed: 0.3
+  flipsPerSecond: 1.2
 --- !u!1 &8301015044435311001
 GameObject:
   m_ObjectHideFlags: 0

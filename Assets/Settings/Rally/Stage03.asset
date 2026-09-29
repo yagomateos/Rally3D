@@ -18,6 +18,7 @@ MonoBehaviour:
   description: "ARENA \xB7 PISTA DURA \xB7 ARENA BLANDA \xB7 ROCA   \xB7   DESPEJADO,
     CALIMA"
   theme: 2
+  topSpeedScale: 1
   surfaces: {fileID: 11400000, guid: 78ee653d7c8f64f2bae44854bc9f8842, type: 2}
   startPosition: {x: 180, y: 140}
   startHeading: -20

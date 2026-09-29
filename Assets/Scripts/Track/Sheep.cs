@@ -7,7 +7,8 @@ namespace Rally.Track
     /// <summary>
     /// A sheep crossing the road (coastal stage). Walks straight across at a steady pace with a little leg swing
     /// and body bob, bleats every few seconds (3D sound, only heard when close) and, if a car hits it, screams and
-    /// is knocked away. It is a light physics body (70 kg), so the car loses little speed and takes little damage.
+    /// flies off in a huge cartoon arc. It is a light physics body (70 kg), so the car loses little speed and takes
+    /// little damage.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public class Sheep : MonoBehaviour
@@ -30,7 +31,7 @@ namespace Rally.Track
 
         [Header("Hit")]
         [SerializeField] private float minHitSpeed = 2.5f;
-        [SerializeField] private float removeAfterHit = 8f;
+        [SerializeField] private float removeAfterHit = 6f;
 
         private Rigidbody rb;
         private AudioSource voice;
@@ -131,18 +132,40 @@ namespace Rally.Track
             Hit(collision.rigidbody.linearVelocity);
         }
 
-        /// <summary>Knocked by a car moving at <paramref name="carVelocity"/>: tumble away and scream.</summary>
+        [Header("Cartoon launch")]
+        [Tooltip("Forward launch speed = car speed × this + launchForwardExtra (m/s).")]
+        [SerializeField] private float launchForward = 0.9f;
+        [SerializeField] private float launchForwardExtra = 6f;
+        [Tooltip("Upward launch speed = launchUp + car speed × launchUpPerSpeed (m/s).")]
+        [SerializeField] private float launchUp = 10f;
+        [SerializeField] private float launchUpPerSpeed = 0.3f;
+        [SerializeField] private float flipsPerSecond = 1.2f;
+
+        /// <summary>
+        /// Knocked by a car moving at <paramref name="carVelocity"/>: flies off in a huge cartoon arc, head over
+        /// heels, screaming. It no longer collides with anything, so it never tumbles along the ground; it just
+        /// sails away out of sight (at 150 km/h well over 100 m) and is removed.
+        /// </summary>
         public void Hit(Vector3 carVelocity)
         {
             WasHit = true;
-            rb.constraints = RigidbodyConstraints.None;
             float speed = carVelocity.magnitude;
-            rb.AddForce(carVelocity * 0.35f + Vector3.up * (2.5f + speed * 0.12f), ForceMode.VelocityChange);
-            rb.AddTorque(Random.onUnitSphere * (4f + speed * 0.2f), ForceMode.VelocityChange);
+            Vector3 dir = speed > 0.5f ? carVelocity / speed : transform.forward;
+            dir = Vector3.ProjectOnPlane(dir, Vector3.up).normalized;
+
+            foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = false;
+            rb.constraints = RigidbodyConstraints.None;
+            rb.linearDamping = 0f;
+            rb.angularDamping = 0f;
+            rb.linearVelocity = dir * (speed * launchForward + launchForwardExtra) + Vector3.up * (launchUp + speed * launchUpPerSpeed);
+            // Somersaults along the flight direction, with a little twist.
+            Vector3 flipAxis = Vector3.Cross(Vector3.up, dir);
+            rb.angularVelocity = flipAxis * (flipsPerSecond * Mathf.PI * 2f) + Vector3.up * Random.Range(-2f, 2f);
 
             voice.Stop();
             voice.pitch = Random.Range(0.95f, 1.08f);
-            voice.minDistance = closeDistance * 2f; // the scream carries further
+            voice.minDistance = closeDistance * 3f; // the scream carries a long way as it flies off
+            voice.maxDistance = hearingDistance * 2f;
             voice.PlayOneShot(ProceduralAudio.SheepScream(), screamVolume);
             Destroy(gameObject, removeAfterHit);
         }

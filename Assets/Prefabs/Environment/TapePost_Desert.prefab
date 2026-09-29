@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 7284952497951474666}
   - component: {fileID: 7293017986112673237}
   - component: {fileID: 5565566227972650977}
+  - component: {fileID: 6544298218703782851}
+  - component: {fileID: 2693594093561669032}
   m_Layer: 0
   m_Name: TapePost_Desert
   m_TagString: Untagged
@@ -86,3 +88,40 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &6544298218703782851
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2844841588562456186}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.12, y: 1.1, z: 0.12}
+  m_Center: {x: 0, y: 0.55, z: 0}
+--- !u!114 &2693594093561669032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2844841588562456186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efbacf1e17ef449c08cffde57721d36b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mass: 5
+  carryFactor: 0.7
+  popUp: 3
+  hitVolume: 0.45

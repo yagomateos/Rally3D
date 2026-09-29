@@ -255,6 +255,112 @@ namespace Rally.Audio
 
         private static float Sq(float x) => x * x;
 
+        /// <summary>
+        /// Victory music: a brass fanfare (ta-ta-ta-taaa, a rising arpeggio and a held final chord with a snare roll
+        /// and a cymbal crash) followed by a short, bouncy victory tune with bass and drums. About 8.5 s.
+        /// </summary>
+        public static AudioClip Fanfare() => Cached("Fanfare", (int)(SampleRate * 8.6f), n =>
+        {
+            var data = new float[n];
+            // (frequency Hz, start s, length s, volume)
+            var notes = new List<(float f, float t, float d, float v)>
+            {
+                (392f, 0f, 0.12f, 0.8f), (392f, 0.15f, 0.12f, 0.8f), (392f, 0.3f, 0.12f, 0.8f), (523.25f, 0.45f, 0.5f, 1f),
+                (659.25f, 1.0f, 0.22f, 0.9f), (783.99f, 1.25f, 0.22f, 0.9f),
+                (1046.5f, 1.5f, 1.3f, 1f), (523.25f, 1.5f, 1.3f, 0.6f), (659.25f, 1.5f, 1.3f, 0.55f), (783.99f, 1.5f, 1.3f, 0.55f),
+            };
+            // Victory tune in C, 150 bpm (0.4 s a beat), from 3.0 s.
+            float[] melody = { 523.25f, 659.25f, 783.99f, 659.25f, 698.46f, 880f, 1046.5f, 880f, 783.99f, 987.77f, 1174.66f, 987.77f, 1046.5f, 783.99f, 1046.5f, 0f };
+            float[] bass = { 130.81f, 174.61f, 196f, 130.81f };
+            for (int i = 0; i < melody.Length; i++)
+                if (melody[i] > 0f) notes.Add((melody[i], 3f + i * 0.3f, i == 14 ? 0.8f : 0.24f, 0.7f));
+            for (int b = 0; b < 4; b++)
+                for (int k = 0; k < 4; k++) notes.Add((bass[b], 3f + b * 1.2f + k * 0.3f, 0.22f, 0.55f));
+            notes.Add((523.25f, 7.8f, 0.7f, 0.5f)); notes.Add((659.25f, 7.8f, 0.7f, 0.45f)); notes.Add((783.99f, 7.8f, 0.7f, 0.45f));
+
+            foreach (var (f, t0, d, vol) in notes)
+            {
+                int start = (int)(t0 * SampleRate), len = (int)((d + 0.08f) * SampleRate);
+                float phase = 0f;
+                for (int i = 0; i < len && start + i < n; i++)
+                {
+                    float t = (float)i / SampleRate;
+                    float vib = t > 0.15f ? 1f + Mathf.Sin(t * 5.5f * Mathf.PI * 2f) * 0.006f : 1f;
+                    phase += f * vib / SampleRate * Mathf.PI * 2f;
+                    float s = 0f;
+                    for (int h = 1; h <= 8; h++) s += Mathf.Sin(phase * h) / h * (h == 1 ? 1f : 0.8f); // brassy saw-ish tone
+                    float env = Mathf.Clamp01(t / 0.02f) * Mathf.Clamp01((d + 0.08f - t) / 0.08f);
+                    data[start + i] += s * env * vol * 0.18f;
+                }
+            }
+
+            var rng = new System.Random(71);
+            void Noise(float t0, float length, float decay, float vol, float tone)
+            {
+                int start = (int)(t0 * SampleRate), len = (int)(length * SampleRate);
+                float lp = 0f;
+                for (int i = 0; i < len && start + i < n; i++)
+                {
+                    float t = (float)i / SampleRate;
+                    lp = Mathf.Lerp(lp, (float)rng.NextDouble() * 2f - 1f, tone);
+                    data[start + i] += lp * Mathf.Exp(-t * decay) * vol;
+                }
+            }
+            void Kick(float t0)
+            {
+                int start = (int)(t0 * SampleRate), len = (int)(0.18f * SampleRate);
+                float phase = 0f;
+                for (int i = 0; i < len && start + i < n; i++)
+                {
+                    float t = (float)i / SampleRate;
+                    phase += Mathf.Lerp(120f, 45f, t / 0.18f) / SampleRate * Mathf.PI * 2f;
+                    data[start + i] += Mathf.Sin(phase) * Mathf.Exp(-t * 18f) * 0.5f;
+                }
+            }
+            for (float t = 1.2f; t < 1.5f; t += 0.035f) Noise(t, 0.05f, 60f, 0.12f, 0.9f); // snare roll
+            Noise(1.5f, 1.6f, 2.2f, 0.22f, 0.95f);                                             // cymbal crash
+            Kick(0.45f); Kick(1.5f);
+            for (int beat = 0; beat < 16; beat++)
+            {
+                Kick(3f + beat * 0.6f);
+                Noise(3.3f + beat * 0.6f, 0.12f, 30f, 0.14f, 0.85f); // snare on the off-beat
+            }
+            Noise(7.8f, 0.8f, 4f, 0.18f, 0.95f);
+
+            float max = 0.0001f;
+            for (int i = 0; i < n; i++) { data[i] = (float)System.Math.Tanh(data[i] * 1.4f); max = Mathf.Max(max, Mathf.Abs(data[i])); }
+            for (int i = 0; i < n; i++) data[i] *= 0.8f / max;
+            return data;
+        });
+
+        /// <summary>Crowd cheering and clapping, swelling and fading over about 5 s.</summary>
+        public static AudioClip Cheer() => Cached("Cheer", SampleRate * 5, n =>
+        {
+            var data = new float[n];
+            var rng = new System.Random(83);
+            float lp1 = 0f, lp2 = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / SampleRate;
+                float w = (float)rng.NextDouble() * 2f - 1f;
+                lp1 = Mathf.Lerp(lp1, w, 0.12f);  // band of voices
+                lp2 = Mathf.Lerp(lp2, lp1, 0.3f);
+                float swell = Mathf.Clamp01(t / 0.4f) * Mathf.Clamp01((5f - t) / 1.5f) * (0.75f + 0.25f * Mathf.Sin(t * 3.1f));
+                data[i] = (lp1 - lp2) * swell * 1.6f;
+            }
+            for (int c = 0; c < 260; c++) // claps
+            {
+                int start = rng.Next(0, n - SampleRate / 20);
+                float amp = 0.15f + (float)rng.NextDouble() * 0.2f;
+                for (int i = 0; i < SampleRate / 40; i++)
+                    data[start + i] += ((float)rng.NextDouble() * 2f - 1f) * Mathf.Exp(-i / (SampleRate * 0.004f)) * amp;
+            }
+            float max = 0.0001f;
+            for (int i = 0; i < n; i++) max = Mathf.Max(max, Mathf.Abs(data[i]));
+            for (int i = 0; i < n; i++) data[i] *= 0.6f / max;
+            return data;
+        });
+
         public static AudioClip Beep(float frequency, float duration) => Cached($"Beep_{frequency}_{duration}", (int)(SampleRate * duration), n =>
         {
             var data = new float[n];

@@ -182,6 +182,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7221925607662226416}
   - component: {fileID: 4471776398276867221}
+  - component: {fileID: 5561097198361128664}
   m_Layer: 0
   m_Name: Bush_0_Desert
   m_TagString: Untagged
@@ -229,3 +230,26 @@ LODGroup:
     renderers:
     - renderer: {fileID: 3294019757064702546}
   m_Enabled: 1
+--- !u!136 &5561097198361128664
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7556540004183970068}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.66
+  m_Height: 1.54
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.55, z: 0}
