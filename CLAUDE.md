@@ -15,6 +15,8 @@ y controles táctiles para móvil. Todo el contenido (terreno, carretera, coches
 - Cuando algo no se pueda verificar (dispositivo real, mando físico, iOS), márcalo como **hipótesis a verificar**; no lo des por probado.
 - **Builds:** el build web tarda unos 10 minutos. Lánzalo solo si la tarea lo pide o el usuario lo ha autorizado.
 - Tras un build para publicar, regenera `~/Desktop/Rally3D_Web.zip` con `index.html` **en la raíz** del zip (ver README).
+  Borra antes `~/Desktop/Rally3D_Web`: los archivos llevan *hash* en el nombre (`WebBuild` activa `nameFilesAsHashes`)
+  y si no se acumularían versiones viejas. Si el usuario ve comportamientos ya corregidos, lo primero es sospechar de una versión antigua en caché.
 - Mantén el **README.md** (en castellano) al día cuando cambien controles, opciones, dificultad o tests.
 
 ## Estructura
@@ -124,6 +126,8 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Paredes invisibles en el borde del mapa (`MapBounds`, creadas en runtime), props ligeros derribables (`Knockable`, no estáticos),
   navegación de menús con stick y con vuelta (`MenuNavigation.WrapColumn`) y celebración al ganar (`Celebration`).
 - Un prop que el coche pueda derribar debe llevar `Knockable` (collider trigger hasta el golpe); los sólidos, collider normal.
+- Horizonte (`TerrainBuilder.BuildHorizon`), MSAA 4× y plano lejano de 5 km (PC) / 3 km (móvil) en `MobilePerformance`;
+  cámara de móvil idéntica a la de PC.
 - Cuenta atrás fuera de la carretera con vuelta automática, ayuda de conducción (`DrivingAssist`), ovejas en la carretera en los tramos 01 y 04.
 - Controles de móvil y 28 tests (27 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**

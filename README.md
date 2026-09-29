@@ -128,6 +128,10 @@ El juego recuerda el modo elegido.
 
 ### Publicar en itch.io
 
+Los archivos del build llevan un nombre único en cada versión (*hash* de su contenido). Así ni el navegador ni el CDN de
+itch.io pueden servir la versión anterior guardada en caché después de subir una nueva: basta con recargar la página.
+Antes de cada build conviene borrar la carpeta de salida, para no meter en el zip archivos de versiones anteriores.
+
 1. Comprime **el contenido** de la carpeta del build, de modo que `index.html`, `Build/` y `TemplateData/`
    queden en la raíz del zip y no dentro de otra carpeta:
    ```bash
@@ -321,8 +325,15 @@ Ajustes del proyecto que ya vienen preparados para esto:
   - Mezcla tu giro con el que sigue la carretera y frena por ti si llegas demasiado rápido a una curva.
   - Sigues conduciendo tú: tu giro conserva su peso y puedes sacar el coche de la trazada.
   - En el test, con ALTA y sin tocar el volante, el coche recorre la primera curva sin salirse.
-- **Cámara en el móvil:** un poco más alta y mirando más adelante.
-  En pantallas más estrechas que 16:9 (el móvil en vertical), el campo de visión se ajusta para ver lo mismo a los lados que en 16:9.
+- **Cámara en el móvil:** idéntica a la de PC. Solo en pantallas más estrechas que 16:9 (el móvil en vertical)
+  se abre el campo de visión, para ver a los lados lo mismo que en 16:9.
+- **ACELERAR SOLO** viene activado por defecto en el móvil: girar inclinando el móvil y a la vez mantener un pedal era demasiado.
+- **Horizonte cerrado:** cada tramo tiene alrededor un anillo de colinas y montañas de ~2 km que se funde con la niebla
+  (en la costa queda bajo el mar donde toca). La distancia de dibujado sube a 5 km en PC y 3 km en móvil (antes, 900 m).
+  El mapa ya no se ve cortado contra el cielo.
+- **Menos parpadeo (aliasing):** la web dibujaba al 80 % de resolución y sin antialiasing de geometría.
+  Por eso los bordes de coches, vallas y cinta «bailaban» al girar la cámara del menú.
+  Ahora se usa MSAA 4× en todos los dispositivos (barato en las GPU de móvil) y resolución completa en PC (90 % en móvil).
 - **Nieve:** la pista es de nieve pisada y sucia, más gris, con rodadas, y los bordes están pisados.
   Antes se confundía con la nieve virgen de alrededor.
 - **Menús con mando:** el stick izquierdo mueve la selección igual que la cruceta. Funciona también con mandos que

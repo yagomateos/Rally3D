@@ -51,10 +51,6 @@ namespace Rally.CameraSystem
         [Tooltip("Seconds to swing round when the look-back key is pressed or released.")]
         [SerializeField] private float lookBackTime = 0.14f;
 
-        [Header("Phones")]
-        [SerializeField] private float mobileExtraHeight = 0.4f;
-        [SerializeField] private float mobileExtraLookAhead = 3f;
-
         [Tooltip("Right stick deflection below this is ignored (the stick at rest).")]
         [SerializeField] private float lookStickDeadzone = 0.3f;
 
@@ -92,12 +88,7 @@ namespace Rally.CameraSystem
         {
             TouchLookBack = false; // never carry a held button over a scene reload
             ExternalLook = Vector2.zero;
-            if (Application.isMobilePlatform)
-            {
-                // Small screen with thumbs over the lower corners: a bit higher and looking further down the road.
-                height += mobileExtraHeight;
-                lookAhead += mobileExtraLookAhead;
-            }
+
             cam = GetComponent<Camera>();
             currentDistance = distance;
         }

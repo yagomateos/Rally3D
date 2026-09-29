@@ -55,7 +55,8 @@ namespace Rally.Car
         {
             get
             {
-                if (autoThrottleCache < 0) autoThrottleCache = PlayerPrefs.GetInt("Rally.AutoThrottle", 0);
+                // On by default on phones: steering by tilt with a thumb held on a pedal was too much at once.
+                if (autoThrottleCache < 0) autoThrottleCache = PlayerPrefs.GetInt("Rally.AutoThrottle", Application.isMobilePlatform ? 1 : 0);
                 return autoThrottleCache == 1;
             }
             set

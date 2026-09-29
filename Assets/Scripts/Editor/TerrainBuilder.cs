@@ -194,6 +194,96 @@ namespace Rally.EditorTools
             return cells;
         }
 
+        // ------------------------------------------------------------------ horizon
+
+        /// <summary>
+        /// A ring of hills and mountains round the terrain, out to ~2 km, so the map never ends in a visible edge
+        /// against the sky (on phones the draw distance is shorter and the edge showed through the fog). It starts
+        /// just under the terrain border, rises into hills and fades into the fog; on the coast it stays under the
+        /// sea wherever the border is at sea level.
+        /// </summary>
+        public static void BuildHorizon(Terrain terrain, float seaLevel)
+        {
+            const int perSide = 64;
+            float[] ringDistance = { 0f, 180f, 650f, 2200f };
+            Vector3 origin = terrain.transform.position;
+            Vector3 size = terrain.terrainData.size;
+            Vector3 centre = origin + new Vector3(size.x * 0.5f, 0f, size.z * 0.5f);
+
+            float hills = StageTheme.Snow ? 190f : StageTheme.Desert ? 70f : StageTheme.Coast ? 100f : 150f;
+            Color colour = StageTheme.Snow ? new Color(0.84f, 0.87f, 0.93f)
+                : StageTheme.Desert ? new Color(0.8f, 0.64f, 0.44f)
+                : StageTheme.Coast ? new Color(0.42f, 0.4f, 0.27f)
+                : new Color(0.2f, 0.27f, 0.17f);
+
+            // Walk round the terrain border.
+            var border = new List<Vector3>();
+            for (int side = 0; side < 4; side++)
+                for (int i = 0; i < perSide; i++)
+                {
+                    float t = (float)i / perSide;
+                    Vector3 p = side switch
+                    {
+                        0 => new Vector3(t * size.x, 0f, 0f),
+                        1 => new Vector3(size.x, 0f, t * size.z),
+                        2 => new Vector3((1f - t) * size.x, 0f, size.z),
+                        _ => new Vector3(0f, 0f, (1f - t) * size.z)
+                    };
+                    p += origin;
+                    p.y = terrain.SampleHeight(p) + origin.y;
+                    border.Add(p);
+                }
+
+            int n = border.Count, rows = ringDistance.Length;
+            var vertices = new Vector3[n * rows];
+            for (int i = 0; i < n; i++)
+            {
+                Vector3 b = border[i];
+                Vector3 outward = new Vector3(b.x - centre.x, 0f, b.z - centre.z).normalized;
+                float angle = (float)i / n;
+                bool underSea = b.y < seaLevel + 1f;
+                for (int r = 0; r < rows; r++)
+                {
+                    float rise = r == 0 ? -0.6f
+                        : (0.25f + 0.75f * Mathf.PerlinNoise(angle * 9f + r * 3.1f, r * 1.7f)) * hills * (r == 1 ? 0.25f : r == 2 ? 1f : 0.8f);
+                    float y = b.y + rise;
+                    if (underSea) y = r == 0 ? b.y - 0.6f : seaLevel - 4f; // the sea covers it
+                    vertices[i * rows + r] = b + outward * ringDistance[r] + Vector3.up * (y - b.y);
+                }
+            }
+            var triangles = new List<int>();
+            for (int i = 0; i < n; i++)
+            {
+                int j = (i + 1) % n;
+                for (int r = 0; r < rows - 1; r++)
+                {
+                    int a0 = i * rows + r, a1 = i * rows + r + 1, b0 = j * rows + r, b1 = j * rows + r + 1;
+                    triangles.Add(a0); triangles.Add(a1); triangles.Add(b0);
+                    triangles.Add(b0); triangles.Add(a1); triangles.Add(b1);
+                }
+            }
+            var mesh = new Mesh { name = "M_Horizon", indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+            mesh.vertices = vertices;
+            mesh.triangles = triangles.ToArray();
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            var mat = MaterialFactory.Opaque("Horizon", colour, null, null, 0.05f, 0f, 1f, null, "Environment");
+            var go = PropFactory.MeshObject("Horizon", PropFactory.SaveMesh(mesh), mat);
+            go.isStatic = true;
+            var mr = go.GetComponent<MeshRenderer>();
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            // Winding check: the surface must face up; flip if the first face points down.
+            if (Vector3.Dot(mesh.normals[1], Vector3.up) < 0f)
+            {
+                var tris = mesh.triangles;
+                for (int k = 0; k < tris.Length; k += 3) (tris[k + 1], tris[k + 2]) = (tris[k + 2], tris[k + 1]);
+                mesh.triangles = tris;
+                mesh.RecalculateNormals();
+            }
+        }
+
         // ------------------------------------------------------------------ trees
 
         public static void PlantTrees(Terrain terrain, StageRoute route, TerrainSculptor sculptor, AssetLibrary lib, System.Func<Vector3, bool> blocked)

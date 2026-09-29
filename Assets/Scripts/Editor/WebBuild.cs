@@ -17,6 +17,10 @@ namespace Rally.EditorTools
             string output = GetArg("-buildOutput");
             if (string.IsNullOrEmpty(output)) throw new ArgumentException("Missing -buildOutput <folder>.");
 
+            // Every build gets file names from a hash of their contents: a browser (or itch.io's CDN) can never serve
+            // the previous version's data or code from its cache after a new upload.
+            PlayerSettings.WebGL.nameFilesAsHashes = true;
+
             var options = new BuildPlayerOptions
             {
                 scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray(),

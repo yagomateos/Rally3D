@@ -205,6 +205,8 @@ namespace Rally.EditorTools
             checkpointRoot.SetParent(trackGo.transform, false);
             var checkpoints = decorator.BuildCheckpoints(path, checkpointRoot);
 
+            TerrainBuilder.BuildHorizon(terrain, seaLevel);
+
             Progress("Trees", 0.75f);
             TerrainBuilder.PlantTrees(terrain, route, sculptor, lib, p => decorator.IsBlocked(p) || p.y < seaLevel + 1.5f); // nothing under the sea
             DressingRandomizer.Apply();
