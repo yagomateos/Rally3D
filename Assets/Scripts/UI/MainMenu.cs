@@ -147,7 +147,17 @@ namespace Rally.UI
                 if (i == 0) firstStageButton = card;
                 y -= 190f;
             }
-            MenuButton(t, "Back", y - 20f, "VOLVER", () => Open(mainScreen, playButton), 620f);
+            // Difficulty right in the play flow as well as in OPCIONES.
+            var difficulty = MenuButton(t, "Difficulty", y - 10f, "", () => { }, 620f);
+            var difficultyText = difficulty.GetComponentInChildren<Text>();
+            void RefreshDifficulty() => difficultyText.text = "DIFICULTAD:  " + Rally.AI.AIDriver.LevelNames[(int)Rally.AI.AIDriver.Difficulty];
+            difficulty.onClick.AddListener(() =>
+            {
+                Rally.AI.AIDriver.Difficulty = (Rally.AI.AIDriver.Level)(((int)Rally.AI.AIDriver.Difficulty + 1) % 3);
+                RefreshDifficulty();
+            });
+            RefreshDifficulty();
+            MenuButton(t, "Back", y - 114f, "VOLVER", () => Open(mainScreen, playButton), 620f);
         }
 
         private void BuildCarSelect(RectTransform root)
@@ -230,7 +240,7 @@ namespace Rally.UI
             if (Application.isMobilePlatform)
             {
                 var body = UIFactory.Label("Body", t, new Vector2(0f, 1f), new Vector2(120f, -230f), new Vector2(680f, 520f),
-                    "MODO BOTONES\n   INCLINA EL MÓVIL PARA GIRAR\n   ACELERAR · FRENAR · REINICIAR\n\n" +
+                    "MODO BOTONES\n   INCLINA EL MÓVIL PARA GIRAR\n   ACELERAR · FRENAR · REINICIAR\n   MANTÉN «ATRÁS» PARA MIRAR ATRÁS\n\n" +
                     "MODO MANDO (BOTÓN BAJO PAUSA)\n   JOYSTICK: GIRAR\n   A ACELERAR · B FRENAR\n   X FRENO DE MANO · Y REINICIAR\n\n" +
                     "EN PAUSA: SENSIBILIDAD DE LA INCLINACIÓN",
                     26, TextAnchor.UpperLeft, UIFactory.TextMain, FontStyle.Normal);
@@ -248,6 +258,7 @@ namespace Rally.UI
                     { "FRENO DE MANO", "ESPACIO", "B" },
                     { "REINICIAR", "R", "Y" },
                     { "CÁMARA", "C", "VIEW" },
+                    { "MIRAR ATRÁS (MANTENER)", "Q", "STICK DER." },
                     { "PAUSA", "ESC / P", "START" },
                     { "REPETIR TRAMO", "RETROCESO", "X" },
                 };

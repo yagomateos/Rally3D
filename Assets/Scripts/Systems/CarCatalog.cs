@@ -97,6 +97,7 @@ namespace Rally.Systems
             var tuning = UnityEngine.Object.Instantiate(sharedTuning);
             tuning.name = sharedTuning.name + CopySuffix;
             entry.modify(tuning);
+            DifficultyData.ApplyToPlayer(tuning); // assists of the chosen difficulty level
             controller.ApplyTuning(tuning);
             if (isCopy) UnityEngine.Object.Destroy(current);
         }

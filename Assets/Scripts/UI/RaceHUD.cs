@@ -151,7 +151,9 @@ namespace Rally.UI
         private void BuildProgressBar()
         {
             var anchor = new Vector2(0.5f, 1f);
-            var track = UIFactory.Panel("ProgressTrack", root, anchor, new Vector2(0f, -62f), new Vector2(640f, 8f), new Color(1f, 1f, 1f, 0.22f));
+            // Dark plate behind the bar, labels and km text: the white bar vanished against the snow stage's sky.
+            UIFactory.Panel("ProgressBack", root, anchor, new Vector2(0f, -40f), new Vector2(860f, 86f), new Color(0.02f, 0.03f, 0.04f, 0.45f));
+            var track = UIFactory.Panel("ProgressTrack", root, anchor, new Vector2(0f, -62f), new Vector2(640f, 8f), new Color(1f, 1f, 1f, 0.35f));
             progressTrack = track.rectTransform;
 
             var fill = UIFactory.Panel("Fill", track.transform, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(0f, 8f), UIFactory.Accent);
@@ -169,9 +171,9 @@ namespace Rally.UI
 
             // Pivots on the outer side so the labels sit just outside the bar ends instead of over them.
             UIFactory.Label("Start", track.transform, new Vector2(0f, 0.5f), new Vector2(-14f, 0f), new Vector2(90f, 24f),
-                "SALIDA", 16, TextAnchor.MiddleRight, UIFactory.TextDim, FontStyle.Bold, new Vector2(1f, 0.5f));
+                "SALIDA", 16, TextAnchor.MiddleRight, UIFactory.TextMain, FontStyle.Bold, new Vector2(1f, 0.5f));
             UIFactory.Label("Finish", track.transform, new Vector2(1f, 0.5f), new Vector2(18f, 0f), new Vector2(90f, 24f),
-                "META", 16, TextAnchor.MiddleLeft, UIFactory.TextDim, FontStyle.Bold, new Vector2(0f, 0.5f));
+                "META", 16, TextAnchor.MiddleLeft, UIFactory.TextMain, FontStyle.Bold, new Vector2(0f, 0.5f));
 
             progressText = UIFactory.Label("ProgressText", root, anchor, new Vector2(0f, -94f), new Vector2(400f, 26f),
                 "", 18, TextAnchor.MiddleCenter, UIFactory.TextMain);
@@ -183,7 +185,7 @@ namespace Rally.UI
                 var marker = UIFactory.Panel(p.DisplayName, track.transform, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(size, size), p.Color);
                 marker.rectTransform.pivot = new Vector2(0.5f, 0.5f);
                 marker.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
-                UIFactory.AddShadow(marker, 1f, 0.8f);
+                UIFactory.AddShadow(marker, 2f, 1f); // dark edge: some liveries' colours are white (invisible on snow)
                 carMarkers[p] = marker.rectTransform;
                 if (p.IsPlayer) marker.transform.SetAsLastSibling();
             }
@@ -234,8 +236,8 @@ namespace Rally.UI
 
         private void BuildHints()
         {
-            var hint = UIFactory.Label("Hints", root, new Vector2(0f, 0f), new Vector2(48f, 40f), new Vector2(900f, 26f),
-                "R  REINICIAR     C  CÁMARA     " + PauseHint + "     RETROCESO  REPETIR TRAMO", 18, TextAnchor.MiddleLeft,
+            var hint = UIFactory.Label("Hints", root, new Vector2(0f, 0f), new Vector2(48f, 40f), new Vector2(1060f, 26f),
+                "R  REINICIAR     C  CÁMARA     Q  MIRAR ATRÁS     " + PauseHint + "     RETROCESO  REPETIR TRAMO", 18, TextAnchor.MiddleLeft,
                 new Color(1f, 1f, 1f, 0.55f), FontStyle.Normal);
             UIFactory.AddShadow(hint, 1f);
             if (Application.isMobilePlatform) hint.gameObject.SetActive(false); // keyboard hints; phones use the touch buttons

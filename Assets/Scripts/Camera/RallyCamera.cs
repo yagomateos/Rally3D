@@ -45,6 +45,13 @@ namespace Rally.CameraSystem
         [SerializeField] private float collisionRadius = 0.35f;
         [SerializeField] private float minGroundClearance = 0.6f;
 
+        [Header("Look back")]
+        [Tooltip("Seconds to swing round when the look-back key is pressed or released.")]
+        [SerializeField] private float lookBackTime = 0.14f;
+
+        /// <summary>Held by the on-screen MIRAR ATRÁS button on phones.</summary>
+        public static bool TouchLookBack { get; set; }
+
         public Mode CurrentMode { get; private set; } = Mode.Chase;
         public CarController Target
         {
@@ -61,9 +68,14 @@ namespace Rally.CameraSystem
         private float impulse;
         private float currentDistance;
         private float shakeTime;
+        private float lookBack, lookBackVelocity;       // 0 = forward, 1 = looking back
+        private Vector3 basePosition;                    // camera pose without the look-back swing
+        private Quaternion baseRotation;
+        private bool hasBasePose;
 
         private void Awake()
         {
+            TouchLookBack = false; // never carry a held button over a scene reload
             cam = GetComponent<Camera>();
             currentDistance = distance;
         }
@@ -75,6 +87,7 @@ namespace Rally.CameraSystem
         public void SnapToTarget()
         {
             if (target == null) return;
+            hasBasePose = false;
             yaw = target.transform.eulerAngles.y;
             yawVelocity = 0f;
             smoothedHeight = target.transform.position.y;
@@ -97,6 +110,9 @@ namespace Rally.CameraSystem
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
 
+            // The chase camera eases from its previous pose, so it must continue from the un-swung one.
+            if (hasBasePose) transform.SetPositionAndRotation(basePosition, baseRotation);
+
             Rigidbody body = target.Body;
             Vector3 velocity = body != null ? body.linearVelocity : Vector3.zero;
             float speed = velocity.magnitude;
@@ -112,6 +128,35 @@ namespace Rally.CameraSystem
             float targetFov = Mathf.Lerp(baseFov, maxFov, speed01 * speed01);
             if (CurrentMode != Mode.Chase && CurrentMode != Mode.FarChase) targetFov += 6f;
             cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFov, 1f - Mathf.Exp(-fovSharpness * dt));
+
+            basePosition = transform.position;
+            baseRotation = transform.rotation;
+            hasBasePose = true;
+            ApplyLookBack(dt);
+        }
+
+        /// <summary>
+        /// Swings the camera round the car (chase views) or turns it (hood / bumper views) while the look-back key
+        /// or button is held, with an eased transition both ways.
+        /// </summary>
+        private void ApplyLookBack(float dt)
+        {
+            var input = RallyInput.Instance;
+            bool held = TouchLookBack || (input != null && input.LookBack.IsPressed());
+            lookBack = Mathf.SmoothDamp(lookBack, held ? 1f : 0f, ref lookBackVelocity, lookBackTime, Mathf.Infinity, dt);
+            if (lookBack < 0.001f) return;
+
+            float angle = 180f * Mathf.SmoothStep(0f, 1f, lookBack);
+            Quaternion swing = Quaternion.AngleAxis(angle, Vector3.up);
+            if (CurrentMode == Mode.Hood || CurrentMode == Mode.Bumper)
+            {
+                transform.rotation = Quaternion.AngleAxis(angle, target.transform.up) * baseRotation;
+                return;
+            }
+            Vector3 pivot = target.transform.position + Vector3.up * lookHeight;
+            Vector3 swung = pivot + swing * (basePosition - pivot);
+            swung = KeepAboveGround(ResolveCollision(pivot, swung));
+            transform.SetPositionAndRotation(swung, swing * baseRotation);
         }
 
         private void UpdateChase(float dt, Vector3 velocity, float speed01)

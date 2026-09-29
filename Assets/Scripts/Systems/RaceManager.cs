@@ -148,6 +148,7 @@ namespace Rally.Systems
                 p.Finished += OnParticipantFinished;
                 p.Car.ControlEnabled = false;
                 if (p.GetComponent<CarDamage>() == null) p.gameObject.AddComponent<CarDamage>();
+                if (p.GetComponent<CarBodyContact>() == null) p.gameObject.AddComponent<CarBodyContact>();
                 if (p.IsPlayer)
                 {
                     Player = p;
@@ -223,6 +224,14 @@ namespace Rally.Systems
         /// <summary>Leaves the title card and starts the 3-2-1 countdown.</summary>
         public void BeginCountdown()
         {
+            // Difficulty as chosen now (it can be changed in the menu after the stage loaded).
+            foreach (var p in participants)
+            {
+                var ai = p.GetComponent<AIDriver>();
+                if (ai != null && !p.IsPlayer) ai.ApplyDifficulty();
+            }
+            CarCatalog.Apply(this, CarCatalog.Selected);
+
             CurrentState = State.Countdown;
             CountdownRemaining = countdownSeconds;
             lastTick = Mathf.CeilToInt(countdownSeconds) + 1;

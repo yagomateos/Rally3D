@@ -37,30 +37,56 @@ namespace Rally.AI
         // ------------------------------------------------------------------ difficulty
 
         public enum Level { Facil = 0, Normal = 1, Dificil = 2 }
-        public static readonly string[] LevelNames = { "FÁCIL", "NORMAL", "DIFÍCIL" };
-        private static readonly float[] LevelPace = { 0.91f, 0.97f, 1.02f };     // rivals' overall pace
-        private static readonly float[] LevelMaxEase = { 0.18f, 0.12f, 0.05f };  // how much they ease off when far ahead
-        private const float EaseFromGap = 60f, EaseFullGap = 250f;              // metres ahead of the player
+        private const float EaseFromGap = 60f, EaseFullGap = 250f; // metres ahead of the player
 
-        private static int levelCache = -1;
-        /// <summary>Main menu option. Default: FÁCIL on phones (harder to drive), NORMAL elsewhere.</summary>
+        /// <summary>Chosen difficulty (stored by <see cref="DifficultyData"/> with PlayerPrefs).</summary>
         public static Level Difficulty
+        {
+            get => (Level)DifficultyData.Selected;
+            set => DifficultyData.Selected = (int)value;
+        }
+
+        public static string[] LevelNames
         {
             get
             {
-                if (levelCache < 0) levelCache = PlayerPrefs.GetInt("Rally.Difficulty", Application.isMobilePlatform ? 0 : 1);
-                return (Level)Mathf.Clamp(levelCache, 0, 2);
-            }
-            set
-            {
-                levelCache = (int)value;
-                PlayerPrefs.SetInt("Rally.Difficulty", levelCache);
-                PlayerPrefs.Save();
+                var levels = DifficultyData.Instance.levels;
+                var names = new string[levels.Length];
+                for (int i = 0; i < levels.Length; i++) names[i] = levels[i].name;
+                return names;
             }
         }
 
+        // This rival's own values, as authored; difficulty multipliers are applied to these, never compounded.
+        private float baseSkill, baseTopSpeed, baseMistakes, baseNoise, basePower;
+
+        /// <summary>Scales this rival's skill for the chosen difficulty (called when the countdown starts).</summary>
+        public void ApplyDifficulty()
+        {
+            var l = DifficultyData.Current;
+            corneringSkill = baseSkill * l.corneringSkill;
+            topSpeedKph = baseTopSpeed * l.topSpeed;
+            mistakeChance = Mathf.Clamp01(baseMistakes * l.mistakes);
+            steeringNoise = Mathf.Clamp01(baseNoise * l.steeringNoise);
+            car.PowerMultiplier = basePower * l.power;
+            speedProfile = null; // rebuilt with the new cornering skill
+        }
+
+        [Header("Being pushed")]
+        [Tooltip("While the player pushes this car, how much of its own steering correction it keeps (0-1).")]
+        [Range(0f, 1f)] public float pushedSteerScale = 0.35f;
+        [Tooltip("Stability assist while being pushed (1 = normal).")]
+        [Range(0f, 1f)] public float pushedStability = 0.6f;
+        [Tooltip("Seconds to blend back to its normal driving once the push ends.")]
+        [Min(0.1f)] public float pushRecoveryTime = 1.2f;
+
         private float paceFactor = 1f;
         private float stunTimer;
+        private float pushedTimer;   // > 0 while in contact with a pushing player
+        private float yieldAmount;   // 1 = fully yielding, 0 = driving normally
+
+        /// <summary>The player is pushing this car right now (called every physics step of the contact).</summary>
+        public void Yield() => pushedTimer = 0.15f;
 
         /// <summary>
         /// Knocked by the player: for a moment the AI lets go of the wheel and the car's stability assist is weak,
@@ -78,15 +104,15 @@ namespace Rally.AI
         /// </summary>
         private float TargetPace()
         {
-            int level = (int)Difficulty;
-            float pace = LevelPace[level];
+            var level = DifficultyData.Current;
+            float pace = level.pace;
             var race = RaceManager.Instance;
             var player = race != null ? race.Player : null;
             if (player != null && !player.HasFinished && !participant.HasFinished)
             {
                 float ahead = participant.Distance - player.Distance;
                 float t = Mathf.InverseLerp(EaseFromGap, EaseFullGap, ahead);
-                pace *= 1f - LevelMaxEase[level] * t;
+                pace *= 1f - level.catchUp * t;
             }
             return pace;
         }
@@ -120,6 +146,11 @@ namespace Rally.AI
         {
             car = GetComponent<CarController>();
             participant = GetComponent<RaceParticipant>();
+            baseSkill = corneringSkill;
+            baseTopSpeed = topSpeedKph;
+            baseMistakes = mistakeChance;
+            baseNoise = steeringNoise;
+            basePower = car.PowerMultiplier;
             noiseSeed = Random.value * 100f;
         }
 
@@ -190,6 +221,11 @@ namespace Rally.AI
             EnsureProfile();
             if (path == null) return CarInput.None;
 
+            // Being pushed: yield at once; afterwards blend back smoothly over pushRecoveryTime.
+            if (pushedTimer > 0f) { pushedTimer -= Time.fixedDeltaTime; yieldAmount = 1f; }
+            else yieldAmount = Mathf.MoveTowards(yieldAmount, 0f, Time.fixedDeltaTime / pushRecoveryTime);
+            if (stunTimer <= 0f) car.StabilityScale = Mathf.Lerp(1f, pushedStability, yieldAmount);
+
             if (stunTimer > 0f)
             {
                 stunTimer -= Time.fixedDeltaTime;
@@ -220,6 +256,8 @@ namespace Rally.AI
 
             // Catch slides by steering into them.
             if (car.IsDrifting) steer += Mathf.Clamp(car.SlipAngle / 40f, -0.5f, 0.5f);
+            // Pushed: fight the push less, so it can move the car (full correction returns gradually).
+            steer *= Mathf.Lerp(1f, pushedSteerScale, yieldAmount);
             steer = Mathf.Clamp(steer, -1f, 1f);
 
             // --- Speed control against the profile.
@@ -231,6 +269,8 @@ namespace Rally.AI
 
             float throttle = Mathf.Clamp01(error * 0.35f + 0.25f);
             float brake = error < -1.5f ? Mathf.Clamp01(-error * 0.2f) : 0f;
+            // Pushed from behind: do not brake against the push (it would cancel it), just lift off.
+            if (yieldAmount > 0f) brake *= 1f - yieldAmount;
             if (brake > 0f) throttle = 0f;
             if (Mathf.Abs(steer) > 0.85f && speed > 12f) throttle *= 0.6f;
             bool handbrake = false;

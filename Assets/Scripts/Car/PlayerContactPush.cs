@@ -20,9 +20,45 @@ namespace Rally.Car
         [SerializeField] private float spinPerMs = 0.18f;
         [SerializeField] private float maxSpin = 2.2f;
 
-        private Rigidbody body;
+        [Header("Continuous push (contact, even at low speed)")]
+        [Tooltip("Force added to a rival while the player's car is pressing on it (newtons, at full throttle).")]
+        public float pushForce = 5500f;
+        [Tooltip("Share of the push force applied even without throttle (e.g. rolling into a car).")]
+        [Range(0f, 1f)] public float pushForceNoThrottle = 0.35f;
+        [Tooltip("No extra force once the rival already moves away faster than this (m/s): no catapulting.")]
+        public float maxSeparationSpeed = 2.5f;
 
-        private void Awake() => body = GetComponent<Rigidbody>();
+        private Rigidbody body;
+        private CarController car;
+
+        private void Awake()
+        {
+            body = GetComponent<Rigidbody>();
+            car = GetComponent<CarController>();
+        }
+
+        /// <summary>
+        /// Contact that lasts: while the player presses on a rival (typically from behind), help the push through
+        /// and make the AI yield instead of braking and steering against it.
+        /// </summary>
+        private void OnCollisionStay(Collision collision)
+        {
+            var other = collision.rigidbody;
+            if (other == null || other == body || collision.contactCount == 0) return;
+            var rival = other.GetComponent<AIDriver>();
+            if (rival == null || !rival.enabled) return;
+
+            Vector3 away = Vector3.ProjectOnPlane(other.worldCenterOfMass - body.worldCenterOfMass, Vector3.up).normalized;
+            float closing = Vector3.Dot(body.linearVelocity - other.linearVelocity, away); // > 0: pressing into it
+            if (closing < -maxSeparationSpeed) return;
+            float pressingForward = Vector3.Dot(body.transform.forward, away);              // the player is facing it
+            if (pressingForward < 0.3f) return;
+
+            rival.Yield();
+            float throttle = car != null ? car.EffectiveThrottle : 0f;
+            float share = Mathf.Lerp(pushForceNoThrottle, 1f, throttle) * pressingForward;
+            other.AddForce(away * pushForce * share, ForceMode.Force);
+        }
 
         private void OnCollisionEnter(Collision collision)
         {

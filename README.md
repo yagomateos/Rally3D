@@ -92,6 +92,7 @@ botones táctiles o mando en pantalla). La versión web está preparada para pub
 | Cámara (persecución / lejana / capó / paragolpes) | C | View / Share |
 | Pausa | Esc (en el navegador también **P**) | Start / Options |
 | Repetir tramo | Retroceso | X / Cuadrado |
+| Mirar atrás (mantener) | Q (↓ ya es frenar) | Pulsar el stick derecho (R3) |
 | Empezar / confirmar | Enter (en el navegador también **clic**) | A / Cruz |
 
 En el navegador, **P** también pausa porque a pantalla completa el navegador usa Esc para salir de ella.
@@ -110,6 +111,7 @@ El juego recuerda el modo elegido.
   La sensibilidad se cambia en **PAUSA → SENSIBILIDAD INCLINACIÓN**: BAJA, MEDIA, ALTA o MUY ALTA.
 - **Sin sensor:** si el navegador no da datos de inclinación, a los 2 s aparecen **IZQUIERDA / DERECHA**.
   **Brave bloquea los sensores de movimiento**; usa Chrome, o el modo MANDO.
+- **Mirar atrás:** mantén el botón **ATRÁS** (arriba a la izquierda); al soltarlo la cámara vuelve suavemente.
 - **Diagnóstico:** en **PAUSA** aparece una línea `SENSOR: …` con el estado del sensor, para saber por qué no funciona la inclinación.
 
 ## Jugar y compilar
@@ -196,8 +198,33 @@ Ajustes del proyecto que ya vienen preparados para esto:
 - **Golpes a los rivales** (`PlayerContactPush`): cuando le das a un rival, recibe un empujón en la dirección del golpe
   (y un giro si le das descentrado) y durante 0,4–1,4 s **pierde el control**: la IA suelta el volante y su ayuda de
   estabilidad baja al 30 %. Antes la IA y la estabilidad lo enderezaban al instante, así que solo te sacaban a ti de la pista.
-- **Dificultad y ayuda de alcance:** los rivales tienen un ritmo según la dificultad (91 % / 97 % / 102 %).
-  Cuando uno te saca más de 60 m, levanta el pie poco a poco, hasta un 18 % / 12 % / 5 % a 250 m.
+- **Empujar a baja velocidad** (`PlayerContactPush`, `CarBodyContact`, `AIDriver`): ya no hace falta un golpe.
+  - Si estás en contacto y aceleras hacia el rival, se le aplica una fuerza continua (`pushForce` = 5500 N).
+  - Mientras le empujas, la IA **cede**: no frena contra ti, gira un 35 % y su estabilidad baja al 60 %.
+  - Al dejar de empujar se recupera en 1,2 s (`pushRecoveryTime`).
+  - Las carrocerías tienen fricción 0,15 entre sí (antes 0,6 por defecto), así que no se enganchan.
+  - Las masas no se tocaron: todos los coches pesan lo mismo. No había `isKinematic` ni control por *waypoints*
+    que anulara la física; el problema era que la IA frenaba y corregía al instante.
+  - Masas, fuerza de empuje y recuperación son campos públicos, editables en el Inspector.
+- **Dificultad** (`DifficultyData`, un *ScriptableObject* en `Assets/Resources/DifficultyData.asset`, editable en el Inspector):
+  - Se elige en **ELIGE TRAMO** y en **OPCIONES**, y se guarda con `PlayerPrefs` (`PlayerPrefs.Save()`).
+  - Los valores de los rivales multiplican los de cada coche; los del jugador son ayudas sobre su propio coche.
+  - DIFÍCIL es el juego tal y como estaba ajustado originalmente.
+
+  | | FÁCIL | NORMAL | DIFÍCIL |
+  |---|---|---|---|
+  | Ritmo de los rivales | 0,82 | 0,90 | 1,00 |
+  | Paso por curva | 0,88 | 0,93 | 1,00 |
+  | Velocidad punta / potencia | 0,92 / 0,94 | 0,96 / 0,97 | 1,00 / 1,00 |
+  | Errores / temblor del volante | 1,6 / 1,3 | 1,25 / 1,1 | 1,0 / 1,0 |
+  | Levantan el pie si te sacan > 60 m (máx. a 250 m) | 22 % | 15 % | 6 % |
+  | Agarre del jugador | ×1,10 | ×1,05 | ×1,00 |
+  | Frenos / estabilidad del jugador | ×1,15 / ×1,35 | ×1,08 / ×1,15 | ×1,00 / ×1,00 |
+  | Control de tracción del jugador | 0,60 | 0,45 | 0,35 |
+  | **Tiempo medido del rival más rápido (tramo 01)** | **2:04,2** | **1:53,1** | **1:42,1** |
+
+  Los tiempos se midieron con un test (`DifficultyMeasureTests`) en el que el jugador va justo detrás del líder,
+  para que la ayuda de alcance no cuente. Con NORMAL, un jugador medio debería ganar en 2–3 intentos.
   Así un choque no acaba la carrera; a los rivales que van detrás no se les da ventaja.
 - **Penalización y parciales:** +5 s por cada reinicio pedido por el jugador; el reinicio automático tras volcar es gratis.
   Los tiempos parciales del mejor recorrido se guardan y se comparan en cada control.
@@ -214,6 +241,11 @@ Ajustes del proyecto que ya vienen preparados para esto:
 - **Idioma:** todos los textos en castellano (HUD, menús, avisos, botones y carteles SALIDA / META del escenario).
 - **HUD:** *Canvas Scaler* en Scale With Screen Size, 1920 × 1080 y Match 0,5. El nombre del tramo se ajusta solo
   en pantallas 4:3 y 3:2, y los textos de SALIDA / META ya no pisan la barra de progreso.
+- **Barra de progreso:** nunca se quitó (el historial de git lo confirma), pero en la nieve y con coches blancos no se veía.
+  Ahora tiene una placa oscura detrás, una pista más opaca y marcadores con contorno. Los marcadores se mueven en tiempo real.
+- **Mirar atrás** (`RallyCamera`): mantener Q, R3 o ATRÁS gira la cámara 180° en unos 0,15 s con una curva suave, y vuelve igual.
+  En las cámaras de persecución la cámara rodea el coche y no atraviesa el suelo ni las paredes.
+  El giro se aplica sobre la pose normal de la cámara, así que al soltar no hay saltos.
 - **Polvo:** más ligero. Las nubes son más transparentes (55 %) y duran menos (55 %); los rivales levantan el 40 %
   del polvo. Se ajusta en el Inspector, apartado *Visibility* de `CarDustEffects`.
 
@@ -235,8 +267,11 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA09_CoDriver_CallsTheNextCornerOnScreen` | Al acercarse a una curva, el copiloto muestra la nota correcta | ✅ |
 | `QA11_PlayerHitsRival_RivalIsPushedAndStunned` | Al golpear a un rival a 65 km/h, este pierde el control y sale desplazado | ✅ |
 | `QA10_SnowStage_UsesSnowGripForCarsAndAI` | El tramo de nieve carga con su tabla de agarre en todos los coches y en la IA, el hielo resbala y hay 3 saltos | ✅ |
+| `QA12_LowSpeedPushFromBehind_MovesRivalSmoothly` | Empujando por detrás a un rival a 5 km/h, este pasa de 12 km/h, no sale volando y no se sube encima | ✅ |
+| `QA13_LookBack_TurnsCameraRoundSmoothlyAndBack` | Al mantener ATRÁS la cámara mira hacia atrás, vuelve al soltar y nunca gira más de 45° en un fotograma | ✅ |
+| `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (11 en total: 10 de PlayMode y 1 de EditMode).
+Se pasaron después de cada cambio (13 en total: 12 de PlayMode y 1 de EditMode; el de medición solo se ejecuta a mano).
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.
@@ -272,6 +307,8 @@ Por eso se compilaron aparte con el compilador de Unity (Roslyn), con los *defin
     → pausa → SALIR AL MENÚ → de vuelta al menú con el coche elegido.
   - Choque real (acelerando sin girar): barra de daños, humo y **+5 s PENALIZACIÓN** al pulsar R.
   - Copiloto: «IZQUIERDA 5 · LARGA» antes de la primera curva.
+- **Barra, dificultad y mirar atrás (PC y móvil simulado):** selector DIFICULTAD en ELIGE TRAMO; barra visible en el tramo de nieve
+  con el marcador del rival avanzando; Q gira la cámara hacia atrás y vuelve al soltar; en el móvil, el botón ATRÁS hace lo mismo.
 - **Menú en el móvil simulado:** las opciones caben en una pantalla horizontal. Con **ACELERAR SOLO**, el coche va a 116 km/h sin tocar ningún pedal.
 - **Fallos encontrados gracias a estas pruebas y ya corregidos:**
   - La elección de coche se perdía al usar REPETIR TRAMO o al volver al menú.
@@ -286,7 +323,7 @@ Por eso se compilaron aparte con el compilador de Unity (Roslyn), con los *defin
 
 ### Pendiente de verificar en dispositivos reales
 - **iPhone / iPad:** no se ha probado el permiso de movimiento de Safari.
-- **Mando físico en el navegador:** el mapeo existe, pero no se ha probado con un mando conectado.
+- **Mando físico en el navegador:** el mapeo existe (también R3 para mirar atrás), pero no se ha probado con un mando conectado.
 - **Rendimiento en móviles de gama baja.**
 - **Sensibilidad de la inclinación:** cuál de los cuatro niveles se nota mejor con el móvil en la mano.
 - **Voz del copiloto:** depende de las voces que tenga instaladas el navegador o el sistema; si no hay voz en castellano, lee con la voz por defecto.

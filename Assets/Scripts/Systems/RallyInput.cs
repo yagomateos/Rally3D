@@ -20,6 +20,7 @@ namespace Rally.Systems
         public InputAction Confirm { get; private set; }
         public InputAction CycleCamera { get; private set; }
         public InputAction RestartStage { get; private set; }
+        public InputAction LookBack { get; private set; }
 
         private InputActionMap map;
 
@@ -91,6 +92,11 @@ namespace Rally.Systems
             RestartStage = map.AddAction("Restart", InputActionType.Button);
             RestartStage.AddBinding("<Keyboard>/backspace");
             RestartStage.AddBinding("<Gamepad>/buttonWest");
+
+            // Hold to look behind. Down arrow is already brake / reverse, so Q; on a pad, press the right stick.
+            LookBack = map.AddAction("LookBack", InputActionType.Button);
+            LookBack.AddBinding("<Keyboard>/q");
+            LookBack.AddBinding("<Gamepad>/rightStickPress");
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Rally.UI
         private CanvasGroup group;
         private GameObject buttonsLayout, padLayout;
         private TouchPedal throttle, brake, left, right, reset;
-        private TouchPedal padA, padB, padX, padY;
+        private TouchPedal padA, padB, padX, padY, lookBack;
         private TouchJoystick stick;
         private Text modeLabel;
         private bool visible;
@@ -61,6 +61,9 @@ namespace Rally.UI
             var pause = Pedal("Pause", root, new Vector2(1f, 1f), new Vector2(-48f, -236f), new Vector2(200f, 80f), "PAUSA", 26);
             pause.Changed = pressed => { if (pressed) Pause(); };
             var mode = Pedal("Mode", root, new Vector2(1f, 1f), new Vector2(-48f, -330f), new Vector2(200f, 70f), "", 24);
+            // Hold to look behind (both layouts), left of the screen under the timer panels.
+            lookBack = Pedal("LookBack", root, new Vector2(0f, 1f), new Vector2(48f, -300f), new Vector2(200f, 70f), "ATRÁS", 24);
+            lookBack.Changed = pressed => Rally.CameraSystem.RallyCamera.TouchLookBack = pressed;
             modeLabel = mode.GetComponentInChildren<Text>();
             mode.Changed = pressed => { if (pressed) SetPadMode(!padMode); };
 
@@ -244,7 +247,7 @@ namespace Rally.UI
 
         private void ReleaseAll()
         {
-            foreach (var p in new[] { throttle, brake, left, right, padA, padB, padX, padY })
+            foreach (var p in new[] { throttle, brake, left, right, padA, padB, padX, padY, lookBack })
                 if (p != null) p.Release();
             if (stick != null) stick.Release();
         }
