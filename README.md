@@ -179,12 +179,8 @@ Ajustes del proyecto que ya vienen preparados para esto:
 - **Ambiente:** luz fría, niebla blanca más densa y **nevada** en lugar de llovizna.
 
 ### Sonido
-- **Motor grabado:** «racing car engine sound loops» de *domasx2* ([OpenGameArt](https://opengameart.org/content/racing-car-engine-sound-loops)),
-  con licencia **CC0**. Se ha suavizado el punto de empalme del bucle para que no haga clic,
-  y la versión «sin acelerar» se ha creado filtrando la original. El tono sigue a las revoluciones (grabación a unas 2.300 rpm).
-  Se importa sin comprimir (PCM), porque la compresión AAC de la web mete un pequeño silencio en cada repetición.
-  Créditos en `Assets/Resources/Audio/CREDITS.txt`.
-- El resto de sonidos (neumáticos, viento, golpes, ambiente) siguen siendo sintetizados.
+- Todos los sonidos son **sintetizados por código** (`ProceduralAudio`): motor, turbo, neumáticos, viento, golpes y ambiente.
+  Se probó un motor grabado (CC0), pero se retiró a petición: se prefiere el sonido sintetizado original.
 
 ### Menú, coches y reglas
 - **Menú principal** (`MainMenu`): se construye por código sobre la escena real, con una cámara que gira alrededor del coche (`MenuCamera`).
@@ -197,7 +193,10 @@ Ajustes del proyecto que ya vienen preparados para esto:
   - **Abolladuras reales** de la malla de la carrocería hacia dentro.
   - **Humo** cuando el frontal está muy dañado.
   - En modo COMPLETOS, **menos potencia** y **tirón de la dirección**. Esto va aparte del multiplicador de potencia que usa la IA.
-- **Dificultad y ayuda de alcance:** los rivales tienen un ritmo según la dificultad (93 % / 100 % / 104 %).
+- **Golpes a los rivales** (`PlayerContactPush`): cuando le das a un rival, recibe un empujón en la dirección del golpe
+  (y un giro si le das descentrado) y durante 0,4–1,4 s **pierde el control**: la IA suelta el volante y su ayuda de
+  estabilidad baja al 30 %. Antes la IA y la estabilidad lo enderezaban al instante, así que solo te sacaban a ti de la pista.
+- **Dificultad y ayuda de alcance:** los rivales tienen un ritmo según la dificultad (91 % / 97 % / 102 %).
   Cuando uno te saca más de 60 m, levanta el pie poco a poco, hasta un 18 % / 12 % / 5 % a 250 m.
   Así un choque no acaba la carrera; a los rivales que van detrás no se les da ventaja.
 - **Penalización y parciales:** +5 s por cada reinicio pedido por el jugador; el reinicio automático tras volcar es gratis.
@@ -234,9 +233,10 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA07_HardFrontalHit_DamagesCarAndReducesPower` | Un choque frontal a 72 km/h daña el coche, quita potencia y abolla la carrocería **hacia dentro** | ✅ |
 | `QA08_Pacenotes_CallCornersBothWaysAndTheThreeJumps` | Notas de curva a ambos lados, grados válidos, en orden y los 3 saltos del tramo | ✅ |
 | `QA09_CoDriver_CallsTheNextCornerOnScreen` | Al acercarse a una curva, el copiloto muestra la nota correcta | ✅ |
+| `QA11_PlayerHitsRival_RivalIsPushedAndStunned` | Al golpear a un rival a 65 km/h, este pierde el control y sale desplazado | ✅ |
 | `QA10_SnowStage_UsesSnowGripForCarsAndAI` | El tramo de nieve carga con su tabla de agarre en todos los coches y en la IA, el hielo resbala y hay 3 saltos | ✅ |
 
-Se pasaron después de cada cambio (10 en total: 9 de PlayMode y 1 de EditMode).
+Se pasaron después de cada cambio (11 en total: 10 de PlayMode y 1 de EditMode).
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.

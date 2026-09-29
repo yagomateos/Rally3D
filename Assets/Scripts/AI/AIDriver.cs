@@ -38,7 +38,7 @@ namespace Rally.AI
 
         public enum Level { Facil = 0, Normal = 1, Dificil = 2 }
         public static readonly string[] LevelNames = { "FÁCIL", "NORMAL", "DIFÍCIL" };
-        private static readonly float[] LevelPace = { 0.93f, 1f, 1.04f };        // rivals' overall pace
+        private static readonly float[] LevelPace = { 0.91f, 0.97f, 1.02f };     // rivals' overall pace
         private static readonly float[] LevelMaxEase = { 0.18f, 0.12f, 0.05f };  // how much they ease off when far ahead
         private const float EaseFromGap = 60f, EaseFullGap = 250f;              // metres ahead of the player
 
@@ -60,6 +60,17 @@ namespace Rally.AI
         }
 
         private float paceFactor = 1f;
+        private float stunTimer;
+
+        /// <summary>
+        /// Knocked by the player: for a moment the AI lets go of the wheel and the car's stability assist is weak,
+        /// so the hit can spin it or push it off the road, as happens to the player when a rival hits them.
+        /// </summary>
+        public void Stun(float seconds)
+        {
+            stunTimer = Mathf.Max(stunTimer, seconds);
+            car.StabilityScale = 0.3f;
+        }
 
         /// <summary>
         /// Rivals' pace this frame: the difficulty level, and a moderate catch-up: a rival far ahead of the player
@@ -178,6 +189,15 @@ namespace Rally.AI
         {
             EnsureProfile();
             if (path == null) return CarInput.None;
+
+            if (stunTimer > 0f)
+            {
+                stunTimer -= Time.fixedDeltaTime;
+                if (stunTimer <= 0f) car.StabilityScale = 1f;
+                // Dazed: off the throttle, hands loose on the wheel (a little wobble, no catching the slide).
+                float wobble = (Mathf.PerlinNoise(Time.time * 2.3f, noiseSeed) - 0.5f) * 0.6f;
+                return new CarInput { steer = wobble, throttle = 0.15f, brake = 0f, handbrake = false };
+            }
 
             float speed = car.Body.linearVelocity.magnitude;
             float distance = participant.Distance;

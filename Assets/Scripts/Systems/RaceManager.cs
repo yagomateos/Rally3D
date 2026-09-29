@@ -148,7 +148,11 @@ namespace Rally.Systems
                 p.Finished += OnParticipantFinished;
                 p.Car.ControlEnabled = false;
                 if (p.GetComponent<CarDamage>() == null) p.gameObject.AddComponent<CarDamage>();
-                if (p.IsPlayer) Player = p;
+                if (p.IsPlayer)
+                {
+                    Player = p;
+                    if (p.GetComponent<PlayerContactPush>() == null) p.gameObject.AddComponent<PlayerContactPush>();
+                }
             }
             standings.AddRange(participants);
             // The car picked in the main menu, also after "Repetir tramo" (which reloads the stage without the menu).

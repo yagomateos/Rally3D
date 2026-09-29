@@ -52,6 +52,10 @@ namespace Rally.Car
         /// <see cref="PowerMultiplier"/>).</summary>
         public float DamagePowerScale { get; set; } = 1f;
 
+        /// <summary>Strength of the yaw stability assist (1 = normal). Lowered briefly when an AI car is knocked,
+        /// so a hit can actually turn it round instead of being corrected at once.</summary>
+        public float StabilityScale { get; set; } = 1f;
+
         /// <summary>Steering pull from a bent corner, added to the steering input (set by <see cref="CarDamage"/>).</summary>
         public float DamageSteerBias { get; set; }
 
@@ -320,7 +324,7 @@ namespace Rally.Car
 
                 float stability = input.handbrake ? 0.15f : 1f;
                 stability *= Mathf.Clamp01(speed / 8f);
-                float correction = -(yawRate - desiredYaw) * tuning.yawStability * stability;
+                float correction = -(yawRate - desiredYaw) * tuning.yawStability * stability * StabilityScale;
 
                 if (IsDrifting)
                     correction += input.steer * tuning.driftSteerAssist * Mathf.Clamp01(speed / 15f);
