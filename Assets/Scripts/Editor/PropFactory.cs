@@ -128,9 +128,19 @@ namespace Rally.EditorTools
 
         public static void CreateVegetation(AssetLibrary lib)
         {
-            float[] pineHeights = { 11f, 15f, 19f };
-            for (int v = 0; v < pineHeights.Length; v++)
-                lib.pines.Add(SavePrefab(Pine($"Pine_{v}", pineHeights[v], v, lib)));
+            if (StageTheme.Desert)
+            {
+                // Cacti take the pines' place in the tree scatter.
+                float[] cactusHeights = { 3.5f, 5f, 6.5f };
+                for (int v = 0; v < cactusHeights.Length; v++)
+                    lib.pines.Add(SavePrefab(Cactus($"Cactus_{v}", cactusHeights[v], v, lib)));
+            }
+            else
+            {
+                float[] pineHeights = { 11f, 15f, 19f };
+                for (int v = 0; v < pineHeights.Length; v++)
+                    lib.pines.Add(SavePrefab(Pine($"Pine_{v}", pineHeights[v], v, lib)));
+            }
 
             lib.broadleaf.Add(SavePrefab(Broadleaf("Birch_0", 10f, 0, lib)));
             lib.broadleaf.Add(SavePrefab(Broadleaf("Birch_1", 13f, 1, lib)));
@@ -164,6 +174,42 @@ namespace Rally.EditorTools
             col.radius = trunkR * 1.2f;
             col.height = h * 0.6f;
             col.center = new Vector3(0f, h * 0.3f, 0f);
+            return go;
+        }
+
+        /// <summary>Saguaro-style cactus: ribbed trunk with a rounded top and one or two upturned arms.</summary>
+        private static GameObject Cactus(string name, float h, int seed, AssetLibrary lib)
+        {
+            var mb = new MeshBuilder();
+            var low = new MeshBuilder();
+            float r = 0.22f + h * 0.03f;
+            mb.Frustum(0, Vector3.zero, r, r * 0.85f, h, 10, false, false, 0.02f, seed);
+            mb.Blob(0, new Vector3(0f, h, 0f), new Vector3(r * 0.85f, r * 0.7f, r * 0.85f), 1, 0.05f, seed + 1, false);
+            low.Frustum(0, Vector3.zero, r * 1.2f, r, h, 5, false, true);
+
+            var rng = new System.Random(seed + 70);
+            Vector3[] sides = { Vector3.right, Vector3.left, Vector3.forward, Vector3.back };
+            int arms = 1 + seed % 2 + (h > 6f ? 1 : 0);
+            int first = rng.Next(4);
+            for (int k = 0; k < arms; k++)
+            {
+                Vector3 dir = sides[(first + k * 2 + k / 2) % 4];
+                float armR = r * 0.6f;
+                float y = h * (0.38f + 0.14f * k + (float)rng.NextDouble() * 0.06f);
+                float reach = r + armR * 2.4f;
+                // Elbow: an ellipsoid stretched along the arm's direction, then the upright part.
+                Vector3 radii = new Vector3(Mathf.Abs(dir.x) > 0f ? reach * 0.55f : armR, armR, Mathf.Abs(dir.z) > 0f ? reach * 0.55f : armR);
+                mb.Blob(0, dir * (reach * 0.5f) + Vector3.up * y, radii, 1, 0.04f, seed * 5 + k, false);
+                float up = h * (0.22f + (float)rng.NextDouble() * 0.12f);
+                mb.Frustum(0, dir * reach + Vector3.up * y, armR, armR * 0.85f, up, 8, false, false, 0.02f, seed + k);
+                mb.Blob(0, dir * reach + Vector3.up * (y + up), new Vector3(armR * 0.85f, armR * 0.7f, armR * 0.85f), 1, 0.05f, seed + k + 9, false);
+            }
+
+            var go = LodTree(name, mb, low, 0.06f, 0.015f, lib.bark, lib.bark);
+            var col = go.AddComponent<CapsuleCollider>();
+            col.radius = r * 1.1f;
+            col.height = h;
+            col.center = new Vector3(0f, h * 0.5f, 0f);
             return go;
         }
 

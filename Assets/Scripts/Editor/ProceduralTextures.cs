@@ -413,5 +413,53 @@ namespace Rally.EditorTools
             }
             return TextureBaker.Save("T_Sky_Overcast", w, h, px, TextureBaker.Kind.Albedo, TextureWrapMode.Repeat, TextureWrapMode.Clamp, 4096);
         }
+
+        /// <summary>
+        /// Clear desert sky: deep blue overhead fading into a warm, dusty horizon band (the calima), a bright sun
+        /// halo and a few faint high streaks. Smaller than the overcast sky: a smooth gradient needs less detail.
+        /// </summary>
+        public static Texture2D ClearSky()
+        {
+            const int w = 1024, h = 512;
+            var px = new Color[w * h];
+            Color zenith = new Color(0.22f, 0.42f, 0.72f);
+            Color midSky = new Color(0.47f, 0.64f, 0.84f);
+            Color haze = new Color(0.9f, 0.82f, 0.68f);
+            Color ground = new Color(0.62f, 0.5f, 0.36f);
+            Vector2 sun = new Vector2(0.62f, 0.8f);
+
+            for (int y = 0; y < h; y++)
+            {
+                float v = (y + 0.5f) / h;
+                float elevation = (v - 0.5f) * 2f; // -1 .. 1
+                for (int x = 0; x < w; x++)
+                {
+                    float u = (x + 0.5f) / w;
+                    Color c;
+                    if (elevation < 0f)
+                    {
+                        c = Color.Lerp(haze, ground, S(0f, 0.2f, -elevation));
+                    }
+                    else
+                    {
+                        c = Color.Lerp(midSky, zenith, S(0.15f, 0.9f, elevation));
+                        c = Color.Lerp(c, haze, 1f - S(0f, 0.28f, elevation)); // dusty band at the horizon
+
+                        // Faint high streaks.
+                        float e = Mathf.Max(0.05f, elevation);
+                        float cy = Mathf.Log(1f / e + 1f) * 0.25f;
+                        float streak = Noise.TileFbm(u, (cy * 3f) % 1f, 8, 4, 0.5f, 311) * 0.5f + 0.5f;
+                        c = Color.Lerp(c, new Color(0.95f, 0.95f, 0.97f), S(0.62f, 0.8f, streak) * 0.25f * S(0.1f, 0.4f, elevation));
+
+                        float du = Mathf.Min(Mathf.Abs(u - sun.x), 1f - Mathf.Abs(u - sun.x));
+                        float d = Mathf.Sqrt(du * du * 4f + (v - sun.y) * (v - sun.y));
+                        c += new Color(1f, 0.95f, 0.82f) * (Mathf.Exp(-d * 7f) * 0.35f + Mathf.Exp(-d * 40f) * 0.5f);
+                    }
+                    c.a = 1f;
+                    px[y * w + x] = c;
+                }
+            }
+            return TextureBaker.Save("T_Sky_Clear", w, h, px, TextureBaker.Kind.Albedo, TextureWrapMode.Repeat, TextureWrapMode.Clamp, 2048);
+        }
     }
 }

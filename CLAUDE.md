@@ -1,7 +1,7 @@
 # CLAUDE.md — Rally 3D
 
 Juego de rally en Unity **6000.0.84f1** con **URP 17**, publicado como **build web (WebGL) en itch.io**.
-Dos tramos (`Stage01` pinar/tierra, `Stage02` nieve), rivales con IA, menú, elección de coche, daños, copiloto
+Tres tramos (`Stage01` pinar/tierra, `Stage02` nieve, `Stage03` desierto), rivales con IA, menú, elección de coche, daños, copiloto
 y controles táctiles para móvil. Todo el contenido (terreno, carretera, coches, texturas, sonido, UI) se genera por código.
 
 ## Reglas de trabajo
@@ -35,11 +35,14 @@ y controles táctiles para móvil. Todo el contenido (terreno, carretera, coches
 
 ### Escenas generadas: cuidado
 
-`Stage01` y `Stage02` las crea **`StageBuilder`** (menú **Rally ▸ Build Stage (full)** / **Build Snow Stage 02 (full)**,
-o `StageBuilder.BuildFromCommandLine` / `BuildSnowFromCommandLine`). Regenerar **sobrescribe la escena**.
+`Stage01`, `Stage02` y `Stage03` las crea **`StageBuilder`** (menú **Rally ▸ Build Stage (full)** / **Build Snow Stage 02 (full)** /
+**Build Desert Stage 03 (full)**, o `BuildFromCommandLine` / `BuildSnowFromCommandLine` / `BuildDesertFromCommandLine`).
+Regenerar **sobrescribe la escena**. Los tramos 02 y 03 usan los prefabs de coche del 01: genera el 01 primero.
 - Los cambios de comportamiento van en código (componentes que añade `RaceManager.Start`, UI construida en código),
   no a mano en la escena.
-- El tramo de nieve reutiliza el generador con `StageTheme.Kind.Snow`: los assets llevan el sufijo `_Snow` y no pisan los del tramo 01.
+- Los tramos 02 y 03 reutilizan el generador con `StageTheme.Kind.Snow` / `Desert`: sus assets llevan el sufijo `_Snow` / `_Desert`
+  y no pisan los del tramo 01. En código de runtime el tema se lee de `StageDefinition.theme` (`ForestTheme`, `SnowTheme`, `DesertTheme`).
+- Un recorrido nuevo no debe cruzarse consigo mismo: compruébalo antes de generarlo (distancia mínima entre partes no contiguas).
 - No edites a mano el YAML de `.unity` / `.prefab` si hay un Editor conectado (`unity status`); usa el Editor.
 
 ## Convenciones de código
@@ -108,15 +111,15 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 ## Estado del proyecto (septiembre de 2026)
 
 **Hecho:**
-- Dos tramos con copiloto (voz + texto), rivales con IA y ayuda de alcance, y dificultad en `DifficultyData`
+- Tres tramos (pinar, nieve, desierto) con copiloto (voz + texto), rivales con IA y ayuda de alcance, y dificultad en `DifficultyData`
   (tiempos del rival en el tramo 01: 2:04 / 1:53 / 1:42).
 - Daños por zonas, +5 s por reinicio, tiempos parciales y cámaras (persecución, lejana, capó, paragolpes, mirar atrás).
 - Golpes y empuje a baja velocidad entre coches.
 - Menú principal, elección de coche, opciones, pausa con salir al menú / salir del juego.
 - Motor sintetizado (`ProceduralAudio`): el usuario **prefirió volver a él** en lugar de las grabaciones CC0.
-- Controles de móvil y 15 tests (14 PlayMode + 1 EditMode) más una medición *Explicit*.
+- Controles de móvil y 17 tests (16 PlayMode + 1 EditMode) más una medición *Explicit*.
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. El tamaño del build está **pendiente de medir en el siguiente build**
-  (unos 33 MB estimados frente a 51 MB).
+  (unos 33 MB estimados con dos tramos frente a 51 MB; el desierto añade unos 6–8 MB más).
 
 **Pendiente de verificar en dispositivos reales:**
 - Permiso de movimiento en iPhone / iPad (Safari).

@@ -7,18 +7,21 @@ namespace Rally.EditorTools
     /// the builder saves gets a "_Snow" name (so stage 1's textures, materials, meshes, prefabs and terrain are never
     /// overwritten) and generated textures are recoloured for winter: snow on the ground, packed snow on the road,
     /// ice instead of tarmac, slush instead of mud and snow on the pine needles and roofs.
+    /// <see cref="Kind.Desert"/> works the same way with a "_Desert" suffix: sand dunes, packed-sand tracks,
+    /// red sandstone, sun-faded tarmac, cactus-green "needles" and dry leaves.
     /// </summary>
     public static class StageTheme
     {
-        public enum Kind { Forest = 0, Snow = 1 }
+        public enum Kind { Forest = 0, Snow = 1, Desert = 2 }
 
         public static Kind Current { get; set; } = Kind.Forest;
         public static bool Snow => Current == Kind.Snow;
-        private const string Suffix = "_Snow";
+        public static bool Desert => Current == Kind.Desert;
+        private static string Suffix => Snow ? "_Snow" : Desert ? "_Desert" : "";
 
         /// <summary>Asset name for the current theme ("Road_Dirt" → "Road_Dirt_Snow" in the snow build).</summary>
         public static string Name(string baseName) =>
-            Snow && !baseName.EndsWith(Suffix) ? baseName + Suffix : baseName;
+            Suffix.Length > 0 && !baseName.EndsWith(Suffix) ? baseName + Suffix : baseName;
 
         private static readonly Color SnowShadow = new Color(0.66f, 0.72f, 0.82f);
         private static readonly Color SnowLight = new Color(0.95f, 0.97f, 1f);
@@ -33,6 +36,7 @@ namespace Rally.EditorTools
         /// <summary>Winter version of one albedo pixel of the named generated texture (unchanged in the forest theme).</summary>
         public static Color Recolor(string texture, Color c, float u, float v)
         {
+            if (Desert) return RecolorDesert(texture, c, u, v);
             if (!Snow) return c;
             float lum = Luminance(c);
             switch (texture)
@@ -74,6 +78,54 @@ namespace Rally.EditorTools
                 // Sky: brighter, colder overcast.
                 case "T_Sky_Overcast":
                     return Keep(Color.Lerp(c, new Color(0.84f, 0.87f, 0.92f), 0.45f) * 1.05f, c.a);
+            }
+            return c;
+        }
+
+        private static readonly Color SandShadow = new Color(0.74f, 0.57f, 0.38f);
+        private static readonly Color SandLight = new Color(0.93f, 0.8f, 0.6f);
+        private static Color SandColor(float detail) => Color.Lerp(SandShadow, SandLight, Mathf.Clamp01(detail));
+
+        /// <summary>Desert version of one albedo pixel: the original detail survives as shading.</summary>
+        private static Color RecolorDesert(string texture, Color c, float u, float v)
+        {
+            float lum = Luminance(c);
+            switch (texture)
+            {
+                // Terrain: dunes, darker pebbly sand, soft powder sand, packed verges, tan gravel, red sandstone.
+                case "T_Grass":
+                case "T_Meadow":
+                    return Keep(SandColor(0.5f + (lum - 0.3f) * 1.3f), Mathf.Max(c.a, 0.35f));
+                case "T_ForestFloor":
+                    return Keep(Color.Lerp(SandColor(0.3f + lum), new Color(0.55f, 0.42f, 0.3f), 0.35f), c.a);
+                case "T_Mud":
+                    return Keep(new Color(0.92f, 0.83f, 0.66f) * (0.88f + 0.3f * lum), Mathf.Max(c.a, 0.3f));
+                case "T_VergeDirt":
+                    return Keep(Color.Lerp(new Color(0.62f, 0.47f, 0.32f), SandShadow, Mathf.Clamp01(lum * 1.5f)), c.a);
+                case "T_Gravel":
+                    return Keep(Color.Lerp(c, new Color(0.72f, 0.6f, 0.45f), 0.6f), c.a);
+                case "T_Rock":
+                    return Keep(new Color(0.66f, 0.4f, 0.26f) * (0.65f + 0.7f * lum), c.a);
+
+                // Road: packed-sand piste, rocky hamada, soft sand drifts, old sun-faded tarmac.
+                case "T_Road_Dirt": // darker, redder packed sand than the dunes, so the piste reads from a distance
+                    return Keep(Color.Lerp(new Color(0.55f, 0.4f, 0.28f), new Color(0.74f, 0.58f, 0.41f), Mathf.Clamp01(lum * 1.6f)), c.a);
+                case "T_Road_Gravel":
+                    return Keep(Color.Lerp(c, new Color(0.74f, 0.62f, 0.47f), 0.55f), c.a);
+                case "T_Road_Mud":
+                    return Keep(new Color(0.9f, 0.79f, 0.6f) * (0.85f + 0.3f * lum), Mathf.Max(c.a, 0.8f));
+                case "T_Road_Asphalt":
+                    return Keep(Color.Lerp(c, new Color(0.5f, 0.46f, 0.41f), 0.45f) * 1.1f, c.a);
+
+                // Vegetation and buildings: cactus green, dry olive leaves, adobe walls.
+                case "T_Needles":
+                    return Keep(new Color(0.3f, 0.46f, 0.26f) * (0.7f + 0.6f * lum), c.a);
+                case "T_Leaves": // dry scrub and acacia leaves
+                    return Keep(Color.Lerp(c, new Color(0.56f, 0.5f, 0.32f), 0.8f), c.a);
+                case "T_Bark":
+                    return Keep(Color.Lerp(c, new Color(0.34f, 0.46f, 0.28f), 0.75f), c.a); // cactus arms and trunks
+                case "T_Plaster":
+                    return Keep(Color.Lerp(c, new Color(0.86f, 0.7f, 0.5f), 0.55f), c.a);
             }
             return c;
         }

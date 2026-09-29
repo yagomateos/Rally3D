@@ -20,6 +20,7 @@ namespace Rally.EditorTools
         private const int AlphamapResolution = 512;
         private const int DetailResolution = 512;
         private const float GrassPerCellAt1024 = 12f;
+        private const float DesertPlantDensity = 0.12f; // scattered cacti and scrub instead of a forest
         private const int SurfaceMapResolution = 512;
 
         public static void CreateLayers(AssetLibrary lib)
@@ -101,9 +102,10 @@ namespace Rally.EditorTools
             terrain.detailObjectDensity = 1f;
             terrain.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
 
-            // No grass in the snow: it was nearly invisible there and cost a detail layer in the download.
+            // Grass only in the forest: nearly invisible in the snow, out of place in the desert, and each
+            // detail layer costs download size.
             EditorUtility.DisplayProgressBar("Rally", "Growing grass", 0.5f);
-            if (!StageTheme.Snow) PaintGrass(data, splat, route, sculptor, lib);
+            if (StageTheme.Current == StageTheme.Kind.Forest) PaintGrass(data, splat, route, sculptor, lib);
 
             var surfaceMap = go.AddComponent<TerrainSurfaceMap>();
             surfaceMap.SetData(SurfaceMapResolution, sculptor.Origin, sculptor.Size, BuildSurfaceMap(splat));
@@ -228,6 +230,7 @@ namespace Rally.EditorTools
                 else if (style == RoadsideStyle.Forest) density = 0.62f;
                 else if (style == RoadsideStyle.Village) density = 0.06f;
                 else density = 0.1f;
+                if (StageTheme.Desert) density *= DesertPlantDensity;
                 // Natural clearings.
                 float clearing = Noise.Fbm(wx / 90f, wz / 90f, 2, 2f, 0.5f, 7f);
                 density *= Mathf.Clamp01(0.65f + clearing * 1.4f);

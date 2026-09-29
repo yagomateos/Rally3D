@@ -139,5 +139,53 @@ namespace Rally.Systems
 
             return new[] { packed, snowGravel, slush, ice, deepSnow };
         }
+
+        /// <summary>
+        /// Desert stage table. Dirt = packed-sand piste, Gravel = rocky hamada, Mud = soft sand drifts,
+        /// Asphalt = old tarmac with blown sand, Grass = loose sand off the road (much less traction and heavy drag,
+        /// so leaving the piste costs time). Thick, light sand dust behind every car.
+        /// </summary>
+        public static SurfaceProperties[] CreateDesert()
+        {
+            Color sand = new Color(0.86f, 0.73f, 0.53f, 1f);
+            Color paleSand = new Color(0.92f, 0.83f, 0.66f, 1f);
+            Color grit = new Color(0.55f, 0.43f, 0.31f, 1f);
+
+            var piste = SurfaceProperties.Default;
+            piste.grip = 0.93f; piste.rollingResistance = 7f; piste.bumpiness = 0.3f;
+            piste.dustAmount = 1.7f; piste.dustColor = sand; piste.dustSize = 1.5f;
+            piste.debrisAmount = 0.4f; piste.debrisColor = grit;
+            piste.rollingNoise = 0.55f; piste.skidNoise = 0.5f; piste.skidMarkOpacity = 0.45f;
+
+            var hamada = SurfaceProperties.Default;
+            hamada.type = SurfaceType.Gravel;
+            hamada.grip = 0.86f; hamada.rollingResistance = 8f; hamada.bumpiness = 0.55f;
+            hamada.dustAmount = 1.4f; hamada.dustColor = new Color(0.78f, 0.65f, 0.49f, 1f); hamada.dustSize = 1.3f;
+            hamada.debrisAmount = 1.2f; hamada.debrisColor = new Color(0.48f, 0.36f, 0.26f, 1f);
+            hamada.rollingNoise = 0.85f; hamada.skidNoise = 0.7f; hamada.skidMarkOpacity = 0.4f;
+
+            var softSand = SurfaceProperties.Default;
+            softSand.type = SurfaceType.Mud;
+            softSand.grip = 0.68f; softSand.rollingResistance = 22f; softSand.bumpiness = 0.2f;
+            softSand.dustAmount = 1.9f; softSand.dustColor = paleSand; softSand.dustSize = 1.6f;
+            softSand.debrisAmount = 0.7f; softSand.debrisColor = sand;
+            softSand.rollingNoise = 0.4f; softSand.skidNoise = 0.35f; softSand.skidMarkOpacity = 0.7f;
+
+            var tarmac = SurfaceProperties.Default;
+            tarmac.type = SurfaceType.Asphalt;
+            tarmac.grip = 1.2f; tarmac.rollingResistance = 2.8f; tarmac.bumpiness = 0.12f;
+            tarmac.dustAmount = 0.45f; tarmac.dustColor = sand; tarmac.dustSize = 1f;
+            tarmac.debrisAmount = 0f;
+            tarmac.rollingNoise = 0.25f; tarmac.skidNoise = 1f; tarmac.skidMarkOpacity = 0.6f;
+
+            var looseSand = SurfaceProperties.Default;
+            looseSand.type = SurfaceType.Grass;
+            looseSand.grip = 0.55f; looseSand.rollingResistance = 30f; looseSand.bumpiness = 0.35f;
+            looseSand.dustAmount = 2f; looseSand.dustColor = paleSand; looseSand.dustSize = 1.7f;
+            looseSand.debrisAmount = 0.7f; looseSand.debrisColor = sand;
+            looseSand.rollingNoise = 0.4f; looseSand.skidNoise = 0.3f; looseSand.skidMarkOpacity = 0.6f;
+
+            return new[] { piste, hamada, softSand, tarmac, looseSand };
+        }
     }
 }

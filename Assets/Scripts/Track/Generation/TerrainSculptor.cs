@@ -58,7 +58,29 @@ namespace Rally.Track.Generation
             // Gentle valley so the stage sits a little lower than its surroundings.
             float valley = (1f - Smooth(10f, 160f, d)) * -4f;
 
-            return BaseHeight + hills + detail + mountains + valley;
+            float dunes = def.theme == StageDefinition.DesertTheme ? Dunes(x, z) * Smooth(35f, 170f, d) : 0f;
+            return BaseHeight + hills + detail + mountains + valley + dunes;
+        }
+
+        private const float DuneWavelength = 110f;
+        private const float DuneHeight = 10f;
+
+        /// <summary>
+        /// Rows of wind-blown dunes: long gentle windward slopes and short steeper lee faces, with the crests
+        /// bent by noise so they don't look ruled. Kept away from the road, which runs between them.
+        /// </summary>
+        private float Dunes(float x, float z)
+        {
+            const float windAngle = 0.6f;
+            float along = x * Mathf.Cos(windAngle) + z * Mathf.Sin(windAngle);
+            float warp = Noise.Fbm(x / 260f, z / 260f, 3, 2f, 0.5f, seed + 51f) * 70f;
+            float phase = (along + warp) / DuneWavelength;
+            float p = phase - Mathf.Floor(phase);
+            const float leeFraction = 0.3f;
+            float profile = p < 1f - leeFraction ? p / (1f - leeFraction) : (1f - p) / leeFraction;
+            profile = profile * profile * (3f - 2f * profile);
+            float size = 0.55f + 0.45f * (Noise.Fbm(x / 400f, z / 400f, 2, 2f, 0.5f, seed + 57f) * 0.5f + 0.5f);
+            return profile * DuneHeight * size;
         }
 
         public float RouteDistance(float x, float z)

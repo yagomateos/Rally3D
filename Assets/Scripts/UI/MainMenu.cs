@@ -123,12 +123,14 @@ namespace Rally.UI
             stageScreen = Screen("Stages", root, true);
             var t = stageScreen.transform;
             Title(t, "ELIGE TRAMO", new Vector2(120f, -80f));
-            float y = -210f;
+            // Compact cards so three stages plus DIFICULTAD and VOLVER fit a landscape phone (canvas ~966 high).
+            const float cardHeight = 140f, cardStep = 152f;
+            float y = -190f;
             for (int i = 0; i < StageCatalog.Stages.Length; i++)
             {
                 int index = i;
                 var stage = StageCatalog.Stages[i];
-                var card = UIFactory.Button("Stage" + i, t, new Vector2(0f, 1f), new Vector2(120f, y), new Vector2(620f, 170f), "", () =>
+                var card = UIFactory.Button("Stage" + i, t, new Vector2(0f, 1f), new Vector2(120f, y), new Vector2(620f, cardHeight), "", () =>
                 {
                     stageIndex = index;
                     Open(carScreen, startButton);
@@ -136,16 +138,16 @@ namespace Rally.UI
                 var label = card.GetComponentInChildren<Text>();
                 label.alignment = TextAnchor.UpperLeft;
                 label.text = "";
-                UIFactory.Label("Number", card.transform, new Vector2(0f, 1f), new Vector2(24f, -14f), new Vector2(580f, 30f),
-                    stage.number + (i == StageCatalog.Current ? "   ·   AQUÍ" : ""), 22, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.75f)); // readable on the orange highlight too
-                UIFactory.Label("Name", card.transform, new Vector2(0f, 1f), new Vector2(24f, -44f), new Vector2(580f, 46f),
-                    stage.name, 36, TextAnchor.MiddleLeft, UIFactory.TextMain);
-                UIFactory.Label("Info", card.transform, new Vector2(0f, 1f), new Vector2(24f, -94f), new Vector2(580f, 28f),
-                    stage.description, 18, TextAnchor.MiddleLeft, UIFactory.TextDim, FontStyle.Normal);
-                UIFactory.Label("Best", card.transform, new Vector2(0f, 1f), new Vector2(24f, -126f), new Vector2(580f, 28f),
-                    "MEJOR TIEMPO  " + RaceManager.FormatTime(stage.BestTime), 20, TextAnchor.MiddleLeft, UIFactory.TextMain, FontStyle.Normal);
+                UIFactory.Label("Number", card.transform, new Vector2(0f, 1f), new Vector2(24f, -10f), new Vector2(580f, 28f),
+                    stage.number + (i == StageCatalog.Current ? "   ·   AQUÍ" : ""), 21, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.75f)); // readable on the orange highlight too
+                UIFactory.Label("Name", card.transform, new Vector2(0f, 1f), new Vector2(24f, -36f), new Vector2(580f, 42f),
+                    stage.name, 33, TextAnchor.MiddleLeft, UIFactory.TextMain);
+                UIFactory.Label("Info", card.transform, new Vector2(0f, 1f), new Vector2(24f, -80f), new Vector2(580f, 26f),
+                    stage.description, 17, TextAnchor.MiddleLeft, UIFactory.TextDim, FontStyle.Normal);
+                UIFactory.Label("Best", card.transform, new Vector2(0f, 1f), new Vector2(24f, -106f), new Vector2(580f, 26f),
+                    "MEJOR TIEMPO  " + RaceManager.FormatTime(stage.BestTime), 19, TextAnchor.MiddleLeft, UIFactory.TextMain, FontStyle.Normal);
                 if (i == 0) firstStageButton = card;
-                y -= 190f;
+                y -= cardStep;
             }
             // Difficulty right in the play flow as well as in OPCIONES.
             var difficulty = MenuButton(t, "Difficulty", y - 10f, "", () => { }, 620f);

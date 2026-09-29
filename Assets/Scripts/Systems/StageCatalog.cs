@@ -20,6 +20,7 @@ namespace Rally.Systems
         {
             new Entry { scene = "Stage01", number = "TRAMO 01", name = "PINAR DE VALDENIEBLA", description = "TIERRA · GRAVA · BARRO · ASFALTO   ·   NUBLADO, MOJADO" },
             new Entry { scene = "Stage02", number = "TRAMO 02", name = "PUERTO DE PEÑA BLANCA", description = "NIEVE · HIELO · NIEVE BLANDA   ·   NEVANDO" },
+            new Entry { scene = "Stage03", number = "TRAMO 03", name = "DUNAS DEL DESIERTO", description = "ARENA · PISTA DURA · ARENA BLANDA · ROCA   ·   DESPEJADO, CALIMA" },
         };
 
         /// <summary>Index of the stage whose scene is open (0 if unknown).</summary>

@@ -18,15 +18,18 @@ namespace Rally.VFX
 
         [Tooltip("Snowfall instead of drizzle (the snow stage).")]
         [SerializeField] private bool snow;
+        [Tooltip("Calima instead of drizzle (the desert stage): no rain, warm dust hanging in the air and low haze.")]
+        [SerializeField] private bool haze;
 
         private ParticleSystem motes, rain, wisps;
 
         /// <summary>Particle amount multiplier (lower on phones, see MobilePerformance).</summary>
         public static float Density { get; set; } = 1f;
 
-        public void Configure(Transform target, Material mote, Material rainMat, Material fogMat, bool snowfall = false)
+        public void Configure(Transform target, Material mote, Material rainMat, Material fogMat, bool snowfall = false, bool calima = false)
         {
             snow = snowfall;
+            haze = calima;
             followTarget = target;
             moteMaterial = mote;
             drizzleMaterial = rainMat;
@@ -108,6 +111,20 @@ namespace Rally.VFX
                 new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(1f, 0.7f), new GradientAlphaKey(0f, 1f) });
             col.color = g;
             wisps.GetComponent<ParticleSystemRenderer>().sortingFudge = 50f;
+
+            if (haze)
+            {
+                // Dry and clear overhead: no rain; warm dust motes and wide, faint haze banks near the ground.
+                remission.rateOverTime = 0f;
+                main.startColor = new Color(1f, 0.88f, 0.7f, 0.45f);
+                main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.1f);
+                emission.rateOverTime = motesPerSecond * 1.5f * Density;
+                noise.strength = 0.6f;
+                wmain.startColor = new Color(0.93f, 0.82f, 0.64f, 0.08f);
+                wmain.startSize = new ParticleSystem.MinMaxCurve(18f, 32f);
+                wmain.startSpeed = 0.8f;
+                wemission.rateOverTime = fogWispsPerSecond * 1.5f * Density;
+            }
 
             foreach (var ps in new[] { motes, rain, wisps }) ps.Play();
         }

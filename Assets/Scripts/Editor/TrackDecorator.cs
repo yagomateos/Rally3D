@@ -481,12 +481,13 @@ namespace Rally.EditorTools
         public void ScatterRocksAndProps()
         {
             var parent = Group("Scatter");
+            bool desert = StageTheme.Desert; // rocky desert: more rocks and boulders, no farm fences
             for (int i = 30; i < route.Count - 10; i += 4)
             {
                 float half = route.Widths[i] * 0.5f;
                 RoadsideStyle style = route.Roadside[i];
 
-                if (R() < 0.35f)
+                if (R() < (desert ? 0.6f : 0.35f))
                 {
                     float side = R() < 0.5f ? -1f : 1f;
                     Vector3 p = Beside(i, side * (half + R(4f, 16f)));
@@ -509,7 +510,7 @@ namespace Rally.EditorTools
                     }
                 }
 
-                if (style == RoadsideStyle.Open && i % 60 == 0)
+                if (style == RoadsideStyle.Open && i % 60 == 0 && !desert)
                 {
                     float side = R() < 0.5f ? -1f : 1f;
                     for (int k = 0; k < 8; k++)
@@ -523,7 +524,7 @@ namespace Rally.EditorTools
             }
 
             // Large boulders further out.
-            for (int n = 0; n < 160; n++)
+            for (int n = 0; n < (desert ? 300 : 160); n++)
             {
                 int i = rng.Next(route.Count);
                 float side = R() < 0.5f ? -1f : 1f;

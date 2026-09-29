@@ -1,6 +1,7 @@
 # Rally 3D
 
-Dos tramos: **Tramo 01 «Pinar de Valdeniebla»** (tierra, pinar y lluvia) y **Tramo 02 «Puerto de Peña Blanca»** (nieve y hielo).
+Tres tramos: **Tramo 01 «Pinar de Valdeniebla»** (tierra, pinar y lluvia), **Tramo 02 «Puerto de Peña Blanca»** (nieve y hielo)
+y **Tramo 03 «Dunas del Desierto»** (arena, rocas y calima).
 
 Prototipo de rally arcade-realista hecho con **Unity 6 (6000.0.84f1)**, **URP 17** y el **Input System**.
 Todo (terreno, carretera, texturas, árboles, decorado, coches, cielo y sonidos) se genera por código:
@@ -180,6 +181,38 @@ Ajustes del proyecto que ya vienen preparados para esto:
   Los coches y **la IA** usan esta tabla, así que los rivales frenan antes en la nieve.
 - **Ambiente:** luz fría, niebla blanca más densa y **nevada** en lugar de llovizna.
 
+### Tramo 03: desierto
+![Tramo 03, Dunas del Desierto](docs/capturas/desierto.jpg)
+
+- **Mismo sistema de temas:** `Rally ▸ Build Desert Stage 03 (full)`, o `StageBuilder.BuildDesertFromCommandLine`.
+  Los archivos llevan el sufijo `_Desert` y no tocan los otros tramos.
+- **Paisaje:**
+  - Dunas generadas en el terreno, con la ladera larga a barlovento y la corta a sotavento.
+  - Arena, roca arenisca roja y cactus (sustituyen a los pinos en la vegetación).
+  - Matorral seco y un pueblo-oasis con un tramo de asfalto viejo.
+  - Sin charcos, vallas ni hierba.
+- **Recorrido propio** de 2,96 km: ancho y rápido entre las dunas, dos horquillas, arena blanda y tres saltos en crestas de duna.
+  Se comprobó antes de generarlo que no se cruza consigo mismo (mínimo 59 m entre partes distintas del recorrido).
+- **Tabla de agarre** (`SurfaceDatabase_Desert`):
+
+  | Superficie | Agarre | Resistencia | Polvo |
+  |---|---|---|---|
+  | Pista de arena dura | 0,93 | 7 | 1,7 |
+  | Hamada (roca y grava) | 0,86 | 8 | 1,4 |
+  | Arena blanda | 0,68 | 22 | 1,9 |
+  | Asfalto viejo | 1,20 | 2,8 | 0,45 |
+  | **Arena suelta fuera de pista** | **0,55** | **30** | 2,0 |
+
+  Salirse de la pista cuesta mucho más que en el tramo 1 (hierba: 0,72 / 16).
+  El polvo es más denso que en tierra, pero mantiene el límite de opacidad y el 55 % para los rivales,
+  así que el coche de delante sigue viéndose. La IA usa la misma tabla.
+- **Ambiente:**
+  - Cielo despejado nuevo, con franja de calima en el horizonte.
+  - Sol alto y fuerte con sombras marcadas; niebla cálida suave (la mitad de visibilidad a unos 300 m).
+  - Motas de polvo y bancos de calima en lugar de lluvia.
+  - *Volume* con tonos cálidos: temperatura +16, más contraste y saturación, y *bloom* algo más fuerte.
+- **Menú:** las tarjetas de ELIGE TRAMO son más bajas para que los tres tramos, DIFICULTAD y VOLVER quepan en un móvil en horizontal.
+
 ### Sonido
 - Todos los sonidos son **sintetizados por código** (`ProceduralAudio`): motor, turbo, neumáticos, viento, golpes y ambiente.
   Se probó un motor grabado (CC0), pero se retiró a petición: se prefiere el sonido sintetizado original.
@@ -269,10 +302,11 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA10_SnowStage_UsesSnowGripForCarsAndAI` | El tramo de nieve carga con su tabla de agarre en todos los coches y en la IA, el hielo resbala y hay 3 saltos | ✅ |
 | `QA12_LowSpeedPushFromBehind_MovesRivalSmoothly` | Empujando por detrás a un rival a 5 km/h, este pasa de 12 km/h, no sale volando y no se sube encima | ✅ |
 | `QA13_LookBack_TurnsCameraRoundSmoothlyAndBack` | Al mantener ATRÁS la cámara mira hacia atrás, vuelve al soltar y nunca gira más de 45° en un fotograma | ✅ |
-| `QA14_Terrain_StaysBelowTheRoad` (tramos 01 y 02) | El terreno no asoma por encima de la carretera en ~14.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
+| `QA14_Terrain_StaysBelowTheRoad` (tramos 01, 02 y 03) | El terreno no asoma por encima de la carretera en ~14.000–17.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
+| `QA15_DesertStage_UsesSandGripAndLooseSandOffRoad` | El desierto carga su tabla en coches e IA; la arena suelta agarra mucho menos y frena más; hay polvo denso, no llueve y hay 3 saltos | ✅ |
 | `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (15 en total: 14 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
+Se pasaron después de cada cambio (17 en total: 16 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.

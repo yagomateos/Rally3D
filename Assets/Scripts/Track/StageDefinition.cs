@@ -46,8 +46,10 @@ namespace Rally.Track
         [Header("Look & rules")]
         [Tooltip("Line under the stage name on the title card and in the stage list.")]
         public string description = "GRAVA · TIERRA · BARRO · ASFALTO   ·   NUBLADO, MOJADO";
-        [Tooltip("0 = pine forest after rain. 1 = snow (the builder makes its own snow textures and materials).")]
+        [Tooltip("0 = pine forest after rain. 1 = snow. 2 = desert (the builder makes each theme's own textures and materials).")]
         public int theme;
+
+        public const int ForestTheme = 0, SnowTheme = 1, DesertTheme = 2;
         [Tooltip("Grip / dust per surface for this stage. Empty = the table the cars were built with.")]
         public SurfaceDatabase surfaces;
 
@@ -79,7 +81,7 @@ namespace Rally.Track
             stageNumber = "TRAMO 02";
             stageName = "PUERTO DE PEÑA BLANCA";
             description = "NIEVE · HIELO · NIEVE BLANDA   ·   NEVANDO";
-            theme = 1;
+            theme = SnowTheme;
             seed = 3311;
             startHeading = 35f;
             hillAmplitude = 85f;
@@ -91,6 +93,64 @@ namespace Rally.Track
                 s.width = Mathf.Max(6.5f, s.width - 0.5f);
                 segments[i] = s;
             }
+        }
+
+        /// <summary>
+        /// Stage 3: desert dunes. Its own route: wide and fast between the dunes, two hairpins, an oasis village
+        /// on old tarmac and three dune-crest jumps. Surfaces mean: Dirt = packed-sand piste, Gravel = rocky
+        /// hamada, Mud = soft sand drifts, Asphalt = old tarmac, Grass (off the road) = loose sand; see the stage's
+        /// desert SurfaceDatabase.
+        /// </summary>
+        public void ResetToDesertStage()
+        {
+            const SurfaceType D = SurfaceType.Dirt, G = SurfaceType.Gravel, M = SurfaceType.Mud, A = SurfaceType.Asphalt;
+            const RoadsideStyle O = RoadsideStyle.Open, V = RoadsideStyle.Village;
+
+            stageNumber = "TRAMO 03";
+            stageName = "DUNAS DEL DESIERTO";
+            description = "ARENA · PISTA DURA · ARENA BLANDA · ROCA   ·   DESPEJADO, CALIMA";
+            theme = DesertTheme;
+            seed = 5521;
+            startPosition = new Vector2(180f, 140f);
+            startHeading = -20f;
+            hillAmplitude = 26f;
+            hillScale = 320f;
+            terrainMaxHeight = 200f;
+
+            segments = new List<TrackSegment>
+            {
+                TrackSegment.Straight(120, 12, G, O),
+                TrackSegment.Turn(25, 300, 11, D, O),          // flat-out right
+                TrackSegment.Straight(150, 11, D, O),
+                TrackSegment.Turn(-60, 140, 10, D, O),         // fast left
+                TrackSegment.Straight(80, 10, D, O, 1.8f),     // dune crest 1
+                TrackSegment.Turn(90, 75, 10, D, O),           // medium right
+                TrackSegment.Straight(60, 10, M, O),           // soft sand
+                TrackSegment.Turn(-45, 120, 10, M, O),
+                TrackSegment.Straight(130, 10, D, O),
+                TrackSegment.Turn(-150, 22, 11, D, O),         // hairpin left
+                TrackSegment.Straight(90, 10, G, O),
+                TrackSegment.Turn(70, 90, 10, G, O),           // rocky esses
+                TrackSegment.Turn(-50, 110, 10, G, O),
+                TrackSegment.Straight(70, 9, A, V),            // oasis village on old tarmac
+                TrackSegment.Turn(55, 85, 9, A, V),
+                TrackSegment.Straight(120, 9, A, V),
+                TrackSegment.Turn(-40, 140, 9, A, V),
+                TrackSegment.Straight(60, 10, D, O),
+                TrackSegment.Turn(35, 220, 11, D, O),
+                TrackSegment.Straight(170, 11, D, O, 2.0f),    // dune crest 2
+                TrackSegment.Turn(80, 60, 10, D, O),           // tight right
+                TrackSegment.Straight(60, 10, M, O),           // soft sand
+                TrackSegment.Turn(-60, 90, 10, M, O),
+                TrackSegment.Straight(90, 10, D, O),
+                TrackSegment.Turn(140, 25, 11, D, O),          // hairpin right
+                TrackSegment.Straight(80, 10, D, O),
+                TrackSegment.Turn(-40, 150, 11, G, O),
+                TrackSegment.Straight(100, 11, G, O, 1.6f),    // dune crest 3
+                TrackSegment.Turn(30, 200, 12, G, O),
+                TrackSegment.Straight(120, 12, G, O),          // finish straight
+                TrackSegment.Straight(115, 12, G, O),          // stop zone after the flying finish
+            };
         }
 
         public void ResetToDefaultStage()
