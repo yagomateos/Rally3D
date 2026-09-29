@@ -21,6 +21,7 @@ namespace Rally.Systems
         public InputAction CycleCamera { get; private set; }
         public InputAction RestartStage { get; private set; }
         public InputAction LookBack { get; private set; }
+        public InputAction LookAround { get; private set; }
 
         private InputActionMap map;
 
@@ -93,10 +94,13 @@ namespace Rally.Systems
             RestartStage.AddBinding("<Keyboard>/backspace");
             RestartStage.AddBinding("<Gamepad>/buttonWest");
 
-            // Hold to look behind. Down arrow is already brake / reverse, so Q; on a pad, press the right stick.
+            // Hold to look behind. Down arrow is already brake / reverse, so Q.
             LookBack = map.AddAction("LookBack", InputActionType.Button);
             LookBack.AddBinding("<Keyboard>/q");
-            LookBack.AddBinding("<Gamepad>/rightStickPress");
+
+            // Pad: the right stick looks round the car in any direction (up ahead, down behind, sideways).
+            LookAround = map.AddAction("LookAround", InputActionType.Value, expectedControlLayout: "Vector2");
+            LookAround.AddBinding("<Gamepad>/rightStick");
         }
     }
 }

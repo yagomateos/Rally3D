@@ -37,6 +37,8 @@ namespace Rally.Track
             race = RaceManager.Instance;
             foreach (float d in crossingPoints)
                 if (Random.value < chancePerPoint) pending.Add(d);
+            // Always at least one per run, so the sheep is part of the stage and not a rare surprise.
+            if (pending.Count == 0 && crossingPoints.Length > 0) pending.Add(crossingPoints[Random.Range(0, crossingPoints.Length)]);
         }
 
         private void Update()
@@ -50,9 +52,20 @@ namespace Rally.Track
                 float gap = pending[i] - playerDistance;
                 if (gap < 0f) { pending.RemoveAt(i); continue; } // already passed it
                 if (gap > trigger) continue;
-                SpawnAt(pending[i], Random.value < 0.5f ? -1 : 1);
+                SpawnAt(pending[i], InlandSide(pending[i]));
                 pending.RemoveAt(i);
             }
+        }
+
+        /// <summary>
+        /// Side of the road away from the sea (-1 left, +1 right). The sea side has a guard rail the sheep can't
+        /// climb, so a sheep starting there never reached the road.
+        /// </summary>
+        public int InlandSide(float distance)
+        {
+            Vector3 right = race.Path.RightAt(distance);
+            Vector2 sea = Generation.TerrainSculptor.SeaDirection;
+            return right.x * sea.x + right.z * sea.y > 0f ? -1 : 1;
         }
 
         /// <summary>Puts a sheep at the road edge on <paramref name="side"/> (-1 left, +1 right) and starts it walking across.</summary>

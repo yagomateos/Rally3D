@@ -261,7 +261,7 @@ namespace Rally.UI
                     { "FRENO DE MANO", "ESPACIO", "B" },
                     { "REINICIAR", "R", "Y" },
                     { "CÁMARA", "C", "VIEW" },
-                    { "MIRAR ATRÁS (MANTENER)", "Q", "STICK DER." },
+                    { "MIRAR ALREDEDOR", "Q (ATRÁS)", "STICK DER." },
                     { "PAUSA", "ESC / P", "START" },
                     { "REPETIR TRAMO", "RETROCESO", "X" },
                 };

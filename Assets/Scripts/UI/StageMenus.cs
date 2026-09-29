@@ -124,7 +124,7 @@ namespace Rally.UI
                     ? "INCLINA EL MÓVIL PARA GIRAR     ACELERAR / FRENAR     REINICIAR     PAUSA\n" +
                       "BOTÓN MANDO: JOYSTICK PARA GIRAR  ·  A ACELERAR  ·  B FRENAR  ·  X FRENO DE MANO  ·  Y REINICIAR"
                     : "W / RT  ACELERAR     S / LT  FRENAR · MARCHA ATRÁS     A D / PALANCA  GIRAR     ESPACIO / B  FRENO DE MANO\n" +
-                      "R / Y  REINICIAR     C  CÁMARA     Q / STICK DER.  MIRAR ATRÁS     " + PauseKeys,
+                      "R / Y  REINICIAR   C  CÁMARA   Q  MIRAR ATRÁS   STICK DER.  MIRAR ALREDEDOR   " + PauseKeys,
                 19, TextAnchor.MiddleCenter, new Color(1f, 1f, 1f, 0.7f), FontStyle.Normal);
         }
 

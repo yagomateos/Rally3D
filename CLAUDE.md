@@ -56,7 +56,7 @@ Regenerar **sobrescribe la escena**. Los tramos 02–04 usan los prefabs de coch
 - API de Unity 6: `Rigidbody.linearVelocity` (no `velocity`), `PhysicsMaterial`, `FindFirstObjectByType` / `FindAnyObjectByType`.
 - **Entrada:** solo **Input System** (`activeInputHandler: 1`). Todas las acciones están en `Systems/RallyInput.cs`,
   con teclado y mando. No uses `UnityEngine.Input`. Antes de asignar una tecla, comprueba que no esté ya usada
-  (↓ = frenar/marcha atrás, P = pausa en web, Q = mirar atrás).
+  (↓ = frenar/marcha atrás, P = pausa en web, Q = mirar atrás, stick derecho = mirar alrededor).
 - **UI:** uGUI construida en código con `UIFactory` (colores `Accent`, `PanelDark`, `TextMain`...).
   - `CanvasScaler`: 1920 × 1080, Match 0,5.
   - Orden de los canvas: HUD 10, táctil 15, menús 20, menú principal 30, pantalla de salir 50.
@@ -121,7 +121,7 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Menú principal, elección de coche, opciones, pausa con salir al menú / salir del juego.
 - Motor sintetizado (`ProceduralAudio`): el usuario **prefirió volver a él** en lugar de las grabaciones CC0.
 - Ovejas que cruzan en la costera (`SheepCrossing`/`Sheep`); el daño de choque escala con la masa del objeto golpeado.
-- Controles de móvil y 20 tests (19 PlayMode + 1 EditMode) más una medición *Explicit*.
+- Controles de móvil y 21 tests (20 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

@@ -93,7 +93,8 @@ botones táctiles o mando en pantalla). La versión web está preparada para pub
 | Cámara (persecución / lejana / capó / paragolpes) | C | View / Share |
 | Pausa | Esc (en el navegador también **P**) | Start / Options |
 | Repetir tramo | Retroceso | X / Cuadrado |
-| Mirar atrás (mantener) | Q (↓ ya es frenar) | Pulsar el stick derecho (R3) |
+| Mirar atrás (mantener) | Q (↓ ya es frenar) | Stick derecho hacia abajo |
+| Mirar alrededor | — | Stick derecho en cualquier dirección (arriba: delante; derecha: a la derecha; abajo: detrás…) |
 | Empezar / confirmar | Enter (en el navegador también **clic**) | A / Cruz |
 
 En el navegador, **P** también pausa porque a pantalla completa el navegador usa Esc para salir de ella.
@@ -238,8 +239,11 @@ Ajustes del proyecto que ya vienen preparados para esto:
   - *Volume* cálido: temperatura +20, tinte rosado, más saturación y *bloom* para farolas y sol.
 - Pinos mediterráneos menos densos, para que se vean el mar y la carretera. Sin lluvia ni bancos de niebla.
 - **Ovejas que cruzan** (`SheepCrossing`, `Sheep`):
-  - El generador marca 7 puntos donde la carretera es casi recta los 100 m anteriores, para que se vea venir.
-  - En cada partida cada punto tiene un 30 % de probabilidad: de media salen dos ovejas y a veces ninguna.
+  - El generador marca 7 puntos donde la carretera gira menos de 20° en los 100 m anteriores, para que se vea venir.
+  - En cada partida cada punto tiene un 30 % de probabilidad, con al menos una oveja por partida (de media, dos).
+  - Sale siempre por el lado de tierra. Por el lado del mar hay guardarraíl y la oveja se quedaba detrás sin llegar a cruzar.
+  - Modelo reconocible: vellón de bolas de lana, cara negra alargada con hocico, orejas hacia los lados, patas negras y cola.
+    Anda con las patas en diagonal y con un colisionador redondeado que sube el escalón del arcén (con uno de caja se quedaba enganchada).
   - La oveja echa a andar cuando te faltan unos 5 s para llegar: está en la carretera cuando llegas,
     pero da tiempo a frenar o esquivarla.
   - **Bala** cada 2–4 s con sonido 3D: solo se oye cuando estás cerca.
@@ -312,12 +316,18 @@ Ajustes del proyecto que ya vienen preparados para esto:
   en pantallas 4:3 y 3:2, y los textos de SALIDA / META ya no pisan la barra de progreso.
 - **Barra de progreso:** nunca se quitó (el historial de git lo confirma), pero en la nieve y con coches blancos no se veía.
   Ahora tiene una placa oscura detrás, una pista más opaca y marcadores con contorno. Los marcadores se mueven en tiempo real.
-- **Cámara a mucha velocidad:** antes el campo de visión se abría de 58° a 74°, la cámara se alejaba 1,3 m y se añadía
-  distorsión de lente, y el coche y la carretera se veían lejanos.
-  - Ahora el campo de visión llega a 66°, la cámara se aleja 0,6 m y la distorsión se queda en la mitad.
+- **Cámara a mucha velocidad:** el coche y la carretera se veían lejanos.
+  - **Causa principal:** la cámara suavizaba su posición absoluta, y eso la hacía quedarse atrás en proporción a la
+    velocidad (unos 3,6 m más a 145 km/h). Ahora suaviza su posición *respecto al coche*, así que va a la misma
+    distancia a cualquier velocidad.
+  - Además, el campo de visión llega a 66° (antes 74°), la cámara se aleja 0,6 m (antes 1,3 m) y la distorsión se queda en la mitad.
   - La cámara sube hasta 0,5 m para mirar la carretera desde un poco más arriba.
   - El oscurecimiento de los bordes a velocidad baja de 0,38 a 0,3.
-- **Mirar atrás** (`RallyCamera`): mantener Q, R3 o ATRÁS gira la cámara 180° en unos 0,15 s con una curva suave, y vuelve igual.
+- **Mirar alrededor** (`RallyCamera`):
+  - Con el mando, el **stick derecho** apunta la cámara hacia donde lo inclinas: arriba delante, derecha a la derecha,
+    abajo detrás, izquierda a la izquierda, y cualquier punto intermedio. Al soltarlo, la vista vuelve al frente.
+  - Q (teclado) y ATRÁS (pantalla táctil) siguen mirando atrás.
+  - Los cambios son suaves (unos 0,15 s).
   En las cámaras de persecución la cámara rodea el coche y no atraviesa el suelo ni las paredes.
   El giro se aplica sobre la pose normal de la cámara, así que al soltar no hay saltos.
 - **Polvo:** más ligero. Las nubes son más transparentes (55 %) y duran menos (55 %); los rivales levantan el 40 %
@@ -344,12 +354,14 @@ Se ejecutan con `unity test . --mode PlayMode` y `--mode EditMode`, en batch y s
 | `QA12_LowSpeedPushFromBehind_MovesRivalSmoothly` | Empujando por detrás a un rival a 5 km/h, este pasa de 12 km/h, no sale volando y no se sube encima | ✅ |
 | `QA13_LookBack_TurnsCameraRoundSmoothlyAndBack` | Al mantener ATRÁS la cámara mira hacia atrás, vuelve al soltar y nunca gira más de 45° en un fotograma | ✅ |
 | `QA14_Terrain_StaysBelowTheRoad` (los cuatro tramos) | El terreno no asoma por encima de la carretera en ~14.000–17.000 puntos por tramo (máx. 0,5 % y 15 cm) | ✅ |
+| `QA18_RightStick_LooksInAnyDirection` | El stick derecho mira a la derecha, a la izquierda y atrás, y la vista vuelve al frente al soltarlo | ✅ |
 | `QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit` | La oveja cruza la carretera y bala con sonido 3D; al atropellarla a 75 km/h sale despedida, el coche sigue a más de 43 km/h y casi no se daña | ✅ |
 | `QA16_CoastStage_FastTarmacWithRailsLightsAndSigns` | Todo asfalto con agarre ≥ 1,4; limitador del jugador por encima de 200 km/h; señales de curva, farolas y guardarraíles; el mar por debajo de la carretera; sin lluvia ni saltos | ✅ |
 | `QA15_DesertStage_UsesSandGripAndLooseSandOffRoad` | El desierto carga su tabla en coches e IA; la arena suelta agarra mucho menos y frena más; hay polvo denso, no llueve y hay 3 saltos | ✅ |
 | `Measure_RivalStageTimes_PerDifficulty` (manual, *Explicit*) | Mide el tiempo de los rivales en cada dificultad | — |
 
-Se pasaron después de cada cambio (20 en total: 19 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode; el de medición solo se ejecuta a mano).
+Se pasaron después de cada cambio (21 en total: 20 de PlayMode, contando QA14 una vez por tramo, y 1 de EditMode).
+Hay dos pruebas manuales (*Explicit*): la medición de tiempos por dificultad y `SheepCrossing_Screenshots`, que renderiza una oveja cruzando para revisarla.
 `QA04` falla de vez en cuando justo después de una recompilación y pasa al repetirlo, así que parece intermitente.
 `QA08` detectó que la primera versión del detector de saltos (por el perfil de altura) solo encontraba 1 de los 3;
 ahora los saltos se toman de la definición del tramo.
@@ -430,7 +442,7 @@ Para bajar de ahí haría falta cargar cada tramo al elegirlo (Addressables).
 
 ### Pendiente de verificar en dispositivos reales
 - **iPhone / iPad:** no se ha probado el permiso de movimiento de Safari.
-- **Mando físico en el navegador:** el mapeo existe (también R3 para mirar atrás), pero no se ha probado con un mando conectado.
+- **Mando físico en el navegador:** el mapeo existe (también el stick derecho para mirar alrededor), pero no se ha probado con un mando conectado.
 - **Rendimiento en móviles de gama baja.**
 - **Sensibilidad de la inclinación:** cuál de los cuatro niveles se nota mejor con el móvil en la mano.
 - **Voz del copiloto:** depende de las voces que tenga instaladas el navegador o el sistema; si no hay voz en castellano, lee con la voz por defecto.

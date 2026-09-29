@@ -333,18 +333,33 @@ namespace Rally.EditorTools
             var root = new GameObject("Sheep");
             root.layer = 2; // Ignore Raycast: the chase camera doesn't jump in front of it
 
+            // Readable sheep silhouette: a fleece of wool puffs, a long black face with a muzzle, ears sticking out
+            // sideways, a wool cap and a stubby tail (one smooth blob looked like a rock).
             var bodyMb = new MeshBuilder();
-            bodyMb.Blob(0, new Vector3(0f, 0.78f, -0.05f), new Vector3(0.34f, 0.3f, 0.55f), 2, 0.12f, 91);
-            bodyMb.Blob(0, new Vector3(0f, 0.95f, 0.38f), new Vector3(0.2f, 0.17f, 0.18f), 1, 0.1f, 92); // wool on the neck
-            bodyMb.Blob(1, new Vector3(0f, 0.93f, 0.62f), new Vector3(0.12f, 0.14f, 0.2f), 1, 0.05f, 93);  // head
-            bodyMb.Box(1, new Vector3(0.14f, 1.02f, 0.56f), new Vector3(0.14f, 0.04f, 0.07f));            // ears
-            bodyMb.Box(1, new Vector3(-0.14f, 1.02f, 0.56f), new Vector3(0.14f, 0.04f, 0.07f));
+            bodyMb.Blob(0, new Vector3(0f, 0.8f, -0.05f), new Vector3(0.36f, 0.3f, 0.6f), 2, 0.04f, 91, false);
+            var puffRng = new System.Random(95);
+            for (int i = 0; i < 14; i++)
+            {
+                float a = (float)puffRng.NextDouble() * Mathf.PI * 2f;
+                float along = -0.5f + (float)puffRng.NextDouble() * 0.95f;
+                float up = 0.72f + (float)puffRng.NextDouble() * 0.3f;
+                float r = 0.14f + (float)puffRng.NextDouble() * 0.08f;
+                var c = new Vector3(Mathf.Cos(a) * 0.28f, up + Mathf.Max(0f, Mathf.Sin(a)) * 0.05f, along);
+                bodyMb.Blob(0, c, new Vector3(r, r * 0.9f, r), 1, 0.06f, 100 + i, false);
+            }
+            bodyMb.Blob(0, new Vector3(0f, 0.86f, -0.66f), new Vector3(0.08f, 0.1f, 0.08f), 1, 0.05f, 96, false); // tail
+            bodyMb.Blob(0, new Vector3(0f, 1.1f, 0.56f), new Vector3(0.13f, 0.09f, 0.12f), 1, 0.05f, 97, false);   // wool cap
+            bodyMb.Blob(1, new Vector3(0f, 1.0f, 0.66f), new Vector3(0.12f, 0.14f, 0.19f), 1, 0.03f, 93, false);   // head
+            bodyMb.Blob(1, new Vector3(0f, 0.92f, 0.82f), new Vector3(0.085f, 0.09f, 0.1f), 1, 0.03f, 94, false);  // muzzle
+            bodyMb.Box(1, new Vector3(0.19f, 1.05f, 0.6f), new Vector3(0.16f, 0.04f, 0.08f));                      // ears, sideways
+            bodyMb.Box(1, new Vector3(-0.19f, 1.05f, 0.6f), new Vector3(0.16f, 0.04f, 0.08f));
             var body = MeshObject("Body", SaveMesh(bodyMb.ToMesh("M_Sheep_Body")), wool, face);
             body.transform.SetParent(root.transform, false);
             body.layer = 2;
 
             var legMb = new MeshBuilder();
-            legMb.Frustum(0, new Vector3(0f, -0.55f, 0f), 0.05f, 0.06f, 0.55f, 6);
+            legMb.Frustum(0, new Vector3(0f, -0.55f, 0f), 0.045f, 0.055f, 0.55f, 6);
+            legMb.Box(0, new Vector3(0f, -0.53f, 0.02f), new Vector3(0.09f, 0.05f, 0.11f)); // hoof
             Mesh legMesh = SaveMesh(legMb.ToMesh("M_Sheep_Leg"));
             var legs = new Transform[4];
             Vector3[] hips = { new Vector3(0.17f, 0.58f, 0.3f), new Vector3(-0.17f, 0.58f, 0.3f), new Vector3(0.17f, 0.58f, -0.35f), new Vector3(-0.17f, 0.58f, -0.35f) };
@@ -357,9 +372,12 @@ namespace Rally.EditorTools
                 legs[i] = leg.transform;
             }
 
-            var col = root.AddComponent<BoxCollider>();
-            col.center = new Vector3(0f, 0.62f, 0.08f);
-            col.size = new Vector3(0.6f, 0.75f, 1.35f);
+            // Rounded underside so it slides up the step from the verge onto the road (a box caught on it).
+            var col = root.AddComponent<CapsuleCollider>();
+            col.direction = 2;
+            col.center = new Vector3(0f, 0.45f, 0.08f);
+            col.radius = 0.42f;
+            col.height = 1.5f;
             root.AddComponent<Rigidbody>();
             var sheep = root.AddComponent<Rally.Track.Sheep>();
             var so = new SerializedObject(sheep);

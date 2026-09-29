@@ -35,7 +35,7 @@ namespace Rally.Track
         private Rigidbody rb;
         private AudioSource voice;
         private Vector3 walkDirection;
-        private float walkTimeLeft, nextBleat, stepPhase;
+        private float walkTimeLeft, nextBleat, stepPhase, stuckTime;
         private Vector3 bodyRest;
 
         public bool WasHit { get; private set; }
@@ -86,7 +86,13 @@ namespace Rally.Track
                 return;
             }
             Vector3 v = walkDirection * walkSpeed;
-            rb.linearVelocity = new Vector3(v.x, rb.linearVelocity.y, v.z);
+            Vector3 current = rb.linearVelocity;
+            // Held back by a kerb or a bump: a little hop up, like a sheep stepping over it.
+            float along = Vector3.Dot(current, walkDirection);
+            stuckTime = along < walkSpeed * 0.4f ? stuckTime + Time.fixedDeltaTime : 0f;
+            float up = stuckTime > 0.25f ? Mathf.Max(current.y, 1.6f) : current.y;
+            if (stuckTime > 0.25f) stuckTime = 0f;
+            rb.linearVelocity = new Vector3(v.x, up, v.z);
         }
 
         private void Update()

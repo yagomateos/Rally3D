@@ -51,8 +51,14 @@ namespace Rally.CameraSystem
         [Tooltip("Seconds to swing round when the look-back key is pressed or released.")]
         [SerializeField] private float lookBackTime = 0.14f;
 
+        [Tooltip("Right stick deflection below this is ignored (the stick at rest).")]
+        [SerializeField] private float lookStickDeadzone = 0.3f;
+
         /// <summary>Held by the on-screen MIRAR ATRÁS button on phones.</summary>
         public static bool TouchLookBack { get; set; }
+
+        /// <summary>Extra look-around input (tests): same meaning as the right stick.</summary>
+        public static Vector2 ExternalLook { get; set; }
 
         public Mode CurrentMode { get; private set; } = Mode.Chase;
         public CarController Target
@@ -70,7 +76,10 @@ namespace Rally.CameraSystem
         private float impulse;
         private float currentDistance;
         private float shakeTime;
-        private float lookBack, lookBackVelocity;       // 0 = forward, 1 = looking back
+        private Vector3 smoothedOffset;                  // eased camera offset from the car
+        private bool hasOffset;
+        private float lookAmount, lookAmountVelocity;    // 0 = normal view, 1 = fully turned to lookAngle
+        private float lookAngle, lookAngleVelocity;      // degrees round the car: 0 ahead, 90 right, 180 behind
         private Vector3 basePosition;                    // camera pose without the look-back swing
         private Quaternion baseRotation;
         private bool hasBasePose;
@@ -78,6 +87,7 @@ namespace Rally.CameraSystem
         private void Awake()
         {
             TouchLookBack = false; // never carry a held button over a scene reload
+            ExternalLook = Vector2.zero;
             cam = GetComponent<Camera>();
             currentDistance = distance;
         }
@@ -90,6 +100,7 @@ namespace Rally.CameraSystem
         {
             if (target == null) return;
             hasBasePose = false;
+            hasOffset = false;
             yaw = target.transform.eulerAngles.y;
             yawVelocity = 0f;
             smoothedHeight = target.transform.position.y;
@@ -134,21 +145,36 @@ namespace Rally.CameraSystem
             basePosition = transform.position;
             baseRotation = transform.rotation;
             hasBasePose = true;
-            ApplyLookBack(dt);
+            ApplyLookAround(dt);
         }
 
         /// <summary>
-        /// Swings the camera round the car (chase views) or turns it (hood / bumper views) while the look-back key
-        /// or button is held, with an eased transition both ways.
+        /// Look around the car: the right stick's direction is where the camera looks (up = ahead, right = to the
+        /// right, down = behind, left = to the left, and anything in between); Q or the on-screen ATRÁS button look
+        /// straight back. Chase views swing round the car, hood / bumper views turn in place. Eased both ways.
         /// </summary>
-        private void ApplyLookBack(float dt)
+        private void ApplyLookAround(float dt)
         {
             var input = RallyInput.Instance;
-            bool held = TouchLookBack || (input != null && input.LookBack.IsPressed());
-            lookBack = Mathf.SmoothDamp(lookBack, held ? 1f : 0f, ref lookBackVelocity, lookBackTime, Mathf.Infinity, dt);
-            if (lookBack < 0.001f) return;
+            bool back = TouchLookBack || (input != null && input.LookBack.IsPressed());
+            Vector2 stick = ExternalLook;
+            if (input != null && stick.sqrMagnitude < 0.01f) stick = input.LookAround.ReadValue<Vector2>();
 
-            float angle = 180f * Mathf.SmoothStep(0f, 1f, lookBack);
+            float wantAmount = 0f, wantAngle = lookAngle;
+            if (back) { wantAmount = 1f; wantAngle = 180f; }
+            else if (stick.magnitude > lookStickDeadzone)
+            {
+                wantAmount = Mathf.InverseLerp(lookStickDeadzone, 0.85f, stick.magnitude);
+                wantAngle = Mathf.Atan2(stick.x, stick.y) * Mathf.Rad2Deg;
+            }
+
+            // Starting from the normal view, aim straight at the new direction; the amount eases the swing in.
+            if (lookAmount < 0.02f) { lookAngle = wantAngle; lookAngleVelocity = 0f; }
+            else lookAngle = Mathf.SmoothDampAngle(lookAngle, wantAngle, ref lookAngleVelocity, lookBackTime, Mathf.Infinity, dt);
+            lookAmount = Mathf.SmoothDamp(lookAmount, wantAmount, ref lookAmountVelocity, lookBackTime, Mathf.Infinity, dt);
+            if (lookAmount < 0.001f) return;
+
+            float angle = Mathf.DeltaAngle(0f, lookAngle) * Mathf.SmoothStep(0f, 1f, lookAmount);
             Quaternion swing = Quaternion.AngleAxis(angle, Vector3.up);
             if (CurrentMode == Mode.Hood || CurrentMode == Mode.Bumper)
             {
@@ -188,10 +214,12 @@ namespace Rally.CameraSystem
             Vector3 desired = pivot - yawRot * Vector3.forward * currentDistance
                 + Vector3.up * (height * far - lookHeight + extraHeightAtSpeed * speed01 * speed01);
 
-            desired = ResolveCollision(pivot, desired);
-
-            transform.position = Vector3.Lerp(transform.position, desired, 1f - Mathf.Exp(-positionSharpness * dt));
-            transform.position = KeepAboveGround(transform.position);
+            // Ease the camera's offset from the car, not its world position: easing the position made it trail
+            // further behind the faster the car went (~3.6 m extra at 145 km/h), so at speed the car looked far away.
+            Vector3 offset = desired - carPos;
+            smoothedOffset = hasOffset ? Vector3.Lerp(smoothedOffset, offset, 1f - Mathf.Exp(-positionSharpness * dt)) : offset;
+            hasOffset = true;
+            transform.position = KeepAboveGround(ResolveCollision(pivot, carPos + smoothedOffset));
 
             Vector3 lookPoint = pivot + yawRot * Vector3.forward * lookAhead;
             Quaternion look = Quaternion.LookRotation(lookPoint - transform.position, Vector3.up);

@@ -35,7 +35,7 @@ namespace Rally.Tests
             // It walks across and bleats.
             var player = race.Player;
             float at = player.Distance + 60f;
-            var sheep = crossing.SpawnAt(at, 1);
+            var sheep = crossing.SpawnAt(at, crossing.InlandSide(at));
             Assert.IsNotNull(sheep);
             var voice = sheep.GetComponent<AudioSource>();
             Assert.IsNotNull(voice, "The sheep needs a voice.");
@@ -63,6 +63,61 @@ namespace Rally.Tests
             Assert.Greater(carSpeed, 12f, "A 70 kg sheep must not stop the car dead.");
             Assert.Less(damage, 0.25f, "Hitting a sheep should only dent the car a little.");
             Assert.Greater(sheep.GetComponent<Rigidbody>().linearVelocity.magnitude, 5f, "The sheep should be knocked away.");
+        }
+
+        /// <summary>
+        /// Not a check: renders what the player sees while a sheep crosses 45 m ahead (and a close-up), to
+        /// RALLY_SHOT_DIR, so its look and visibility can be reviewed.
+        /// </summary>
+        [UnityTest, Explicit("Renders screenshots for review.")]
+        public IEnumerator SheepCrossing_Screenshots()
+        {
+            string dir = System.Environment.GetEnvironmentVariable("RALLY_SHOT_DIR");
+            if (string.IsNullOrEmpty(dir)) dir = Application.temporaryCachePath;
+            yield return SceneManager.LoadSceneAsync("Stage04", LoadSceneMode.Single);
+            float t = 0f;
+            while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            var race = RaceManager.Instance;
+            race.BeginCountdown();
+            t = 0f;
+            while (race.CurrentState != RaceManager.State.Racing && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+
+            var crossing = Object.FindFirstObjectByType<SheepCrossing>();
+            float at = race.Player.Distance + 45f;
+            var sheep = crossing.SpawnAt(at, crossing.InlandSide(at));
+            var cam = Camera.main;
+            float[] times = { 0.5f, 4f, 8f };
+            float elapsed = 0f;
+            for (int i = 0; i < times.Length; i++)
+            {
+                while (elapsed < times[i]) { elapsed += Time.deltaTime; yield return null; }
+                Save(cam, $"{dir}/sheep-{i}.png");
+            }
+            // Close-up from the roadside.
+            Vector3 p = sheep.transform.position;
+            cam.enabled = false;
+            cam.transform.position = p + sheep.transform.right * 2.4f + sheep.transform.forward * 1.2f + Vector3.up * 1.1f;
+            cam.transform.LookAt(p + Vector3.up * 0.7f);
+            Save(cam, $"{dir}/sheep-close.png");
+            cam.enabled = true;
+            Debug.Log($"[Sheep] screenshots in {dir}");
+        }
+
+        private static void Save(Camera cam, string file)
+        {
+            var rt = new RenderTexture(1280, 720, 24);
+            var old = cam.targetTexture;
+            cam.targetTexture = rt;
+            cam.Render();
+            RenderTexture.active = rt;
+            var tex = new Texture2D(1280, 720, TextureFormat.RGB24, false);
+            tex.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0);
+            tex.Apply();
+            System.IO.File.WriteAllBytes(file, tex.EncodeToPNG());
+            cam.targetTexture = old;
+            RenderTexture.active = null;
+            Object.Destroy(rt);
+            Object.Destroy(tex);
         }
     }
 }
