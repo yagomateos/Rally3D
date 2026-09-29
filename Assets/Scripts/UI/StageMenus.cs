@@ -108,7 +108,7 @@ namespace Rally.UI
 
             float km = race.Path.StageLength / 1000f;
             UIFactory.Label("Info", intro.transform, c, new Vector2(0f, 12f), new Vector2(1600f, 40f),
-                $"{km:0.0} KM   ·   GRAVA · TIERRA · BARRO · ASFALTO   ·   NUBLADO, MOJADO", 28, TextAnchor.MiddleCenter, UIFactory.TextDim);
+                $"{km:0.0} KM   ·   {race.Stage.description}", 28, TextAnchor.MiddleCenter, UIFactory.TextDim);
             UIFactory.Label("Best", intro.transform, c, new Vector2(0f, -36f), new Vector2(1600f, 36f),
                 "MEJOR TIEMPO  " + RaceManager.FormatTime(race.BestTime), 26, TextAnchor.MiddleCenter, UIFactory.TextMain);
 

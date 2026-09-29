@@ -110,8 +110,15 @@ namespace Rally.AI
             return profile;
         }
 
+        /// <summary>
+        /// Set by the race manager on stages with their own surface table (snow): the AI then reads the grip from
+        /// it instead of the dirt-stage defaults below, so it slows down for snow and ice.
+        /// </summary>
+        public static SurfaceDatabase StageSurfaces { get; set; }
+
         private static float GripFor(SurfaceType surface)
         {
+            if (StageSurfaces != null) return StageSurfaces.Get(surface).grip;
             switch (surface)
             {
                 case SurfaceType.Asphalt: return 1.2f;

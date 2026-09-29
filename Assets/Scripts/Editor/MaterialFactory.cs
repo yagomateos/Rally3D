@@ -16,6 +16,7 @@ namespace Rally.EditorTools
         {
             string folder = subFolder == null ? Folder : $"{Folder}/{subFolder}";
             Directory.CreateDirectory(folder);
+            mat.name = StageTheme.Name(mat.name); // snow build: its own materials, stage 1's stay untouched
             string path = $"{folder}/{mat.name}.mat";
             var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (existing != null)

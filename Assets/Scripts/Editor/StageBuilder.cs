@@ -19,10 +19,13 @@ namespace Rally.EditorTools
     /// <summary>
     /// One-click generator for the whole playable stage: textures, materials, prefabs, terrain,
     /// road, dressing, cars, camera, lighting, post-processing, UI — saved as Assets/Scenes/Stage01.unity.
+    /// The snow stage (Stage02.unity) is built with <see cref="StageTheme.Kind.Snow"/>: its own "_Snow" assets,
+    /// winter colours, cold light, snowfall and a snow surface table; it reuses stage 1's car prefabs.
     /// </summary>
     public static class StageBuilder
     {
         public const string ScenePath = "Assets/Scenes/Stage01.unity";
+        public const string SnowScenePath = "Assets/Scenes/Stage02.unity";
         private const string DataFolder = "Assets/Settings/Rally";
 
         [MenuItem("Rally/Build Stage (full)")]
@@ -32,12 +35,26 @@ namespace Rally.EditorTools
             finally { EditorUtility.ClearProgressBar(); }
         }
 
+        [MenuItem("Rally/Build Snow Stage 02 (full)")]
+        public static void BuildSnowFromMenu()
+        {
+            try { BuildSnow(); }
+            finally { EditorUtility.ClearProgressBar(); }
+        }
+
         /// <summary>Entry point for -executeMethod in batch mode.</summary>
-        public static void BuildFromCommandLine()
+        public static void BuildFromCommandLine() => RunInBatch(Build);
+
+        /// <summary>Entry point for -executeMethod in batch mode (snow stage).</summary>
+        public static void BuildSnowFromCommandLine() => RunInBatch(BuildSnow);
+
+        public static void BuildSnow() => Build("Stage02", SnowScenePath, StageTheme.Kind.Snow);
+
+        private static void RunInBatch(System.Action build)
         {
             try
             {
-                Build();
+                build();
                 EditorApplication.Exit(0);
             }
             catch (System.Exception e)
@@ -47,16 +64,32 @@ namespace Rally.EditorTools
             }
         }
 
-        public static void Build()
+        public static void Build() => Build("Stage01", ScenePath, StageTheme.Kind.Forest);
+
+        public static void Build(string stageAsset, string scenePath, StageTheme.Kind theme)
+        {
+            StageTheme.Current = theme;
+            try { BuildStage(stageAsset, scenePath); }
+            finally { StageTheme.Current = StageTheme.Kind.Forest; }
+        }
+
+        private static void BuildStage(string stageAsset, string scenePath)
         {
             var timer = System.Diagnostics.Stopwatch.StartNew();
+            bool snow = StageTheme.Snow;
             ProjectSetup.Apply();
             Directory.CreateDirectory(DataFolder);
             Directory.CreateDirectory("Assets/Scenes");
 
-            var def = LoadOrCreate<StageDefinition>($"{DataFolder}/Stage01.asset", d => d.ResetToDefaultStage());
+            var def = LoadOrCreate<StageDefinition>($"{DataFolder}/{stageAsset}.asset",
+                d => { if (snow) d.ResetToSnowStage(); else d.ResetToDefaultStage(); });
             var tuning = LoadOrCreate<CarTuning>($"{DataFolder}/CarTuning.asset", null);
             var surfaces = LoadOrCreate<SurfaceDatabase>($"{DataFolder}/SurfaceDatabase.asset", s => s.SetSurfaces(SurfaceDatabase.CreateDefaults()));
+            if (snow)
+            {
+                def.surfaces = LoadOrCreate<SurfaceDatabase>($"{DataFolder}/SurfaceDatabase_Snow.asset", s => s.SetSurfaces(SurfaceDatabase.CreateSnow()));
+                EditorUtility.SetDirty(def);
+            }
 
             // ---- Assets
             var lib = new AssetLibrary();
@@ -68,11 +101,24 @@ namespace Rally.EditorTools
             PropFactory.CreateVegetation(lib);
             PropFactory.CreateProps(lib);
             Progress("Cars", 0.18f);
-            CarFactory.CreateSharedMaterials();
             var liveries = Liveries();
             var carPrefabs = new List<GameObject>();
-            for (int i = 0; i < liveries.Length; i++)
-                carPrefabs.Add(CarFactory.BuildCarPrefab(liveries[i], i == 0, tuning, surfaces, lib.dust, lib.debris));
+            if (snow)
+            {
+                // Same cars as stage 1 (the stage swaps in its snow grip table at runtime).
+                foreach (var livery in liveries)
+                {
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{CarFactory.PrefabFolder}/{livery.name}.prefab");
+                    if (prefab == null) throw new System.InvalidOperationException($"Build stage 1 first: missing car prefab {livery.name}.");
+                    carPrefabs.Add(prefab);
+                }
+            }
+            else
+            {
+                CarFactory.CreateSharedMaterials();
+                for (int i = 0; i < liveries.Length; i++)
+                    carPrefabs.Add(CarFactory.BuildCarPrefab(liveries[i], i == 0, tuning, surfaces, lib.dust, lib.debris));
+            }
 
             // ---- Scene
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -143,7 +189,7 @@ namespace Rally.EditorTools
             skid.AddComponent<SkidMarks>();
 
             var weather = new GameObject("Weather").AddComponent<WeatherEffects>();
-            weather.Configure(cam.transform, lib.mote, lib.drizzle, lib.fogWisp);
+            weather.Configure(cam.transform, lib.mote, lib.drizzle, lib.fogWisp, snow);
             FogZoneBuilder.Build(def, path);
             FogZoneBuilder.EnsureController();
 
@@ -153,8 +199,12 @@ namespace Rally.EditorTools
 
             // ---- Save
             Progress("Saving", 0.95f);
-            EditorSceneManager.SaveScene(scene, ScenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
+            EditorSceneManager.SaveScene(scene, scenePath);
+            // Keep every stage in the build (stage 1 first, it opens with the main menu).
+            var buildScenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
+            if (!buildScenes.Exists(b => b.path == scenePath)) buildScenes.Add(new EditorBuildSettingsScene(scenePath, true));
+            buildScenes.Sort((a, b) => string.CompareOrdinal(a.path, b.path));
+            EditorBuildSettings.scenes = buildScenes.ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log($"[Rally] Stage built in {timer.Elapsed.TotalSeconds:0.0}s. Length {path.StageLength:0} m, {route.Jumps.Count} jumps, {checkpoints.Length} checkpoints.");
         }
@@ -258,10 +308,11 @@ namespace Rally.EditorTools
             var sunGo = new GameObject("Sun");
             var sun = sunGo.AddComponent<Light>();
             sun.type = LightType.Directional;
-            sun.color = new Color(1f, 0.95f, 0.88f);
-            sun.intensity = 2.1f;
+            bool snow = StageTheme.Snow;
+            sun.color = snow ? new Color(0.93f, 0.96f, 1f) : new Color(1f, 0.95f, 0.88f); // cold winter light
+            sun.intensity = snow ? 1.7f : 2.1f;
             sun.shadows = LightShadows.Soft;
-            sun.shadowStrength = 0.72f;
+            sun.shadowStrength = snow ? 0.6f : 0.72f;
             sun.shadowBias = 0.04f;
             sun.shadowNormalBias = 0.3f;
             sunGo.transform.rotation = Quaternion.Euler(36f, -38f, 0f);
@@ -280,13 +331,13 @@ namespace Rally.EditorTools
             RenderSettings.skybox = sky;
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.78f, 0.82f, 0.88f);
-            RenderSettings.ambientEquatorColor = new Color(0.62f, 0.64f, 0.6f);
-            RenderSettings.ambientGroundColor = new Color(0.32f, 0.3f, 0.26f);
+            RenderSettings.ambientSkyColor = snow ? new Color(0.84f, 0.88f, 0.96f) : new Color(0.78f, 0.82f, 0.88f);
+            RenderSettings.ambientEquatorColor = snow ? new Color(0.76f, 0.8f, 0.87f) : new Color(0.62f, 0.64f, 0.6f);
+            RenderSettings.ambientGroundColor = snow ? new Color(0.68f, 0.71f, 0.78f) : new Color(0.32f, 0.3f, 0.26f); // snow bounces light
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Exponential;
-            RenderSettings.fogDensity = 0.0026f;
-            RenderSettings.fogColor = new Color(0.68f, 0.71f, 0.74f);
+            RenderSettings.fogDensity = snow ? 0.0036f : 0.0026f;
+            RenderSettings.fogColor = snow ? new Color(0.86f, 0.89f, 0.94f) : new Color(0.68f, 0.71f, 0.74f);
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
             RenderSettings.reflectionIntensity = 1f;
 
@@ -307,12 +358,12 @@ namespace Rally.EditorTools
             var tonemap = profile.Add<Tonemapping>(true);
             tonemap.mode.Override(TonemappingMode.ACES);
             var color = profile.Add<ColorAdjustments>(true);
-            color.postExposure.Override(0.35f);
+            color.postExposure.Override(snow ? 0.1f : 0.35f); // snow is bright already
             color.contrast.Override(14f);
             color.saturation.Override(2f);
             color.colorFilter.Override(new Color(0.98f, 0.99f, 1f));
             var wb = profile.Add<WhiteBalance>(true);
-            wb.temperature.Override(-6f);
+            wb.temperature.Override(snow ? -14f : -6f);
             var smh = profile.Add<ShadowsMidtonesHighlights>(true);
             smh.shadows.Override(new Vector4(0.95f, 1f, 1.05f, -0.02f));
             var bloom = profile.Add<Bloom>(true);
@@ -331,7 +382,7 @@ namespace Rally.EditorTools
             grain.intensity.Override(0.08f);
             grain.type.Override(FilmGrainLookup.Thin1);
 
-            string profilePath = "Assets/Settings/Rally/StagePostProcess.asset";
+            string profilePath = $"Assets/Settings/Rally/{StageTheme.Name("StagePostProcess")}.asset";
             AssetDatabase.DeleteAsset(profilePath);
             AssetDatabase.CreateAsset(profile, profilePath);
             foreach (var component in profile.components) AssetDatabase.AddObjectToAsset(component, profile);

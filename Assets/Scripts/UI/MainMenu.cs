@@ -18,7 +18,9 @@ namespace Rally.UI
         private static readonly float[] Volumes = { 1f, 0.75f, 0.5f, 0.25f, 0f };
 
         private RaceManager race;
-        private CanvasGroup mainScreen, carScreen, optionsScreen, controlsScreen, current;
+        private CanvasGroup mainScreen, stageScreen, carScreen, optionsScreen, controlsScreen, current;
+        private Button firstStageButton;
+        private int stageIndex;
         private Button playButton, startButton, volumeButton, controlsBack, optionsBack;
         private Text carName, carDescription, volumeLabel, sensitivityLabel, damageLabel, coDriverLabel, rivalsLabel, autoLabel;
         private Image[][] statBars;
@@ -45,6 +47,7 @@ namespace Rally.UI
             var root = UIFactory.Stretch("MainMenu", transform);
 
             BuildMain(root);
+            BuildStageSelect(root);
             BuildCarSelect(root);
             BuildOptions(root);
             BuildControls(root);
@@ -57,6 +60,7 @@ namespace Rally.UI
             }
 
             carIndex = CarCatalog.Selected;
+            stageIndex = StageCatalog.Current;
             Open(mainScreen, playButton);
         }
 
@@ -104,7 +108,7 @@ namespace Rally.UI
             UIFactory.Label("Stage", t, new Vector2(0f, 1f), new Vector2(120f, -270f), new Vector2(700f, 40f),
                 $"{race.Stage.stageNumber}  ·  {race.Stage.stageName}", 30, TextAnchor.MiddleLeft, UIFactory.TextDim);
 
-            playButton = MenuButton(t, "Play", -380f, "JUGAR", () => Open(carScreen, startButton));
+            playButton = MenuButton(t, "Play", -380f, "JUGAR", () => Open(stageScreen, firstStageButton));
             MenuButton(t, "Controls", -484f, "CONTROLES", () => Open(controlsScreen, controlsBack));
             MenuButton(t, "Options", -588f, "OPCIONES", () => { RefreshOptions(); Open(optionsScreen, volumeButton); });
             if (RaceManager.CanQuit)
@@ -112,6 +116,38 @@ namespace Rally.UI
 
             UIFactory.Label("Best", t, new Vector2(0f, 0f), new Vector2(120f, 60f), new Vector2(700f, 36f),
                 "MEJOR TIEMPO  " + RaceManager.FormatTime(race.BestTime), 26, TextAnchor.MiddleLeft, UIFactory.TextDim);
+        }
+
+        private void BuildStageSelect(RectTransform root)
+        {
+            stageScreen = Screen("Stages", root, true);
+            var t = stageScreen.transform;
+            Title(t, "ELIGE TRAMO", new Vector2(120f, -80f));
+            float y = -210f;
+            for (int i = 0; i < StageCatalog.Stages.Length; i++)
+            {
+                int index = i;
+                var stage = StageCatalog.Stages[i];
+                var card = UIFactory.Button("Stage" + i, t, new Vector2(0f, 1f), new Vector2(120f, y), new Vector2(620f, 170f), "", () =>
+                {
+                    stageIndex = index;
+                    Open(carScreen, startButton);
+                });
+                var label = card.GetComponentInChildren<Text>();
+                label.alignment = TextAnchor.UpperLeft;
+                label.text = "";
+                UIFactory.Label("Number", card.transform, new Vector2(0f, 1f), new Vector2(24f, -14f), new Vector2(580f, 30f),
+                    stage.number + (i == StageCatalog.Current ? "   ·   AQUÍ" : ""), 22, TextAnchor.MiddleLeft, UIFactory.Accent);
+                UIFactory.Label("Name", card.transform, new Vector2(0f, 1f), new Vector2(24f, -44f), new Vector2(580f, 46f),
+                    stage.name, 36, TextAnchor.MiddleLeft, UIFactory.TextMain);
+                UIFactory.Label("Info", card.transform, new Vector2(0f, 1f), new Vector2(24f, -94f), new Vector2(580f, 28f),
+                    stage.description, 18, TextAnchor.MiddleLeft, UIFactory.TextDim, FontStyle.Normal);
+                UIFactory.Label("Best", card.transform, new Vector2(0f, 1f), new Vector2(24f, -126f), new Vector2(580f, 28f),
+                    "MEJOR TIEMPO  " + RaceManager.FormatTime(stage.BestTime), 20, TextAnchor.MiddleLeft, UIFactory.TextMain, FontStyle.Normal);
+                if (i == 0) firstStageButton = card;
+                y -= 190f;
+            }
+            MenuButton(t, "Back", y - 20f, "VOLVER", () => Open(mainScreen, playButton), 620f);
         }
 
         private void BuildCarSelect(RectTransform root)
@@ -146,7 +182,7 @@ namespace Rally.UI
             UIFactory.Button("Prev", t, new Vector2(0f, 0.5f), new Vector2(60f, 40f), new Vector2(130f, 130f), "<", () => ShowCar(carIndex - 1));
             UIFactory.Button("Next", t, new Vector2(1f, 0.5f), new Vector2(-60f, 40f), new Vector2(130f, 130f), ">", () => ShowCar(carIndex + 1));
 
-            UIFactory.Button("Back", t, new Vector2(0.5f, 0f), new Vector2(-310f, 40f), new Vector2(380f, 84f), "VOLVER", () => Open(mainScreen, playButton));
+            UIFactory.Button("Back", t, new Vector2(0.5f, 0f), new Vector2(-310f, 40f), new Vector2(380f, 84f), "VOLVER", () => Open(stageScreen, firstStageButton));
             startButton = UIFactory.Button("Start", t, new Vector2(0.5f, 0f), new Vector2(310f, 40f), new Vector2(380f, 84f), "EMPEZAR", StartStage);
         }
 
@@ -227,7 +263,7 @@ namespace Rally.UI
 
         private void Open(CanvasGroup screen, Button select)
         {
-            foreach (var g in new[] { mainScreen, carScreen, optionsScreen, controlsScreen }) Hide(g);
+            foreach (var g in new[] { mainScreen, stageScreen, carScreen, optionsScreen, controlsScreen }) Hide(g);
             current = screen;
             current.alpha = 1f;
             current.interactable = true;
@@ -261,6 +297,12 @@ namespace Rally.UI
         private void StartStage()
         {
             CarCatalog.Selected = carIndex;
+            if (stageIndex != StageCatalog.Current)
+            {
+                // Another stage: load it and start straight away (it applies the chosen car when it loads).
+                RaceManager.LoadStageAndStart(StageCatalog.Stages[stageIndex].scene);
+                return;
+            }
             CarCatalog.Apply(race, carIndex);
             if (menuCamera != null) Destroy(menuCamera);
             var chase = Camera.main != null ? Camera.main.GetComponent<RallyCamera>() : null;
@@ -334,7 +376,11 @@ namespace Rally.UI
             // Esc / Start / B go back one screen.
             var input = RallyInput.Instance;
             if (input == null || current == mainScreen) return;
-            if (input.Pause.WasPressedThisFrame()) Open(mainScreen, playButton);
+            if (input.Pause.WasPressedThisFrame())
+            {
+                if (current == carScreen) Open(stageScreen, firstStageButton);
+                else Open(mainScreen, playButton);
+            }
         }
     }
 }

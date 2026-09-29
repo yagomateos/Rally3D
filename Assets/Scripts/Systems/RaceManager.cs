@@ -32,9 +32,26 @@ namespace Rally.Systems
             set { PlayerPrefs.SetInt("Rally.Rivals", value ? 1 : 0); PlayerPrefs.Save(); }
         }
 
+        /// <summary>Set by the main menu when it loads another stage: skip menu and title card, start the countdown.</summary>
+        public static bool StartOnLoad { get; set; }
+
+        /// <summary>Loads another stage and starts it straight away (car choice is applied on load).</summary>
+        public static void LoadStageAndStart(string sceneName)
+        {
+            OpenMenuOnLoad = false;
+            StartOnLoad = true;
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+            SceneManager.LoadScene(sceneName);
+        }
+
         // Also with "Enter Play Mode" domain reload disabled, every play session starts on the menu.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => OpenMenuOnLoad = true;
+        private static void ResetStatics()
+        {
+            OpenMenuOnLoad = true;
+            StartOnLoad = false;
+        }
 
         [SerializeField] private StageDefinition stage;
         [SerializeField] private TrackPath path;
@@ -97,6 +114,12 @@ namespace Rally.Systems
             BestTime = PlayerPrefs.GetFloat(BestTimeKey, 0f);
             bestSplits = LoadSplits();
 
+            // Stage-specific grip (snow): every car and the AI's speed plan use the stage's table.
+            AIDriver.StageSurfaces = stage != null ? stage.surfaces : null;
+            if (stage != null && stage.surfaces != null)
+                foreach (var p in participants)
+                    p.GetComponent<CarController>().Surfaces = stage.surfaces;
+
             if (!RivalsEnabled)
             {
                 // Against the clock: only the player's car stays (before the HUD builds its standings and map).
@@ -130,6 +153,12 @@ namespace Rally.Systems
             standings.AddRange(participants);
             // The car picked in the main menu, also after "Repetir tramo" (which reloads the stage without the menu).
             CarCatalog.Apply(this, CarCatalog.Selected);
+
+            if (StartOnLoad)
+            {
+                StartOnLoad = false;
+                BeginCountdown();
+            }
         }
 
         private void Update()

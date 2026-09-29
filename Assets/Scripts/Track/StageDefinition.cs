@@ -43,6 +43,14 @@ namespace Rally.Track
         public string stageName = "PINAR DE VALDENIEBLA";
         public int seed = 1207;
 
+        [Header("Look & rules")]
+        [Tooltip("Line under the stage name on the title card and in the stage list.")]
+        public string description = "GRAVA · TIERRA · BARRO · ASFALTO   ·   NUBLADO, MOJADO";
+        [Tooltip("0 = pine forest after rain. 1 = snow (the builder makes its own snow textures and materials).")]
+        public int theme;
+        [Tooltip("Grip / dust per surface for this stage. Empty = the table the cars were built with.")]
+        public SurfaceDatabase surfaces;
+
         [Header("Route")]
         public Vector2 startPosition = new Vector2(180f, 140f);
         public float startHeading;
@@ -59,6 +67,31 @@ namespace Rally.Track
         public float hillScale = 380f;
         public float roadSmoothingDistance = 55f;
         [Range(0.02f, 0.2f)] public float maxRoadGradient = 0.115f;
+
+        /// <summary>
+        /// Stage 2: the snow stage. The route is stage 1 mirrored (every corner turns the other way), a bit
+        /// narrower and in taller mountains. Surfaces mean: Dirt = packed snow, Gravel = snow over gravel,
+        /// Mud = slush, Asphalt = ice, Grass (off the road) = deep snow; see the stage's snow SurfaceDatabase.
+        /// </summary>
+        public void ResetToSnowStage()
+        {
+            ResetToDefaultStage();
+            stageNumber = "TRAMO 02";
+            stageName = "PUERTO DE PEÑA BLANCA";
+            description = "NIEVE · HIELO · NIEVE BLANDA   ·   NEVANDO";
+            theme = 1;
+            seed = 3311;
+            startHeading = 35f;
+            hillAmplitude = 85f;
+            terrainMaxHeight = 260f;
+            for (int i = 0; i < segments.Count; i++)
+            {
+                var s = segments[i];
+                if (s.kind == SegmentKind.Turn) s.amount = -s.amount;
+                s.width = Mathf.Max(6.5f, s.width - 0.5f);
+                segments[i] = s;
+            }
+        }
 
         public void ResetToDefaultStage()
         {

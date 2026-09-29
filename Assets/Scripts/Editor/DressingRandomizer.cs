@@ -14,7 +14,7 @@ namespace Rally.EditorTools
     public static class DressingRandomizer
     {
         private const string TreeVariantFolder = "Assets/Prefabs/Environment/Variants";
-        private const string RockMaterialPath = "Assets/Materials/Nature/Rock.mat";
+        private static string RockMaterialPath => $"Assets/Materials/Nature/{StageTheme.Name("Rock")}.mat";
         private const int VariantCount = 4;
         private const int Seed = 4242;
         private static readonly Vector2 ScaleRange = new Vector2(0.85f, 1.2f);

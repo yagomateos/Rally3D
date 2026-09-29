@@ -16,13 +16,17 @@ namespace Rally.VFX
         [SerializeField] private float motesPerSecond = 40f;
         [SerializeField] private float fogWispsPerSecond = 3f;
 
+        [Tooltip("Snowfall instead of drizzle (the snow stage).")]
+        [SerializeField] private bool snow;
+
         private ParticleSystem motes, rain, wisps;
 
         /// <summary>Particle amount multiplier (lower on phones, see MobilePerformance).</summary>
         public static float Density { get; set; } = 1f;
 
-        public void Configure(Transform target, Material mote, Material rainMat, Material fogMat)
+        public void Configure(Transform target, Material mote, Material rainMat, Material fogMat, bool snowfall = false)
         {
+            snow = snowfall;
             followTarget = target;
             moteMaterial = mote;
             drizzleMaterial = rainMat;
@@ -67,6 +71,22 @@ namespace Rally.VFX
             var renderer = rain.GetComponent<ParticleSystemRenderer>();
             renderer.velocityScale = 0.045f;
             renderer.lengthScale = 1f;
+            if (snow)
+            {
+                // Big, slow, drifting flakes instead of streaks.
+                renderer.renderMode = ParticleSystemRenderMode.Billboard;
+                rmain.startLifetime = 7f;
+                rmain.startSpeed = 1.8f;
+                rmain.gravityModifier = 0.05f;
+                rmain.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.11f);
+                rmain.startColor = new Color(1f, 1f, 1f, 0.85f);
+                rshape.scale = new Vector3(50f, 1f, 50f);
+                remission.rateOverTime = 420f * Density;
+                var rnoise = rain.noise;
+                rnoise.enabled = true;
+                rnoise.strength = 0.6f;
+                rnoise.frequency = 0.25f;
+            }
 
             wisps = Create("FogWisps", fogMaterial, Mathf.RoundToInt(60 * Density), ParticleSystemRenderMode.Billboard, 0f);
             var wshape = wisps.shape;

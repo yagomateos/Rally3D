@@ -6,7 +6,8 @@ namespace Rally.Audio
 {
     /// <summary>
     /// Engine (rpm/load crossfade), turbo, tyres (surface aware), wind, impacts and landings.
-    /// Any clip left empty is replaced by a synthesised placeholder.
+    /// Engine clips left empty use the recorded CC0 loops in Resources/Audio (see CREDITS.txt there);
+    /// any other clip left empty is replaced by a synthesised placeholder.
     /// </summary>
     [RequireComponent(typeof(CarController))]
     public class CarAudio : MonoBehaviour
@@ -30,6 +31,9 @@ namespace Rally.Audio
         [SerializeField] private float clipBaseRpm = ProceduralAudio.EngineBaseRpm;
         [SerializeField] private bool isPlayer = true;
 
+        /// <summary>Engine speed of the recorded loops in Resources/Audio (measured from their firing frequency).</summary>
+        private const float RecordedEngineRpm = 2300f;
+
         private CarController car;
         private AudioSource engineOn, engineOff, turboSource, slide, squeal, roll, windSource, oneShots;
         private float throttleSmoothed;
@@ -39,6 +43,14 @@ namespace Rally.Audio
         private void Awake()
         {
             car = GetComponent<CarController>();
+
+            // Real engine recordings when no clip was assigned; their pitch 1 is ~2300 rpm, not the synth's 3000.
+            if (engineOnLoad == null && engineOffLoad == null)
+            {
+                engineOnLoad = Resources.Load<AudioClip>("Audio/Engine_OnLoad");
+                engineOffLoad = Resources.Load<AudioClip>("Audio/Engine_OffLoad");
+                if (engineOnLoad != null && engineOffLoad != null) clipBaseRpm = RecordedEngineRpm;
+            }
 
             engineOn = CreateLoop("EngineOnLoad", engineOnLoad != null ? engineOnLoad : ProceduralAudio.Engine(true));
             engineOff = CreateLoop("EngineOffLoad", engineOffLoad != null ? engineOffLoad : ProceduralAudio.Engine(false));

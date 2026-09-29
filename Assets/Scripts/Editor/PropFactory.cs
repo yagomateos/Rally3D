@@ -16,6 +16,7 @@ namespace Rally.EditorTools
         public static Mesh SaveMesh(Mesh mesh)
         {
             Directory.CreateDirectory(MeshFolder);
+            mesh.name = StageTheme.Name(mesh.name);
             string path = $"{MeshFolder}/{mesh.name}.asset";
             AssetDatabase.DeleteAsset(path);
             AssetDatabase.CreateAsset(mesh, path);
@@ -34,6 +35,7 @@ namespace Rally.EditorTools
         public static GameObject SavePrefab(GameObject go, string folder = PrefabFolder)
         {
             Directory.CreateDirectory(folder);
+            go.name = StageTheme.Name(go.name);
             string path = $"{folder}/{go.name}.prefab";
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, path);
             Object.DestroyImmediate(go);

@@ -1,0 +1,6 @@
+Engine_OnLoad.wav / Engine_OffLoad.wav
+  Source: "racing car engine sound loops" by domasx2 (loop_5.wav)
+  https://opengameart.org/content/racing-car-engine-sound-loops
+  License: CC0 1.0 (public domain dedication). Attribution not required; credited anyway.
+  Changes: equal-power crossfade at the loop point (both files); Engine_OffLoad low-passed at 650 Hz
+  (two poles) and lowered in level to stand for the closed-throttle sound.

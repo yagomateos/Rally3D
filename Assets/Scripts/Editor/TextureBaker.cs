@@ -48,6 +48,15 @@ namespace Rally.EditorTools
             TextureWrapMode wrapU = TextureWrapMode.Repeat, TextureWrapMode wrapV = TextureWrapMode.Repeat, int maxSize = 2048)
         {
             Directory.CreateDirectory(Folder);
+            if (StageTheme.Snow && kind != Kind.Normal)
+            {
+                // Winter colours for the snow stage (normal maps keep the original relief).
+                var recoloured = new Color[pixels.Length];
+                for (int i = 0; i < pixels.Length; i++)
+                    recoloured[i] = StageTheme.Recolor(name, pixels[i], (i % width + 0.5f) / width, (i / width + 0.5f) / height);
+                pixels = recoloured;
+            }
+            name = StageTheme.Name(name);
             var tex = new Texture2D(width, height, TextureFormat.RGBA32, false, kind != Kind.Albedo && kind != Kind.AlphaSprite);
             tex.SetPixels(pixels);
             tex.Apply();

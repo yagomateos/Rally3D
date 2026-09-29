@@ -87,6 +87,13 @@ namespace Rally.Car
             if (wheels.Length > 0) wheels[0].Collider.ConfigureVehicleSubsteps(6f, 14, 18);
         }
 
+        /// <summary>Surface grip / dust table in use (a stage can bring its own, e.g. snow).</summary>
+        public SurfaceDatabase Surfaces
+        {
+            get => surfaces;
+            set => surfaces = value;
+        }
+
         /// <summary>
         /// Swaps in a different tuning at runtime (car selection gives the player its own copy, so rivals and the
         /// asset on disk are untouched). Call while the car is stationary, before the start.

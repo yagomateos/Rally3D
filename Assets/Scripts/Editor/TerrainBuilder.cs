@@ -44,7 +44,7 @@ namespace Rally.EditorTools
 
         private static TerrainLayer CreateLayer(string name, Texture2D albedo, Texture2D normal, float tile, float smoothness)
         {
-            string path = $"{Folder}/{name}.terrainlayer";
+            string path = $"{Folder}/{StageTheme.Name(name)}.terrainlayer";
             var layer = AssetDatabase.LoadAssetAtPath<TerrainLayer>(path);
             if (layer == null)
             {
@@ -63,7 +63,7 @@ namespace Rally.EditorTools
 
         public static Terrain Build(StageDefinition def, StageRoute route, TerrainSculptor sculptor, AssetLibrary lib)
         {
-            var data = new TerrainData { name = "StageTerrainData" };
+            var data = new TerrainData { name = StageTheme.Name("StageTerrainData") };
             data.heightmapResolution = HeightmapResolution;
             data.size = new Vector3(sculptor.Size, def.terrainMaxHeight, sculptor.Size);
             data.alphamapResolution = AlphamapResolution;
@@ -79,7 +79,7 @@ namespace Rally.EditorTools
             float[,,] splat = sculptor.BuildSplatmap(AlphamapResolution, data);
             data.SetAlphamaps(0, 0, splat);
 
-            string dataPath = $"{Folder}/StageTerrainData.asset";
+            string dataPath = $"{Folder}/{data.name}.asset";
             AssetDatabase.DeleteAsset(dataPath);
             AssetDatabase.CreateAsset(data, dataPath);
 
