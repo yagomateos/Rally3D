@@ -328,8 +328,8 @@ namespace Rally.UI
         {
             if (race == null || race.Player == null) return;
             // Hidden under the main menu; comes back when the stage starts (results dim it to 0.35 later).
-            if (race.CurrentState == RaceManager.State.Menu) { hudGroup.alpha = 0f; return; }
-            if (hudGroup.alpha == 0f) hudGroup.alpha = 1f;
+            if (race.CurrentState == RaceManager.State.Menu || ReplayDirector.Playing) { hudGroup.alpha = 0f; return; }
+            if (hudGroup.alpha == 0f) hudGroup.alpha = race.ResultsShown ? 0.35f : 1f;
             var player = race.Player;
             var car = player.Car;
 

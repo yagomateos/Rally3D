@@ -335,6 +335,34 @@ namespace Rally.Tests
             return Color.clear;
         }
 
+        /// <summary>QA-30: after a stage the replay plays every car's recording with its own cameras, then returns.</summary>
+        [UnityTest]
+        public IEnumerator QA30_Replay_PlaysTheRunAndReturns()
+        {
+            yield return LoadStage();
+            yield return StartRace();
+            Player.Car.Body.linearVelocity = Race.Path.TangentAt(Player.Distance) * 18f;
+            yield return new WaitForSeconds(3f);
+            Vector3 atFinish = Player.transform.position;
+            foreach (var checkpoint in Race.Checkpoints) Player.NotifyCheckpoint(checkpoint);
+            float t = 0f;
+            while (!Race.ResultsShown && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(Race.ResultsShown);
+
+            var director = ReplayDirector.Play(Race, null);
+            Assert.IsNotNull(director, "There should be a recording to replay.");
+            Assert.IsTrue(ReplayDirector.Playing);
+            Assert.IsFalse(Camera.main.GetComponent<Rally.CameraSystem.RallyCamera>().enabled, "The director takes the camera.");
+            yield return new WaitForSecondsRealtime(0.5f);
+            Assert.Greater(Vector3.Distance(Player.transform.position, atFinish), 3f, "Early in the replay the car is back near the start.");
+            int scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle;
+            director.Stop();
+            yield return null;
+            Assert.IsFalse(ReplayDirector.Playing);
+            Assert.IsTrue(Camera.main.GetComponent<Rally.CameraSystem.RallyCamera>().enabled, "The chase camera is back.");
+            Assert.AreEqual(scene, UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle, "Skipping must not reload the stage.");
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()

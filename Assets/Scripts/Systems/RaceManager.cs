@@ -152,6 +152,7 @@ namespace Rally.Systems
                 p.Car.ControlEnabled = false;
                 if (p.GetComponent<CarDamage>() == null) p.gameObject.AddComponent<CarDamage>();
                 if (p.GetComponent<CarBodyContact>() == null) p.gameObject.AddComponent<CarBodyContact>();
+                if (p.GetComponent<ReplayRecorder>() == null) p.gameObject.AddComponent<ReplayRecorder>();
                 if (p.IsPlayer)
                 {
                     Player = p;
@@ -177,6 +178,8 @@ namespace Rally.Systems
         {
             var input = RallyInput.Instance;
             if (input == null) return;
+            // During the replay (and on the frame it is skipped) Confirm / Pause belong to it, not to the race.
+            if (ReplayDirector.Playing || ReplayDirector.EndedFrame >= Time.frameCount - 1) return;
 
             if (input.Pause.WasPressedThisFrame() && !BeforeStart && !ResultsShown)
                 SetPaused(!IsPaused);

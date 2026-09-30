@@ -236,10 +236,49 @@ namespace Rally.UI
             resultStandings = UIFactory.Label("Standings", panel.transform, new Vector2(0.5f, 1f), new Vector2(0f, -420f), new Vector2(880f, 100f),
                 "", 24, TextAnchor.MiddleCenter, UIFactory.TextDim, FontStyle.Normal);
 
-            resultsDefault = UIFactory.Button("Restart", panel.transform, new Vector2(0.5f, 0f), new Vector2(-150f, 60f), new Vector2(270f, 64f),
+            resultsDefault = UIFactory.Button("Restart", panel.transform, new Vector2(0.5f, 0f), new Vector2(-290f, 60f), new Vector2(260f, 64f),
                 "REPETIR", () => race.Restart());
-            resultsMenu = UIFactory.Button("Menu", panel.transform, new Vector2(0.5f, 0f), new Vector2(150f, 60f), new Vector2(270f, 64f),
+            UIFactory.Button("Replay", panel.transform, new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(260f, 64f),
+                "REPETICIÓN", StartReplay);
+            resultsMenu = UIFactory.Button("Menu", panel.transform, new Vector2(0.5f, 0f), new Vector2(290f, 60f), new Vector2(260f, 64f),
                 "MENÚ", () => race.ExitToMenu());
+            BuildReplayOverlay();
+        }
+
+        // ------------------------------------------------------------------ replay
+
+        private CanvasGroup replayOverlay;
+        private RectTransform replayProgress;
+        private ReplayDirector replay;
+
+        private void BuildReplayOverlay()
+        {
+            var rt = UIFactory.Stretch("ReplayOverlay", root);
+            replayOverlay = rt.gameObject.AddComponent<CanvasGroup>();
+            Show(replayOverlay, false);
+            var tag = UIFactory.Panel("Tag", rt, new Vector2(0f, 1f), new Vector2(48f, -40f), new Vector2(330f, 56f), UIFactory.PanelDark);
+            UIFactory.Panel("Dot", tag.transform, new Vector2(0f, 0.5f), new Vector2(18f, 0f), new Vector2(18f, 18f), new Color(0.95f, 0.15f, 0.1f));
+            UIFactory.Label("Text", tag.transform, new Vector2(0f, 0.5f), new Vector2(48f, 0f), new Vector2(280f, 50f),
+                "REPETICIÓN", 32, TextAnchor.MiddleLeft, UIFactory.TextMain);
+            var bar = UIFactory.Panel("Bar", rt, new Vector2(0.5f, 0f), new Vector2(0f, 40f), new Vector2(900f, 8f), new Color(1f, 1f, 1f, 0.2f));
+            replayProgress = UIFactory.Panel("Fill", bar.transform, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(0f, 8f), UIFactory.Accent).rectTransform;
+            UIFactory.Button("Skip", rt, new Vector2(1f, 0f), new Vector2(-48f, 70f), new Vector2(240f, 70f), "SALTAR", () => replay?.Stop());
+        }
+
+        private void StartReplay()
+        {
+            replay = ReplayDirector.Play(race, EndReplay);
+            if (replay == null) return;
+            Show(results, false);
+            Show(replayOverlay, true);
+        }
+
+        private void EndReplay()
+        {
+            replay = null;
+            Show(replayOverlay, false);
+            Show(results, true);
+            EventSystem.current?.SetSelectedGameObject(resultsDefault.gameObject);
         }
 
         private void OnResults()
@@ -278,6 +317,7 @@ namespace Rally.UI
 
             // Standings on the results page keep updating as rivals finish.
             if (results.alpha > 0f && Time.frameCount % 30 == 0 && !Championship.Active) RefreshStandings();
+            if (replay != null && replayProgress != null) replayProgress.sizeDelta = new Vector2(900f * replay.Time01, 8f);
         }
 
         /// <summary>
