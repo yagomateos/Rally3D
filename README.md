@@ -12,9 +12,10 @@ sonidos. No usa assets de terceros. La versión web está preparada para **itch.
 | **Tramo 03 · Dunas del Desierto** | **Tramo 04 · Costera de Asfalto** |
 | ![Tramo 03](docs/capturas/tramo3-desierto.jpg) | ![Tramo 04](docs/capturas/tramo4-costera.jpg) |
 
-| Elegir tramo | En el móvil |
-|---|---|
-| ![Elegir tramo](docs/capturas/elegir-tramo.jpg) | ![Móvil](docs/capturas/movil.jpg) |
+| **Tramo 05 · Pinar de Noche** | **En el móvil** |
+| ![Tramo 05](docs/capturas/tramo5-noche.jpg) | ![Móvil](docs/capturas/movil.jpg) |
+
+![Elegir tramo](docs/capturas/elegir-tramo.jpg)
 
 ## Tramos
 
@@ -24,11 +25,13 @@ sonidos. No usa assets de terceros. La versión web está preparada para **itch.
 | **02 · Puerto de Peña Blanca** (2,9 km) | Nieve pisada, hielo y nieve blanda | Nevando | Poco agarre; la IA frena antes |
 | **03 · Dunas del Desierto** (3,0 km) | Pista de arena dura, hamada y arena blanda | Despejado con calima | Fuera de la pista, arena suelta que frena mucho |
 | **04 · Costera de Asfalto** (3,5 km) | Asfalto nuevo con mucho agarre | Puesta de sol junto al mar | Velocidad máxima más alta (213 km/h), farolas, guardarraíles, señales de curva y ovejas |
+| **05 · Pinar de Noche** (2,9 km) | Como el tramo 01 | Noche con luna y estrellas | Faros en todos los coches |
 
 ## Cómo se juega
 
 - **JUGAR:** eliges tramo y coche y corres contra dos rivales, o solo contra el reloj si desactivas los rivales.
-- **CAMPEONATO:** los cuatro tramos seguidos, con el tiempo de cada piloto sumado. Tras cada tramo ves la clasificación
+  Hay **cinco coches**, entre ellos LEYENDA #1 (tracción trasera) y GRUPO B #9 (muy potente).
+- **CAMPEONATO:** los cinco tramos seguidos, con el tiempo de cada piloto sumado. Tras cada tramo ves la clasificación
   general. No se pueden repetir tramos. Si ganas, eres campeón.
 - **Reglas:**
   - Reiniciar en la pista (R) suma **+5 s**.
@@ -38,7 +41,12 @@ sonidos. No usa assets de terceros. La versión web está preparada para **itch.
 - **Ayudas:**
   - El **copiloto** canta las curvas (grado 1 a 6, horquillas y saltos) en pantalla y con voz.
   - El **coche fantasma** reproduce tu mejor vuelta en cada tramo.
-- **Al ganar:** «¡VICTORIA!» con fanfarria, vítores del público y confeti.
+- **Al terminar:**
+  - Al ganar, «¡VICTORIA!» con fanfarria, vítores del público y confeti.
+  - **REPETICIÓN** de la carrera con cámaras de televisión.
+  - Tu puesto en la **tabla de tiempos** del tramo.
+- **TIEMPOS:** los 10 mejores de cada tramo, con tu nombre de piloto. Se guardan en el dispositivo y pueden ser una
+  tabla mundial si montas el servidor incluido (ver [docs/CLASIFICACION_ONLINE.md](docs/CLASIFICACION_ONLINE.md)).
 
 ## Controles
 
@@ -78,24 +86,28 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
 ## Compilar y publicar
 
 - **Editor:** abre `Assets/Scenes/Stage01.unity` y pulsa Play.
-- **Regenerar un tramo:** menú **Rally ▸ Build Stage (full)** (y *Build Snow Stage 02*, *Build Desert Stage 03*, *Build Coast Stage 04*).
+- **Regenerar un tramo:** menú **Rally ▸ Build Stage (full)** (y *Build Snow Stage 02*, *Build Desert Stage 03*, *Build Coast Stage 04*,
+  *Build Night Stage 05*).
   Genera primero el tramo 01, porque los demás usan sus coches.
 - **Build web:**
   ```bash
   rm -rf ~/Desktop/Rally3D_Web
   unity build . --target WebGL --execute-method Rally.EditorTools.WebBuild.Build \
     -o ~/Desktop/Rally3D_Web --editor-version 6000.0.84f1
-  cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateData -x "*.DS_Store"
+  cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateData StreamingAssets -x "*.DS_Store"
   ```
 - **itch.io:**
   - *Kind of project* = HTML. Sube el zip y marca *This file will be played in the browser*.
   - Tamaño 1280 × 720, con *Fullscreen button* y *Mobile friendly* en horizontal.
   - Los archivos del build llevan un nombre único en cada versión, así que tras subir una nueva basta con recargar la página.
-- **Tamaño y carga:** unos 42 MB. Con caché vacía, carga en unos 19 s a 20 Mbps.
+- **Tamaño y carga:**
+  - El tramo 01, con el menú, va en la descarga inicial: 31 MB, que cargan en unos 15 s a 20 Mbps.
+  - Los tramos 02–05 se descargan al elegirlos (15–17 MB cada uno) desde `StreamingAssets`, con pantalla de carga.
+  - El zip debe incluir esa carpeta.
 
 ## Pruebas
 
-**30 tests de PlayMode y 1 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
+**35 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
 
 ```bash
 unity test . --mode PlayMode
@@ -112,7 +124,8 @@ unity test . --mode EditMode
 | Ovejas y objetos de la cuneta | QA17, QA21, QA23 |
 | Menús, mando y resultados | QA04, QA19 |
 | Límites del mapa, ayuda de conducción y calidad gráfica | QA20, QA25, QA26 |
-| Campeonato, fantasma y celebración | QA22, QA27, QA28 |
+| Campeonato, fantasma, repetición y celebración | QA22, QA27, QA28, QA30 |
+| Coches nuevos, tramo nocturno y tabla de tiempos | QA29, QA31, QA32 |
 | Build listo para publicar (EditMode) | QA05 |
 
 Además, el build web se prueba en Chrome automatizado, en PC y con un Android emulado (táctil, acelerómetro y red
@@ -127,11 +140,12 @@ móviles de gama baja.
 |---|---|
 | `Car/` | Física del coche, entrada del jugador, daños, ayuda de conducción, contacto entre coches |
 | `AI/` | Pilotos rivales: trazada, perfil de velocidad, dificultad, errores y reacción a los golpes |
-| `Systems/` | Carrera, campeonato, fantasma, dificultad, calidad gráfica, límites del mapa, entrada |
+| `Systems/` | Carrera, carga de tramos, campeonato, fantasma, repetición, tabla de tiempos, dificultad, calidad gráfica, faros, entrada |
 | `Track/` | Recorrido, generación del terreno, notas del copiloto, ovejas, objetos derribables |
 | `UI/` | HUD, menús, controles táctiles, celebración, navegación con mando |
 | `Camera/`, `Audio/`, `VFX/` | Cámaras, sonido sintetizado, polvo, marcas, clima y efectos |
-| `Editor/` | Generadores de tramos, texturas, materiales, vegetación y coches; build web |
+| `Editor/` | Generadores de tramos, texturas, materiales, vegetación y coches; Addressables y build web |
+| `server/` (raíz) | Servidor opcional de la tabla mundial (Cloudflare Worker) |
 
 El registro detallado de lo que se ha hecho, cómo se ha medido y por qué está en [docs/HISTORIAL.md](docs/HISTORIAL.md).
 Las reglas de trabajo del proyecto están en [CLAUDE.md](CLAUDE.md).

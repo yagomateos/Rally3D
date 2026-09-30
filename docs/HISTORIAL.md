@@ -487,3 +487,29 @@ En modo batch: `Unity -batchmode -projectPath . -executeMethod Rally.EditorTools
 - **`VFX/`:** polvo y piedras, marcas de derrape, clima y postprocesado según la velocidad.
 - **`Editor/`:** el generador del tramo, las fábricas de assets y `WebBuild` (build web por línea de comandos).
 - **`Plugins/WebGL/`** (en `Assets/`): `RallyMotion.jslib` (sensores de movimiento) y `RallySpeech.jslib` (voz del copiloto).
+
+## Ampliación: coches, repetición, tramo nocturno, tabla de tiempos y carga por tramo
+
+- **Coches nuevos:**
+  - LEYENDA #1: tracción trasera, `rearTorqueBias` = 1 y menos ayudas.
+  - GRUPO B #9: +28 % de par y +18 km/h de punta.
+  - Se pintan en runtime con copias de los materiales de pintura (los assets no se tocan) y la pintura se quita al cambiar de coche (QA29).
+- **Repetición:**
+  - `ReplayRecorder` graba todos los coches a 10 muestras/s. En la repetición los coches quedan congelados (cinemáticos) y siguen la grabación.
+  - `ReplayDirector` corta entre persecución, trípodes a pie de pista y helicóptero.
+  - Saltar la repetición no reinicia el tramo ni abre la pausa (QA30).
+- **Tramo 05, Pinar de Noche:**
+  - Comparte texturas, materiales y capas de terreno con el tramo 1; solo el terreno, las mallas, los prefabs y la escena son propios.
+  - Faros: un foco por coche y una mancha de luz translúcida pegada al suelo.
+  - Problemas encontrados en la web al probarlo:
+    - La mancha era invisible: el shader multiplica por el color de vértice, que WebGL lee como negro si la malla no tiene colores.
+    - La mancha quedaba tapada por la carretera: estaba a 6 cm y el plano lejano es de varios km. El plano cercano sube a 0,3 m y la mancha a 25 cm.
+    - Desde la cámara de persecución el techo tapa los primeros ~30 m y los focos apenas iluminan en algunos GPU web, así que la luna es más clara para que la carretera se lea (QA31).
+- **Tabla de tiempos:**
+  - Top 10 por tramo en el dispositivo; pantalla TIEMPOS con nombre editable; puesto en resultados (QA32).
+  - Online opcional con `server/leaderboard-worker.js`, un Cloudflare Worker con KV, probado con un KV simulado.
+    Valida tramo, nombre y tiempos plausibles (≥ 45 s).
+- **Carga por tramo (Addressables 2.7.3):**
+  - El tramo 01 va en la descarga del juego y los tramos 02–05 son bundles LZ4: los LZMA fallan en WebGL con «Failed to decompress».
+  - Descarga inicial de 31 MB (antes 42 MB con cuatro tramos), que carga en 14,5 s a 20 Mbps (antes 19 s) y en 27,8 s a 10 Mbps (antes 36,4 s).
+  - Cada tramo extra ocupa 15–17 MB y se baja al elegirlo, con pantalla de carga. Si la descarga falla, el juego vuelve al menú.

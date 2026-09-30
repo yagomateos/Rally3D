@@ -1,7 +1,7 @@
 # CLAUDE.md — Rally 3D
 
 Juego de rally en Unity **6000.0.84f1** con **URP 17**, publicado como **build web (WebGL) en itch.io**.
-Cuatro tramos (`Stage01` pinar/tierra, `Stage02` nieve, `Stage03` desierto, `Stage04` costera de asfalto), rivales con IA, menú, elección de coche, daños, copiloto
+Cinco tramos (`Stage01` pinar/tierra, `Stage02` nieve, `Stage03` desierto, `Stage04` costera de asfalto, `Stage05` pinar de noche), rivales con IA, menú, elección de coche, daños, copiloto
 y controles táctiles para móvil. Todo el contenido (terreno, carretera, coches, texturas, sonido, UI) se genera por código.
 
 ## Reglas de trabajo
@@ -14,7 +14,8 @@ y controles táctiles para móvil. Todo el contenido (terreno, carretera, coches
 - En tareas por bloques, da un **resumen breve tras cada bloque** y, al final, una **lista de pruebas manuales**.
 - Cuando algo no se pueda verificar (dispositivo real, mando físico, iOS), márcalo como **hipótesis a verificar**; no lo des por probado.
 - **Builds:** el build web tarda unos 10 minutos. Lánzalo solo si la tarea lo pide o el usuario lo ha autorizado.
-- Tras un build para publicar, regenera `~/Desktop/Rally3D_Web.zip` con `index.html` **en la raíz** del zip (ver README).
+- Tras un build para publicar, regenera `~/Desktop/Rally3D_Web.zip` con `index.html` **en la raíz** del zip e **incluye `StreamingAssets`**
+  (los tramos 2+ son bundles de Addressables que se descargan al elegirlos; ver README).
   Borra antes `~/Desktop/Rally3D_Web`: los archivos llevan *hash* en el nombre (`WebBuild` activa `nameFilesAsHashes`)
   y si no se acumularían versiones viejas. Si el usuario ve comportamientos ya corregidos, lo primero es sospechar de una versión antigua en caché.
 - Mantén el **README.md** (en castellano) al día cuando cambien controles, opciones, tramos o tests, pero **corto y ordenado**
@@ -130,9 +131,15 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Horizonte (`TerrainBuilder.BuildHorizon`), MSAA 4× y plano lejano de 5 km (PC) / 3 km (móvil) en `MobilePerformance`;
   cámara de móvil idéntica a la de PC.
 - Cuenta atrás fuera de la carretera con vuelta automática, ayuda de conducción (`DrivingAssist`), ovejas en la carretera en los tramos 01 y 04.
+- Carga de tramos con Addressables (`StageLoader`, `AddressableStages`): solo `Stage01` en Build Settings; los demás, grupo `Stages`
+  (LZ4: WebGL no descomprime LZMA). Carga siempre las escenas con `StageLoader`, nunca con `SceneManager` directamente.
+- En WebGL, los shaders que multiplican por color de vértice necesitan mallas con colores (sin ellos lee negro), y la precisión
+  de profundidad es menor: no pegues superficies a 6 cm de otras. Para efectos translúcidos en runtime usa `Sprites/Default`.
+- Coches LEYENDA/GRUPO B (repintado en runtime en `CarCatalog`), repetición (`ReplayDirector`), tabla de tiempos (`Leaderboard`,
+  servidor opcional en `server/`), faros de la noche (`Headlights`).
 - Modo CAMPEONATO (`Championship`), coche fantasma de tu mejor vuelta (`GhostRun`/`GhostRecorder`/`GhostCar`),
   opción CALIDAD GRÁFICA (`GraphicsQuality`).
-- Controles de móvil y 31 tests (30 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Controles de móvil y 37 tests (35 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 
