@@ -529,3 +529,18 @@ En modo batch: `Unity -batchmode -projectPath . -executeMethod Rally.EditorTools
 - Los arcos de rueda están recortados en la carrocería y las aletas se ensanchan alrededor de cada rueda.
 - `CarDamage` vuelve a copiar la malla si cambia el modelo después de una abolladura.
 - `CarModelFactory.RenderPreviews` hace capturas de cada coche (delante, detrás y de lado) para revisarlos sin abrir el Editor.
+
+## Carrocería abollada y vista desde la cabina
+
+- **Abolladuras visibles:** las carrocerías nuevas tenían muy pocos vértices (caras grandes), así que al empujar las esquinas
+  de la zona golpeada casi no cambiaba la forma. Ahora el cuerpo tiene secciones cada 20 cm y cada lateral va en dos filas.
+  Además la abolladura es más profunda (0,02 m por m/s, hasta 22 cm) y desigual: cada punto cede distinto, como chapa arrugada,
+  pero los vértices que comparten posición ceden lo mismo, así que la carrocería no se abre. QA07 exige ahora al menos 5 cm.
+- **Vista CABINA** (quinta vista con **C**): la cámara va en la jaula, entre los dos asientos y justo bajo el techo, pegada a la
+  carrocería (que se inclina), así que el mundo se ladea como en una cámara a bordo. Se ven el piloto con las manos en el volante,
+  el copiloto con las notas, el salpicadero con dos relojes, el retrovisor y la jaula. En esta vista el plano cercano baja a
+  0,1 m porque los cascos están muy cerca, y al salir vuelve al de la calidad gráfica (QA34).
+- **Habitáculo abierto:** el techo y los pilares son piezas separadas y los cristales son de verdad (opacidad 0,68), así que la
+  tripulación también se ve desde fuera. Los cascos llevan el color de la carrocería y los monos el de la decoración.
+- **Números de las puertas:** usaban el material de la fuente, que se dibuja encima de todo, y el número de la puerta de enfrente
+  se veía a través del coche (y dentro de la cabina). Ahora usan `Sprites/Default`, que respeta la profundidad.

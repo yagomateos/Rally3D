@@ -7,12 +7,17 @@ namespace Rally.CameraSystem
     /// <summary>
     /// Rally chase camera: smooth follow with velocity-biased yaw, speed dependent distance and FOV,
     /// lean into corners, surface shake, impulse shake (landings, impacts) and terrain avoidance.
-    /// Also offers bumper and hood views.
+    /// Also offers bumper and hood views, and the CABINA view from inside the car, over the driver's shoulder.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public class RallyCamera : MonoBehaviour
     {
-        public enum Mode { Chase, FarChase, Hood, Bumper }
+        public enum Mode { Chase, FarChase, Hood, Bumper, Cockpit }
+        private const int ModeCount = 5;
+
+        [Header("Cockpit")]
+        [Tooltip("Near clip plane inside the car: the helmet and pillars are closer than the usual 0.3 m.")]
+        [SerializeField] private float cockpitNearClip = 0.1f;
 
         [SerializeField] private CarController target;
 
@@ -115,7 +120,14 @@ namespace Rally.CameraSystem
         {
             var input = RallyInput.Instance;
             if (input != null && input.CycleCamera.WasPressedThisFrame())
-                CurrentMode = (Mode)(((int)CurrentMode + 1) % 4);
+                SetMode((Mode)(((int)CurrentMode + 1) % ModeCount));
+        }
+
+        /// <summary>Switches view (the C key cycles through them).</summary>
+        public void SetMode(Mode mode)
+        {
+            CurrentMode = mode;
+            SetNearClip();
         }
 
         private void LateUpdate()
@@ -134,7 +146,7 @@ namespace Rally.CameraSystem
 
             UpdateShake(dt, speed01);
 
-            if (CurrentMode == Mode.Hood || CurrentMode == Mode.Bumper)
+            if (CurrentMode == Mode.Hood || CurrentMode == Mode.Bumper || CurrentMode == Mode.Cockpit)
                 UpdateMountedView(dt, speed01);
             else
                 UpdateChase(dt, velocity, speed01);
@@ -185,7 +197,7 @@ namespace Rally.CameraSystem
 
             float angle = Mathf.DeltaAngle(0f, lookAngle) * Mathf.SmoothStep(0f, 1f, lookAmount);
             Quaternion swing = Quaternion.AngleAxis(angle, Vector3.up);
-            if (CurrentMode == Mode.Hood || CurrentMode == Mode.Bumper)
+            if (CurrentMode == Mode.Hood || CurrentMode == Mode.Bumper || CurrentMode == Mode.Cockpit)
             {
                 transform.rotation = Quaternion.AngleAxis(angle, target.transform.up) * baseRotation;
                 return;
@@ -243,10 +255,30 @@ namespace Rally.CameraSystem
         private void UpdateMountedView(float dt, float speed01)
         {
             Transform t = target.transform;
+            if (CurrentMode == Mode.Cockpit)
+            {
+                // Fixed to the leaning body, so the cabin stays put and the world tilts, as in a real car.
+                if (body == null || body.parent != t) body = t.Find("Body");
+                Transform frame = body != null ? body : t;
+                transform.position = frame.TransformPoint(CarCatalog.CockpitCamera(target.gameObject));
+                transform.rotation = frame.rotation * Quaternion.Euler(4f + ShakeOffset() * 0.4f, ShakeOffset(0.5f) * 0.3f, 0f);
+                return;
+            }
             Vector3 offset = CurrentMode == Mode.Hood ? new Vector3(0f, 1.32f, 0.35f) : new Vector3(0f, 0.72f, 2.15f);
             transform.position = t.TransformPoint(offset);
             Quaternion baseRot = Quaternion.LookRotation(t.forward, Vector3.Lerp(t.up, Vector3.up, 0.5f));
             transform.rotation = baseRot * Quaternion.Euler(ShakeOffset() * 0.6f, ShakeOffset(0.5f) * 0.4f, 0f);
+        }
+
+        private Transform body;
+        private float normalNearClip = -1f;
+
+        // GraphicsQuality sets the near plane for the outside views; the cabin needs a closer one.
+        private void SetNearClip()
+        {
+            if (normalNearClip < 0f) normalNearClip = cam.nearClipPlane;
+            if (CurrentMode == Mode.Cockpit) cam.nearClipPlane = cockpitNearClip;
+            else { cam.nearClipPlane = normalNearClip; normalNearClip = -1f; }
         }
 
         private void UpdateShake(float dt, float speed01)

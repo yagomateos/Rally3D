@@ -38,7 +38,7 @@ sonidos. No usa assets de terceros. La versión web está preparada para **itch.
 - **Reglas:**
   - Reiniciar en la pista (R) suma **+5 s**.
   - Si te sales lejos de la carretera, una **cuenta atrás roja de 5 s** te devuelve a ella, sin penalización.
-  - Los choques **abollan el coche**, le quitan potencia y desvían la dirección.
+  - Los choques **abollan la carrocería** (hasta 22 cm, con la chapa arrugada), le quitan potencia y desvían la dirección.
   - Paredes invisibles en el borde del mapa.
 - **Ayudas:**
   - El **copiloto** canta las curvas (grado 1 a 6, horquillas y saltos) en pantalla y con voz.
@@ -58,7 +58,7 @@ sonidos. No usa assets de terceros. La versión web está preparada para **itch.
 | Girar | A D (o ← →) | Stick izquierdo |
 | Freno de mano | Espacio | B o RB |
 | Reiniciar en la pista | R | Y |
-| Cámara (4 vistas) | C | View / Share |
+| Cámara (5 vistas, una desde la cabina) | C | View / Share |
 | Mirar atrás | Q (mantener) | Stick derecho hacia abajo |
 | Mirar alrededor | — | Stick derecho en cualquier dirección |
 | Pausa | Esc (en el navegador también P) | Start |
@@ -111,7 +111,7 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
 
 ## Pruebas
 
-**36 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
+**37 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
 
 ```bash
 unity test . --mode PlayMode
@@ -124,7 +124,7 @@ unity test . --mode EditMode
 | Daños, golpes y empujes entre coches | QA07, QA11, QA12 |
 | Copiloto y notas | QA08, QA09 |
 | Tramos (nieve, desierto, costa) y terreno bajo la carretera | QA10, QA14, QA15, QA16 |
-| Cámara y mirar alrededor | QA13, QA18 |
+| Cámara, vista de cabina y mirar alrededor | QA13, QA18, QA34 |
 | Ovejas y objetos de la cuneta | QA17, QA21, QA23 |
 | Menús, mando y resultados | QA04, QA19 |
 | Límites del mapa, ayuda de conducción y calidad gráfica | QA20, QA25, QA26 |

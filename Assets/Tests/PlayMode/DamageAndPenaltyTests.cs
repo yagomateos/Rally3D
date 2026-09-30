@@ -70,15 +70,17 @@ namespace Rally.Tests
 
             Vector3[] after = mesh.sharedMesh.vertices;
             int moved = 0;
-            float alongForward = 0f;
+            float alongForward = 0f, deepest = 0f;
             for (int i = 0; i < after.Length; i++)
             {
                 Vector3 delta = after[i] - before[i];
                 if (delta.sqrMagnitude < 1e-6f) continue;
                 moved++;
                 alongForward += delta.z; // body local +Z is the car's front
+                deepest = Mathf.Max(deepest, delta.magnitude);
             }
             Assert.Greater(moved, 0, "The body mesh should be dented.");
+            Assert.Greater(deepest, 0.05f, "The dent must be deep enough to see (at least 5 cm).");
             Assert.Less(alongForward / moved, 0f, "A frontal hit must push the bodywork back (inwards), not out.");
         }
     }

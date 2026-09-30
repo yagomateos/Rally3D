@@ -39,7 +39,7 @@ namespace Rally.EditorTools
         {
             var (tyreTex, tyreN) = ProceduralTextures.Tyre();
             trim = MaterialFactory.Opaque("Car_Trim", new Color(0.05f, 0.05f, 0.055f), null, null, 0.35f, 0f, 1f, null, "Cars");
-            glass = MaterialFactory.Transparent("Car_Glass", new Color(0.04f, 0.05f, 0.06f, 0.82f), 0.96f, null, "Cars");
+            glass = MaterialFactory.Transparent("Car_Glass", new Color(0.04f, 0.05f, 0.06f, 0.68f), 0.96f, null, "Cars");
             headlight = MaterialFactory.Emissive("Car_Headlight", new Color(0.95f, 0.95f, 0.9f), new Color(2.2f, 2.1f, 1.9f));
             taillight = MaterialFactory.Emissive("Car_Taillight", new Color(0.6f, 0.03f, 0.02f), new Color(1.4f, 0.05f, 0.02f));
             rim = MaterialFactory.Opaque("Car_Rim", new Color(0.75f, 0.76f, 0.78f), null, null, 0.75f, 0.9f, 1f, null, "Cars");

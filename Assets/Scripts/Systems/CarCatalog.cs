@@ -33,6 +33,50 @@ namespace Rally.Systems
 
         public static string ModelMeshName(string model) => "M_Car_" + model;
 
+        /// <summary>
+        /// Cabin of each body: waistline height (the cabin floor), the driver's head, the roof (height and rear
+        /// edge) and the foot of the rear window. The body generator builds the cabin from these and the CABINA camera sits inside them.
+        /// </summary>
+        public struct Cockpit { public float seatY, headZ, roofY, roofRear, cabinRear; }
+
+        /// <summary>Left-hand drive: the driver sits on the left, the co-driver on the right.</summary>
+        public const float DriverX = -0.36f;
+
+        public static Cockpit CockpitOf(string model)
+        {
+            switch (model)
+            {
+                case ModelPleyades: return new Cockpit { seatY = 0.93f, headZ = -0.38f, roofY = 1.4f, roofRear = -0.72f, cabinRear = -1.2f };
+                case ModelLanza: return new Cockpit { seatY = 0.92f, headZ = -0.44f, roofY = 1.42f, roofRear = -0.8f, cabinRear = -1.25f };
+                case ModelItalica: return new Cockpit { seatY = 0.93f, headZ = -0.26f, roofY = 1.38f, roofRear = -1.64f, cabinRear = -1.8f };
+                case ModelEscolta: return new Cockpit { seatY = 0.9f, headZ = -0.32f, roofY = 1.34f, roofRear = -0.62f, cabinRear = -1.05f };
+                case ModelLeon: return new Cockpit { seatY = 0.93f, headZ = -0.32f, roofY = 1.38f, roofRear = -1.46f, cabinRear = -1.66f };
+                default: return new Cockpit { seatY = 0.93f, headZ = -0.38f, roofY = 1.4f, roofRear = -0.72f, cabinRear = -1.2f };
+            }
+        }
+
+        /// <summary>
+        /// CABINA camera position in the body's space: the classic onboard shot from the roll cage between the
+        /// seats, with the driver, the co-driver, the wheel and the road through the windscreen all in view.
+        /// </summary>
+        public static Vector3 CockpitCamera(GameObject car)
+        {
+            var body = car.transform.Find("Body");
+            var mesh = body != null ? body.GetComponent<MeshFilter>()?.sharedMesh : null;
+            string model = null;
+            if (mesh != null)
+                foreach (var e in Cars)
+                    if (mesh.name.StartsWith(ModelMeshName(e.model))) { model = e.model; break; } // dented copies keep the name
+            var c = CockpitOf(model);
+            // Between the two seats, half a metre behind the helmets, just under the roof. Behind the roof the rear
+            // window slopes down: go only as far back as still leaves the camera above the helmets' centres.
+            float slope = (c.roofY - c.seatY) / Mathf.Max(0.05f, c.roofRear - c.cabinRear);
+            float lowest = c.seatY + 0.27f, highest = c.roofY - 0.09f;
+            float z = Mathf.Max(c.headZ - 0.5f, c.roofRear - (c.roofY - 0.07f - lowest) / slope);
+            float y = z >= c.roofRear ? highest : Mathf.Min(highest, c.roofY - (c.roofRear - z) * slope - 0.07f);
+            return new Vector3(0f, y, z);
+        }
+
         public static readonly Entry[] Cars =
         {
             new Entry
@@ -172,6 +216,29 @@ namespace Rally.Systems
                 var filter = body != null ? body.GetComponent<MeshFilter>() : null;
                 if (mesh != null && filter != null && filter.sharedMesh != mesh) filter.sharedMesh = mesh;
                 SetRims(p, model);
+                HideNumbersBehindBody(p.gameObject);
+            }
+        }
+
+        private static Material numberMaterial;
+
+        /// <summary>
+        /// The door numbers used the font's own material, which draws on top of everything: the far door's number
+        /// showed through the car (and inside the cabin). Sprites/Default is depth-tested and always in the build.
+        /// </summary>
+        public static void HideNumbersBehindBody(GameObject car)
+        {
+            foreach (var text in car.GetComponentsInChildren<TextMesh>(true))
+            {
+                var r = text.GetComponent<MeshRenderer>();
+                if (r == null || text.font == null) continue;
+                if (numberMaterial == null)
+                {
+                    var shader = Shader.Find("Sprites/Default");
+                    if (shader == null) return;
+                    numberMaterial = new Material(shader) { name = "CarNumber", mainTexture = text.font.material.mainTexture };
+                }
+                if (r.sharedMaterial != numberMaterial) r.sharedMaterial = numberMaterial;
             }
         }
 

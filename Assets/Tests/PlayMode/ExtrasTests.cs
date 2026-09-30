@@ -349,6 +349,39 @@ namespace Rally.Tests
             CarCatalog.Apply(Race, 0);
         }
 
+        /// <summary>QA-34: the CABINA view sits inside the car, between the crew, and gives the near plane back after.</summary>
+        [UnityTest]
+        public IEnumerator QA34_CockpitView_InsideTheCarWithTheCrew()
+        {
+            yield return LoadStage();
+            var cam = Object.FindAnyObjectByType<Rally.CameraSystem.RallyCamera>();
+            Assert.IsNotNull(cam);
+            var unityCam = cam.GetComponent<Camera>();
+            float normalNear = unityCam.nearClipPlane;
+            for (int i = 0; i < CarCatalog.Cars.Length; i++)
+            {
+                CarCatalog.Apply(Race, i);
+                cam.SetMode(Rally.CameraSystem.RallyCamera.Mode.Cockpit);
+                yield return null;
+                yield return null;
+                var body = Player.transform.Find("Body");
+                Vector3 local = body.InverseTransformPoint(cam.transform.position);
+                var c = CarCatalog.CockpitOf(CarCatalog.Cars[i].model);
+                string car = CarCatalog.Cars[i].name;
+                Assert.Less(Mathf.Abs(local.x), 0.3f, $"{car}: camera between the seats.");
+                Assert.Greater(local.y, c.seatY + 0.2f, $"{car}: camera above the crew's shoulders.");
+                Assert.Less(local.y, c.roofY - 0.05f, $"{car}: camera under the roof.");
+                Assert.Less(local.z, c.headZ, $"{car}: camera behind the crew.");
+                Assert.Greater(local.z, c.cabinRear, $"{car}: camera inside the cabin.");
+                Assert.Greater(Vector3.Dot(cam.transform.forward, Player.transform.forward), 0.95f, $"{car}: looking ahead.");
+                Assert.Less(unityCam.nearClipPlane, 0.15f, "The helmets are close: the near plane comes in.");
+            }
+            cam.SetMode(Rally.CameraSystem.RallyCamera.Mode.Chase);
+            yield return null;
+            Assert.AreEqual(normalNear, unityCam.nearClipPlane, 1e-4f, "Outside views keep their near plane.");
+            CarCatalog.Apply(Race, 0);
+        }
+
         private static Mesh BodyOf(GameObject car) => car.transform.Find("Body").GetComponent<MeshFilter>().sharedMesh;
 
         private static Color PaintOf(GameObject car)

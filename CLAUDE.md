@@ -120,7 +120,7 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 **Hecho:**
 - Cuatro tramos (pinar, nieve, desierto, costera de asfalto) con copiloto (voz + texto), rivales con IA y ayuda de alcance, y dificultad en `DifficultyData`
   (tiempos del rival en el tramo 01: 2:04 / 1:53 / 1:42).
-- Daños por zonas, +5 s por reinicio, tiempos parciales y cámaras (persecución, lejana, capó, paragolpes, mirar atrás).
+- Daños por zonas, +5 s por reinicio, tiempos parciales y cámaras (persecución, lejana, capó, paragolpes, cabina con piloto y copiloto, mirar atrás).
 - Golpes y empuje a baja velocidad entre coches.
 - Menú principal, elección de coche, opciones, pausa con salir al menú / salir del juego.
 - Motor sintetizado (`ProceduralAudio`): el usuario **prefirió volver a él** en lugar de las grabaciones CC0.
@@ -137,11 +137,12 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
   de profundidad es menor: no pegues superficies a 6 cm de otras. Para efectos translúcidos en runtime usa `Sprites/Default`.
 - Cinco coches inspirados en clásicos (PLÉYADES WRX, LANZA EVO, ITÁLICA INTEGRAL, ESCOLTA MK1, LEÓN T16): carrocerías de
   `CarModelFactory` en `Resources/CarModels`, que `CarCatalog` pone en runtime (el jugador, la del coche elegido; cada rival, la de su
-  decoración). **Sin nombres ni logotipos de marcas reales** (decisión del usuario: son marcas registradas). Repintado en runtime en `CarCatalog`, repetición (`ReplayDirector`), tabla de tiempos (`Leaderboard`,
+  decoración). Habitáculo abierto con cristales reales, jaula, piloto y copiloto; la vista CABINA (`RallyCamera.Mode.Cockpit`)
+  sale de `CarCatalog.CockpitOf`/`CockpitCamera`, que también usa el generador. **Sin nombres ni logotipos de marcas reales** (decisión del usuario: son marcas registradas). Repintado en runtime en `CarCatalog`, repetición (`ReplayDirector`), tabla de tiempos (`Leaderboard`,
   servidor opcional en `server/`), faros de la noche (`Headlights`).
 - Modo CAMPEONATO (`Championship`), coche fantasma de tu mejor vuelta (`GhostRun`/`GhostRecorder`/`GhostCar`),
   opción CALIDAD GRÁFICA (`GraphicsQuality`).
-- Controles de móvil y 38 tests (36 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Controles de móvil y 39 tests (37 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

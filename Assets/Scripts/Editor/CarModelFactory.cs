@@ -77,6 +77,7 @@ namespace Rally.EditorTools
                 foreach (var mb in car.GetComponents<MonoBehaviour>()) mb.enabled = false;
                 car.GetComponent<Rigidbody>().isKinematic = true;
                 car.transform.Find("Body").GetComponent<MeshFilter>().sharedMesh = CarCatalog.ModelMesh(entry.model);
+                CarCatalog.HideNumbersBehindBody(car);
                 if (entry.repaint)
                 {
                     foreach (var r in car.GetComponentsInChildren<Renderer>())
@@ -99,10 +100,21 @@ namespace Rally.EditorTools
                     if (child.name.StartsWith("Visual_")) child.localPosition += Vector3.down * 0.08f;
                 car.transform.position = new Vector3(0f, 0.02f, 0f);
 
-                foreach (var (name, pos) in new[] { ("delante", new Vector3(4.6f, 2.0f, 6.4f)), ("detras", new Vector3(-4.8f, 2.2f, -6.2f)), ("lado", new Vector3(8.5f, 1.2f, 0f)) })
+                foreach (var (name, pos) in new[] { ("delante", new Vector3(4.6f, 2.0f, 6.4f)), ("detras", new Vector3(-4.8f, 2.2f, -6.2f)), ("lado", new Vector3(8.5f, 1.2f, 0f)), ("cabina", Vector3.zero) })
                 {
-                    camera.transform.position = pos;
-                    camera.transform.LookAt(new Vector3(0f, 0.7f, 0f));
+                    bool cockpit = name == "cabina";
+                    camera.nearClipPlane = cockpit ? 0.1f : 0.3f;
+                    camera.fieldOfView = cockpit ? 64f : 30f;
+                    if (cockpit)
+                    {
+                        var body = car.transform.Find("Body");
+                        camera.transform.SetPositionAndRotation(body.TransformPoint(CarCatalog.CockpitCamera(car)), body.rotation * Quaternion.Euler(4f, 0f, 0f));
+                    }
+                    else
+                    {
+                        camera.transform.position = pos;
+                        camera.transform.LookAt(new Vector3(0f, 0.7f, 0f));
+                    }
                     camera.Render();
                     camera.Render(); // the first render after a car appears can come out with the wrong colours
                     RenderTexture.active = rt;
@@ -206,6 +218,17 @@ namespace Rally.EditorTools
                     zs.Add(axle + d);
             var list = new List<float>();
             foreach (float z in zs) if (z >= rear - 1e-4f && z <= front + 1e-4f) list.Add(z);
+            // Stations at most 20 cm apart: dents (CarDamage moves vertices) need vertices to move.
+            var dense = new List<float>();
+            for (int i = 0; i < list.Count; i++)
+            {
+                dense.Add(list[i]);
+                if (i + 1 == list.Count) break;
+                float gap = list[i + 1] - list[i];
+                int n = Mathf.CeilToInt(gap / 0.2f);
+                for (int k = 1; k < n; k++) dense.Add(list[i] + gap * k / n);
+            }
+            list = dense;
 
             Vector3[] Station(float z)
             {
@@ -214,14 +237,19 @@ namespace Rally.EditorTools
                 float y2 = Mathf.Max(s.deck[z], y1 + 0.04f);
                 float bulge = Bulge(z) * s.flare;
                 float w = s.width[z] + bulge, w2 = s.deckWidth[z] + bulge * 0.5f;
-                return new[] { new Vector3(w, y0, z), new Vector3(w, y1, z), new Vector3(w2, y2, z) };
+                // Each side split in two rows (sill-shoulder, shoulder-deck), again for the dents.
+                return new[]
+                {
+                    new Vector3(w, y0, z), new Vector3(w, (y0 + y1) * 0.5f, z), new Vector3(w, y1, z),
+                    new Vector3((w + w2) * 0.5f, (y1 + y2) * 0.5f, z), new Vector3(w2, y2, z)
+                };
             }
 
             for (int i = 0; i < list.Count - 1; i++)
             {
                 var a = Station(list[i]);
                 var b = Station(list[i + 1]);
-                for (int k = 0; k < 2; k++)
+                for (int k = 0; k < 4; k++)
                 {
                     mb.Hull(0, new[]
                     {
@@ -237,10 +265,16 @@ namespace Rally.EditorTools
 
         private static Vector3 Mirror(Vector3 p) => new Vector3(-p.x, p.y, p.z);
 
-        /// <summary>Greenhouse: base on the waistline, roof above; glass on all four sides.</summary>
-        private static void Cabin(MeshBuilder mb, float baseY, float roofY, float baseRear, float baseFront,
-            float roofRear, float roofFront, float baseHalf, float roofHalf, bool splitSide = true)
+        /// <summary>
+        /// Open greenhouse: roof panel and pillars with real (see-through) glass between them, so the crew can be
+        /// seen from outside, and an interior for the CABINA camera (<see cref="Interior"/>). Its waistline height and
+        /// the driver's head position come from <see cref="CarCatalog.CockpitOf"/>, which the camera also uses.
+        /// </summary>
+        private static void Cabin(MeshBuilder mb, string model, float baseFront,
+            float roofFront, float baseHalf, float roofHalf, bool splitSide = true)
         {
+            var cockpit = CarCatalog.CockpitOf(model);
+            float baseY = cockpit.seatY, roofY = cockpit.roofY, roofRear = cockpit.roofRear, baseRear = cockpit.cabinRear;
             var c = new[]
             {
                 new Vector3(-baseHalf, baseY, baseRear), new Vector3(baseHalf, baseY, baseRear),
@@ -248,11 +282,107 @@ namespace Rally.EditorTools
                 new Vector3(-roofHalf, roofY, roofRear), new Vector3(roofHalf, roofY, roofRear),
                 new Vector3(roofHalf, roofY, roofFront), new Vector3(-roofHalf, roofY, roofFront)
             };
-            mb.Hull(0, c);
-            Glass(mb, c[7], c[6], c[2], c[3], 0.07f);   // windscreen
-            Glass(mb, c[5], c[4], c[0], c[1], 0.1f);    // rear window
+            // Roof panel.
+            mb.Hull(0, new[]
+            {
+                c[4] + Vector3.down * 0.04f, c[5] + Vector3.down * 0.04f, c[6] + Vector3.down * 0.04f, c[7] + Vector3.down * 0.04f,
+                c[4], c[5], c[6], c[7]
+            });
+            // Pillars: A (windscreen), B (between the side windows), C (rear window).
+            Beam(mb, 0, c[3], c[7], 0.07f);
+            Beam(mb, 0, c[2], c[6], 0.07f);
+            Beam(mb, 0, c[0], c[4], 0.1f);
+            Beam(mb, 0, c[1], c[5], 0.1f);
+            if (splitSide)
+            {
+                Beam(mb, 0, Vector3.Lerp(c[0], c[3], 0.54f), Vector3.Lerp(c[4], c[7], 0.49f), 0.07f);
+                Beam(mb, 0, Vector3.Lerp(c[1], c[2], 0.54f), Vector3.Lerp(c[5], c[6], 0.49f), 0.07f);
+            }
+            Glass(mb, c[7], c[6], c[2], c[3], 0.01f);   // windscreen
+            Glass(mb, c[5], c[4], c[0], c[1], 0.01f);   // rear window
             SideGlass(mb, c[4], c[7], c[3], c[0], splitSide);
             SideGlass(mb, c[6], c[5], c[1], c[2], splitSide);
+            Interior(mb, model, c, roofY, baseRear, baseFront, roofFront, baseHalf);
+        }
+
+        /// <summary>
+        /// Dashboard, steering wheel, roll cage, seats, and the crew: driver on the left with the hands on the
+        /// wheel, co-driver on the right with the pace notes. Helmets in the paint colour, suits in the accent colour.
+        /// </summary>
+        private static void Interior(MeshBuilder mb, string model, Vector3[] c, float roofY, float baseRear,
+            float baseFront, float roofFront, float baseHalf)
+        {
+            var cockpit = CarCatalog.CockpitOf(model);
+            float baseY = cockpit.seatY, headZ = cockpit.headZ;
+            const float driverX = CarCatalog.DriverX;
+
+            // Dark floor a little above the waistline deck (which rises towards the boot on some bodies), and a rear
+            // bench (or the engine cover on the mid-engined car).
+            mb.Box(1, new Vector3(0f, baseY + 0.035f, (baseRear + baseFront) * 0.5f), new Vector3(baseHalf * 2f - 0.04f, 0.012f, baseFront - baseRear - 0.06f));
+            if (headZ - 0.75f > baseRear + 0.05f)
+                mb.Box(1, new Vector3(0f, baseY + 0.07f, headZ - 0.62f), new Vector3(baseHalf * 2f - 0.14f, 0.14f, 0.34f));
+
+            // Dashboard under the windscreen, with two lit dials facing the driver.
+            float wheelZ = headZ + 0.46f, wheelY = baseY + 0.15f;
+            float dashRear = wheelZ + 0.1f;
+            float dashFront = baseFront - 0.14f * (baseFront - roofFront) / (roofY - baseY);
+            mb.Box(1, new Vector3(0f, baseY + 0.06f, (dashRear + dashFront) * 0.5f), new Vector3(baseHalf * 2f - 0.1f, 0.14f, dashFront - dashRear));
+            foreach (float dx in new[] { -0.07f, 0.07f })
+                RoundLamp(mb, 3, new Vector3(driverX + dx, baseY + 0.08f, dashRear - 0.01f), 0.04f, false);
+            mb.Box(1, new Vector3(0f, roofY - 0.08f, roofFront - 0.08f), new Vector3(0.22f, 0.06f, 0.03f)); // rear-view mirror
+
+            // Steering wheel: a ring leaning towards the windscreen, three spokes and the column.
+            Vector3 hub = new Vector3(driverX, wheelY, wheelZ);
+            Vector3 u = Vector3.right, v = new Vector3(0f, Mathf.Cos(25f * Mathf.Deg2Rad), Mathf.Sin(25f * Mathf.Deg2Rad));
+            Vector3 Rim(float a) => hub + (u * Mathf.Cos(a) + v * Mathf.Sin(a)) * 0.15f;
+            const int rimSegments = 14;
+            for (int i = 0; i < rimSegments; i++)
+                Beam(mb, 1, Rim(i * Mathf.PI * 2f / rimSegments), Rim((i + 1) * Mathf.PI * 2f / rimSegments), 0.03f);
+            foreach (float a in new[] { 0f, Mathf.PI, -Mathf.PI * 0.5f }) Beam(mb, 1, hub, Rim(a), 0.025f);
+            Beam(mb, 1, hub, hub + new Vector3(0f, -0.04f, 0.3f), 0.05f);
+
+            // Roll cage (stripe colour): tubes inside the A-pillars, across the top of the windscreen, door bars.
+            Vector3 In(Vector3 p) => new Vector3(p.x * 0.92f, p.y - 0.03f, p.z - 0.04f);
+            Beam(mb, 6, In(c[3]), In(c[7]), 0.04f);
+            Beam(mb, 6, In(c[2]), In(c[6]), 0.04f);
+            Beam(mb, 6, In(c[7]), In(c[6]), 0.04f);
+            foreach (float side in new[] { -1f, 1f })
+                Beam(mb, 6, new Vector3(side * (baseHalf - 0.06f), baseY + 0.03f, headZ + 0.38f),
+                    new Vector3(side * (baseHalf - 0.06f), baseY + 0.24f, headZ - 0.28f), 0.04f);
+
+            foreach (bool driver in new[] { true, false })
+            {
+                float x = driver ? driverX : -driverX;
+                float z = driver ? headZ : headZ - 0.04f;
+                // Low bucket seat back: the helmets show over it.
+                mb.Box(1, new Vector3(x, baseY + 0.1f, z - 0.2f), new Vector3(0.46f, 0.2f, 0.08f));
+                // Shoulders above the waistline (the suit), neck, helmet and visor.
+                mb.TaperedBox(5, new Vector3(x, baseY + 0.08f, z + 0.02f), new Vector3(0.42f, 0.16f, 0.22f), new Vector2(0.85f, 0.9f));
+                mb.Box(1, new Vector3(x, baseY + 0.19f, z), new Vector3(0.1f, 0.06f, 0.1f));
+                mb.Blob(0, new Vector3(x, baseY + 0.28f, z), new Vector3(0.1f, 0.11f, 0.115f), 1, 0f, 0);
+                mb.Box(2, new Vector3(x, baseY + 0.28f, z + 0.1f), new Vector3(0.15f, 0.05f, 0.04f));
+                foreach (float side in new[] { -1f, 1f })
+                {
+                    Vector3 shoulder = new Vector3(x + side * 0.19f, baseY + 0.13f, z + 0.04f);
+                    Vector3 hand = driver
+                        ? new Vector3(x + side * 0.14f, wheelY + 0.03f, wheelZ - 0.03f)
+                        : new Vector3(x + side * 0.1f, baseY + 0.1f, z + 0.3f);
+                    Beam(mb, 5, shoulder, hand, 0.07f);
+                    mb.Box(1, hand, Vector3.one * 0.07f); // gloves
+                }
+                if (!driver) SlopedBox(mb, 6, new Vector3(x, baseY + 0.11f, z + 0.32f), new Vector3(0.24f, 0.02f, 0.16f), -30f); // pace notes
+            }
+        }
+
+        /// <summary>Square tube from <paramref name="a"/> to <paramref name="b"/>.</summary>
+        private static void Beam(MeshBuilder mb, int sub, Vector3 a, Vector3 b, float thickness)
+        {
+            Vector3 d = b - a;
+            if (d.sqrMagnitude < 1e-6f) return;
+            Vector3 up = Mathf.Abs(d.normalized.y) > 0.95f ? Vector3.forward : Vector3.up;
+            mb.Transform = Matrix4x4.TRS((a + b) * 0.5f, Quaternion.LookRotation(d, up), Vector3.one);
+            mb.Box(sub, Vector3.zero, new Vector3(thickness, thickness, d.magnitude));
+            mb.Transform = Matrix4x4.identity;
         }
 
         private static void Glass(MeshBuilder mb, Vector3 a, Vector3 b, Vector3 c, Vector3 d, float inset)
@@ -266,12 +396,12 @@ namespace Rally.EditorTools
         // Corners: top-back, top-front, bottom-front, bottom-back (outside view).
         private static void SideGlass(MeshBuilder mb, Vector3 topA, Vector3 topB, Vector3 bottomB, Vector3 bottomA, bool split)
         {
-            Vector3 lowA = Vector3.Lerp(bottomA, topA, 0.1f), lowB = Vector3.Lerp(bottomB, topB, 0.1f);
-            if (!split) { Glass(mb, topA, topB, lowB, lowA, 0.06f); return; }
+            Vector3 lowA = Vector3.Lerp(bottomA, topA, 0.03f), lowB = Vector3.Lerp(bottomB, topB, 0.03f);
+            if (!split) { Glass(mb, topA, topB, lowB, lowA, 0.02f); return; }
             Vector3 midTop = Vector3.Lerp(topA, topB, 0.45f), midLow = Vector3.Lerp(lowA, lowB, 0.5f);
             Vector3 midTop2 = Vector3.Lerp(topA, topB, 0.53f), midLow2 = Vector3.Lerp(lowA, lowB, 0.58f);
-            Glass(mb, topA, midTop, midLow, lowA, 0.06f);
-            Glass(mb, midTop2, topB, lowB, midLow2, 0.06f);
+            Glass(mb, topA, midTop, midLow, lowA, 0.02f);
+            Glass(mb, midTop2, topB, lowB, midLow2, 0.02f);
         }
 
         /// <summary>Box laid on a slope: rotated about X by <paramref name="pitch"/> degrees (nose down = positive).</summary>
@@ -366,7 +496,7 @@ namespace Rally.EditorTools
                 flare = 0.07f
             };
             Body(mb, s);
-            Cabin(mb, 0.93f, 1.4f, -1.2f, 0.9f, -0.72f, -0.04f, 0.8f, 0.64f);
+            Cabin(mb, CarCatalog.ModelPleyades, 0.9f, -0.04f, 0.8f, 0.64f);
 
             // Bonnet scoop and roof vent.
             float hoodPitch = SlopeDeg(s.deck, 0.9f, 1.5f);
@@ -420,7 +550,7 @@ namespace Rally.EditorTools
                 archHeight = 0.74f
             };
             Body(mb, s);
-            Cabin(mb, 0.92f, 1.42f, -1.25f, 0.85f, -0.8f, -0.1f, 0.8f, 0.66f);
+            Cabin(mb, CarCatalog.ModelLanza, 0.85f, -0.1f, 0.8f, 0.66f);
 
             // Bonnet vents (two louvres) and a small scoop.
             float hoodPitch = SlopeDeg(s.deck, 0.85f, 1.6f);
@@ -479,7 +609,7 @@ namespace Rally.EditorTools
                 archHeight = 0.78f
             };
             Body(mb, s);
-            Cabin(mb, 0.93f, 1.38f, -1.8f, 0.9f, -1.64f, 0.08f, 0.83f, 0.73f);
+            Cabin(mb, CarCatalog.ModelItalica, 0.9f, 0.08f, 0.83f, 0.73f);
 
             // Boxy arches: a flat-topped lip over each wheel.
             foreach (float z in new[] { FrontAxle, RearAxle })
@@ -536,7 +666,7 @@ namespace Rally.EditorTools
                 archHeight = 0.74f
             };
             Body(mb, s);
-            Cabin(mb, 0.9f, 1.34f, -1.05f, 0.72f, -0.62f, 0.02f, 0.74f, 0.6f, splitSide: false);
+            Cabin(mb, CarCatalog.ModelEscolta, 0.72f, 0.02f, 0.74f, 0.6f, splitSide: false);
 
             // Chrome-style bumpers (trim), dog-bone grille, round headlamps, four round spot lamps.
             mb.Box(1, new Vector3(0f, 0.44f, 2.0f), new Vector3(1.66f, 0.07f, 0.08f));
@@ -582,7 +712,7 @@ namespace Rally.EditorTools
                 flare = 0.08f
             };
             Body(mb, s);
-            Cabin(mb, 0.93f, 1.38f, -1.66f, 0.8f, -1.46f, 0.02f, 0.8f, 0.68f);
+            Cabin(mb, CarCatalog.ModelLeon, 0.8f, 0.02f, 0.8f, 0.68f);
 
             // Side intakes for the mid engine, roof spoiler, engine-cover vents.
             foreach (float side in new[] { -1f, 1f })

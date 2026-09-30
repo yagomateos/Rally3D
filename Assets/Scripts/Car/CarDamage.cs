@@ -35,8 +35,10 @@ namespace Rally.Car
         [SerializeField, Range(0f, 0.3f)] private float maxSteerPull = 0.07f;
         [Header("Dents")]
         [SerializeField] private float dentRadius = 0.75f;
-        [SerializeField] private float dentPerMs = 0.011f;
-        [SerializeField] private float maxDent = 0.16f;
+        [SerializeField] private float dentPerMs = 0.02f;
+        [SerializeField] private float maxDent = 0.22f;
+        [Tooltip("How uneven a dent is: each point of the body gives way a different amount (crumpled metal).")]
+        [SerializeField, Range(0f, 1f)] private float crumple = 0.6f;
 
         private CarController car;
         private Rigidbody myBody;
@@ -122,7 +124,9 @@ namespace Rally.Car
                 float d2 = (vertices[i] - p).sqrMagnitude;
                 if (d2 > r2) continue;
                 float falloff = 1f - Mathf.Sqrt(d2) / dentRadius;
-                Vector3 moved = vertices[i] + push * depth * falloff * falloff;
+                // Vertices that share a position (flat-shaded faces) get the same amount, so the body stays closed.
+                float give = 1f + crumple * (Crumple(original[i]) * 2f - 1f);
+                Vector3 moved = vertices[i] + push * depth * falloff * falloff * give;
                 Vector3 total = moved - original[i];
                 if (total.magnitude > maxDent) moved = original[i] + total.normalized * maxDent;
                 vertices[i] = moved;
@@ -132,6 +136,12 @@ namespace Rally.Car
             bodyMesh.vertices = vertices;
             bodyMesh.RecalculateNormals();
             bodyMesh.RecalculateBounds();
+        }
+
+        private static float Crumple(Vector3 p)
+        {
+            float h = Mathf.Sin(Vector3.Dot(p, new Vector3(127.1f, 311.7f, 74.7f))) * 43758.5453f;
+            return h - Mathf.Floor(h);
         }
 
         private void Update()
