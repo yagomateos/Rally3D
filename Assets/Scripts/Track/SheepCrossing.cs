@@ -53,8 +53,11 @@ namespace Rally.Track
             for (int i = pending.Count - 1; i >= 0; i--)
             {
                 float gap = pending[i] - playerDistance;
-                if (gap < 0f) { pending.RemoveAt(i); continue; } // already passed it
+                if (gap < LastChanceGap) { pending.RemoveAt(i); continue; } // too close (or passed) to appear fairly
                 if (gap > trigger) continue;
+                // The flock is for the player: while a rival is between the player and the crossing it would reach
+                // the sheep first and knock them away, so wait until it has gone by.
+                if (RivalBetween(playerDistance, pending[i] + 25f)) continue;
                 SpawnFlockOnRoad(pending[i]);
                 pending.RemoveAt(i);
             }
@@ -69,6 +72,15 @@ namespace Rally.Track
             Vector3 right = race.Path.RightAt(distance);
             Vector2 sea = Generation.TerrainSculptor.SeaDirection;
             return right.x * sea.x + right.z * sea.y > 0f ? -1 : 1;
+        }
+
+        private const float LastChanceGap = 60f;
+
+        private bool RivalBetween(float from, float to)
+        {
+            foreach (var p in race.Participants)
+                if (p != null && !p.IsPlayer && p.gameObject.activeInHierarchy && p.Distance > from && p.Distance < to) return true;
+            return false;
         }
 
         /// <summary>

@@ -32,7 +32,11 @@ namespace Rally.EditorTools
 
             BuildReport report = BuildPipeline.BuildPlayer(options);
             var summary = report.summary;
-            Debug.Log($"[WebBuild] {summary.result}: {summary.totalSize / (1024f * 1024f):0.0} MB, " +
+            // With hashed file names the report's total size reads 0; measure the output folder instead.
+            long bytes = System.IO.Directory.Exists(output)
+                ? new System.IO.DirectoryInfo(output).GetFiles("*", System.IO.SearchOption.AllDirectories).Sum(f => f.Length)
+                : (long)summary.totalSize;
+            Debug.Log($"[WebBuild] {summary.result}: {bytes / (1024f * 1024f):0.0} MB, " +
                       $"{summary.totalErrors} errors, {summary.totalTime.TotalSeconds:0}s -> {output}");
             if (summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
         }

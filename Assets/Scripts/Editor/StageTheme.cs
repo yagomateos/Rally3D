@@ -73,8 +73,8 @@ namespace Rally.EditorTools
                 // Vegetation and buildings.
                 case "T_Needles":
                     return Keep(Color.Lerp(c * 0.8f, SnowLight, 0.85f * Patches(u, v, 22f, 0.55f, 0.7f)), c.a);
-                case "T_Leaves":
-                    return Keep(Color.Lerp(c, new Color(0.45f, 0.36f, 0.28f), 0.6f), c.a); // dry winter leaves
+                case "T_Leaves": // scrub and birches under snow: dark evergreen with thick snow on top (olive read as rocks)
+                    return Keep(Color.Lerp(new Color(0.16f, 0.24f, 0.18f) * (0.7f + 0.6f * lum), SnowLight, 0.7f * Patches(u, v, 14f, 0.4f, 0.6f)), c.a);
                 case "T_GrassBlades":
                     return new Color(Mathf.Lerp(c.r, 0.85f, 0.5f), Mathf.Lerp(c.g, 0.87f, 0.5f), Mathf.Lerp(c.b, 0.9f, 0.5f), c.a * 0.35f);
                 case "T_RoofTiles":
