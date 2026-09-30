@@ -9,7 +9,7 @@ Todo lo necesario para la página del juego. Publicarla lo tienes que hacer tú 
 |---|---|---|
 | Portada (630 × 500) | `docs/itch/portada-630x500.png` | *Cover image* |
 | Banner (960 × 300) | `docs/itch/banner-960x300.png` | *Edit theme ▸ Banner* |
-| GIF de juego (640 × 360, 9 s) | `docs/itch/gameplay.gif` | *Screenshots* (el primero) |
+| GIF de juego (480 × 270, 9 s, 2,2 MB; itch.io admite hasta 3 MB) | `docs/itch/gameplay.gif` | *Screenshots* (el primero) |
 | Capturas | `docs/capturas/tramo1-pinar.jpg`, `tramo2-nieve.jpg`, `tramo3-desierto.jpg`, `tramo4-costera.jpg`, `tramo5-noche.jpg`, `movil.jpg` | *Screenshots* |
 | Juego | `~/Desktop/Rally3D_Web.zip` (con `StreamingAssets` dentro) | *Uploads* |
 
