@@ -463,7 +463,7 @@ namespace Rally.UI
         private void ApplyRivalsNow()
         {
             RaceManager.OpenMenuOnLoad = true;
-            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+            StageLoader.Load(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 
         private void CycleCoDriver()

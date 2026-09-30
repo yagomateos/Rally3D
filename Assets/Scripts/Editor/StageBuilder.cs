@@ -267,12 +267,9 @@ namespace Rally.EditorTools
             // ---- Save
             Progress("Saving", 0.95f);
             EditorSceneManager.SaveScene(scene, scenePath);
-            // Keep every stage in the build (stage 1 first, it opens with the main menu).
-            var buildScenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
-            if (!buildScenes.Exists(b => b.path == scenePath)) buildScenes.Add(new EditorBuildSettingsScene(scenePath, true));
-            buildScenes.Sort((a, b) => string.CompareOrdinal(a.path, b.path));
-            EditorBuildSettings.scenes = buildScenes.ToArray();
+            // Stage 1 goes in the game download (it opens with the main menu); the others are downloaded on demand.
             AssetDatabase.SaveAssets();
+            AddressableStages.Sync();
             Debug.Log($"[Rally] Stage built in {timer.Elapsed.TotalSeconds:0.0}s. Length {path.StageLength:0} m, {route.Jumps.Count} jumps, {checkpoints.Length} checkpoints.");
         }
 
@@ -424,7 +421,7 @@ namespace Rally.EditorTools
             bool snow = StageTheme.Snow, desert = StageTheme.Desert, coast = StageTheme.Coast, night = StageTheme.Night;
             sun.color = night ? new Color(0.55f, 0.66f, 1f) : snow ? new Color(0.93f, 0.96f, 1f) : desert ? new Color(1f, 0.92f, 0.78f) : coast ? new Color(1f, 0.62f, 0.36f) : new Color(1f, 0.95f, 0.88f);
             // Desert: strong, high sun with hard shadows. Coast: low sunset sun with long shadows.
-            sun.intensity = night ? 0.35f : snow ? 1.7f : desert ? 2.7f : coast ? 1.7f : 2.1f;
+            sun.intensity = night ? 0.75f : snow ? 1.7f : desert ? 2.7f : coast ? 1.7f : 2.1f;
             sun.shadows = LightShadows.Soft;
             sun.shadowStrength = night ? 0.5f : snow ? 0.6f : desert ? 0.85f : coast ? 0.75f : 0.72f;
             sun.shadowBias = 0.04f;
@@ -447,15 +444,16 @@ namespace Rally.EditorTools
             RenderSettings.skybox = sky;
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = night ? new Color(0.09f, 0.11f, 0.2f) : snow ? new Color(0.84f, 0.88f, 0.96f) : desert ? new Color(0.72f, 0.8f, 0.92f) : coast ? new Color(0.64f, 0.6f, 0.76f) : new Color(0.78f, 0.82f, 0.88f);
-            RenderSettings.ambientEquatorColor = night ? new Color(0.05f, 0.06f, 0.1f) : snow ? new Color(0.76f, 0.8f, 0.87f) : desert ? new Color(0.84f, 0.74f, 0.6f) : coast ? new Color(0.92f, 0.68f, 0.54f) : new Color(0.62f, 0.64f, 0.6f);
+            // Night: a bright moon, so the road reads on every device (real headlights barely show on some web GPUs).
+            RenderSettings.ambientSkyColor = night ? new Color(0.17f, 0.2f, 0.34f) : snow ? new Color(0.84f, 0.88f, 0.96f) : desert ? new Color(0.72f, 0.8f, 0.92f) : coast ? new Color(0.64f, 0.6f, 0.76f) : new Color(0.78f, 0.82f, 0.88f);
+            RenderSettings.ambientEquatorColor = night ? new Color(0.1f, 0.11f, 0.17f) : snow ? new Color(0.76f, 0.8f, 0.87f) : desert ? new Color(0.84f, 0.74f, 0.6f) : coast ? new Color(0.92f, 0.68f, 0.54f) : new Color(0.62f, 0.64f, 0.6f);
             // Snow and sand bounce a lot of light back up.
-            RenderSettings.ambientGroundColor = night ? new Color(0.03f, 0.03f, 0.045f) : snow ? new Color(0.68f, 0.71f, 0.78f) : desert ? new Color(0.62f, 0.5f, 0.36f) : coast ? new Color(0.42f, 0.34f, 0.3f) : new Color(0.32f, 0.3f, 0.26f);
+            RenderSettings.ambientGroundColor = night ? new Color(0.05f, 0.05f, 0.07f) : snow ? new Color(0.68f, 0.71f, 0.78f) : desert ? new Color(0.62f, 0.5f, 0.36f) : coast ? new Color(0.42f, 0.34f, 0.3f) : new Color(0.32f, 0.3f, 0.26f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Exponential;
             // Desert calima: warm haze that softens the distance but still shows the next corners (~300 m to half fog).
-            RenderSettings.fogDensity = night ? 0.0045f : snow ? 0.0036f : desert ? 0.0023f : coast ? 0.0014f : 0.0026f; // coast: clear evening air
-            RenderSettings.fogColor = night ? new Color(0.03f, 0.04f, 0.07f) : snow ? new Color(0.86f, 0.89f, 0.94f) : desert ? new Color(0.87f, 0.79f, 0.66f) : coast ? new Color(0.86f, 0.62f, 0.52f) : new Color(0.68f, 0.71f, 0.74f);
+            RenderSettings.fogDensity = night ? 0.003f : snow ? 0.0036f : desert ? 0.0023f : coast ? 0.0014f : 0.0026f; // coast: clear evening air
+            RenderSettings.fogColor = night ? new Color(0.05f, 0.06f, 0.1f) : snow ? new Color(0.86f, 0.89f, 0.94f) : desert ? new Color(0.87f, 0.79f, 0.66f) : coast ? new Color(0.86f, 0.62f, 0.52f) : new Color(0.68f, 0.71f, 0.74f);
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
             RenderSettings.reflectionIntensity = 1f;
 
@@ -476,7 +474,7 @@ namespace Rally.EditorTools
             var tonemap = profile.Add<Tonemapping>(true);
             tonemap.mode.Override(TonemappingMode.ACES);
             var color = profile.Add<ColorAdjustments>(true);
-            color.postExposure.Override(night ? 0.55f : snow ? 0.1f : desert ? 0.05f : coast ? 0.3f : 0.35f); // snow and sand are bright already
+            color.postExposure.Override(night ? 0.8f : snow ? 0.1f : desert ? 0.05f : coast ? 0.3f : 0.35f); // snow and sand are bright already
             color.contrast.Override(desert ? 18f : coast ? 16f : 14f);
             color.saturation.Override(night ? -8f : desert ? 8f : coast ? 12f : 2f);
             color.colorFilter.Override(desert ? new Color(1f, 0.96f, 0.9f) : coast ? new Color(1f, 0.95f, 0.92f) : new Color(0.98f, 0.99f, 1f));

@@ -18,7 +18,7 @@ namespace Rally.Tests
         [UnityTest]
         public IEnumerator QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit()
         {
-            yield return SceneManager.LoadSceneAsync("Stage04", LoadSceneMode.Single);
+            yield return Rally.Systems.StageLoader.LoadRoutine("Stage04");
             float t = 0f;
             while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             var race = RaceManager.Instance;
@@ -74,7 +74,7 @@ namespace Rally.Tests
         {
             string dir = System.Environment.GetEnvironmentVariable("RALLY_SHOT_DIR");
             if (string.IsNullOrEmpty(dir)) dir = Application.temporaryCachePath;
-            yield return SceneManager.LoadSceneAsync("Stage04", LoadSceneMode.Single);
+            yield return Rally.Systems.StageLoader.LoadRoutine("Stage04");
             float t = 0f;
             while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             var race = RaceManager.Instance;

@@ -17,7 +17,7 @@ namespace Rally.Tests
         [UnityTest]
         public IEnumerator QA10_SnowStage_UsesSnowGripForCarsAndAI()
         {
-            yield return SceneManager.LoadSceneAsync("Stage02", LoadSceneMode.Single);
+            yield return Rally.Systems.StageLoader.LoadRoutine("Stage02");
             float t = 0f;
             while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             var race = RaceManager.Instance;

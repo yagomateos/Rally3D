@@ -367,7 +367,7 @@ namespace Rally.Tests
         [UnityTest]
         public IEnumerator QA31_NightStage_HeadlightsOnEveryCar()
         {
-            yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Stage05");
+            yield return Rally.Systems.StageLoader.LoadRoutine("Stage05");
             float t = 0f;
             while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             var race = RaceManager.Instance;
@@ -383,7 +383,7 @@ namespace Rally.Tests
                 Assert.AreEqual(LightShadows.None, lights.Beam.shadows, "No shadows from headlights (web performance).");
             }
             Assert.Less(RenderSettings.fogColor.grayscale, 0.1f, "Dark night fog.");
-            Assert.Less(RenderSettings.sun.intensity, 0.6f, "Moonlight, not daylight.");
+            Assert.Less(RenderSettings.sun.intensity, 1f, "Moonlight, not daylight (daytime stages use 1.7–2.7).");
         }
 
         /// <summary>Not a check: renders the night stage while driving, to RALLY_SHOT_DIR, to review how it looks.</summary>
@@ -392,7 +392,10 @@ namespace Rally.Tests
         {
             string dir = System.Environment.GetEnvironmentVariable("RALLY_SHOT_DIR");
             if (string.IsNullOrEmpty(dir)) dir = Application.temporaryCachePath;
-            yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Stage05");
+            // RALLY_QUALITY=0 renders with the web's render profile (the "Mobile" quality level).
+            string quality = System.Environment.GetEnvironmentVariable("RALLY_QUALITY");
+            if (int.TryParse(quality, out int level)) QualitySettings.SetQualityLevel(level, true);
+            yield return Rally.Systems.StageLoader.LoadRoutine("Stage05");
             float t = 0f;
             while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             var race = RaceManager.Instance;
@@ -401,6 +404,12 @@ namespace Rally.Tests
             while (race.CurrentState != RaceManager.State.Racing && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             var car = race.Player.Car;
             car.Body.linearVelocity = race.Path.TangentAt(race.Player.Distance) * 20f;
+            if (System.Environment.GetEnvironmentVariable("RALLY_NOBEAM") == "1")
+            {
+                yield return null;
+                foreach (var l in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
+                    if (l.type != LightType.Directional) l.enabled = false; // only the painted light pools remain
+            }
             for (int i = 0; i < 2; i++)
             {
                 yield return new WaitForSeconds(2f);

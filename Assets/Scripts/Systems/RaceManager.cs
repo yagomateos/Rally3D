@@ -42,7 +42,7 @@ namespace Rally.Systems
             StartOnLoad = true;
             Time.timeScale = 1f;
             AudioListener.pause = false;
-            SceneManager.LoadScene(sceneName);
+            StageLoader.Load(sceneName); // stage 1 from the game download, the others fetched on demand
         }
 
         // Also with "Enter Play Mode" domain reload disabled, every play session starts on the menu.
@@ -429,7 +429,7 @@ namespace Rally.Systems
             reloading = true;
             Time.timeScale = 1f;
             AudioListener.pause = false;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            StageLoader.Load(SceneManager.GetActiveScene().name);
         }
 
         /// <summary>False on the web, where the browser tab owns the app's lifetime.</summary>

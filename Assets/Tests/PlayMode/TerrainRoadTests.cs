@@ -19,9 +19,9 @@ namespace Rally.Tests
         private const float Tolerance = 0.03f;
 
         [UnityTest]
-        public IEnumerator QA14_Terrain_StaysBelowTheRoad([Values("Stage01", "Stage02", "Stage03", "Stage04")] string scene)
+        public IEnumerator QA14_Terrain_StaysBelowTheRoad([Values("Stage01", "Stage02", "Stage03", "Stage04", "Stage05")] string scene)
         {
-            yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
+            yield return Rally.Systems.StageLoader.LoadRoutine(scene);
             float t = 0f;
             while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsNotNull(RaceManager.Instance?.Player, $"{scene} did not initialise a player.");

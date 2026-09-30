@@ -21,6 +21,9 @@ namespace Rally.EditorTools
             // the previous version's data or code from its cache after a new upload.
             PlayerSettings.WebGL.nameFilesAsHashes = true;
 
+            // Stages 2+ are downloaded when picked: build their bundles first (into the build's StreamingAssets).
+            if (!AddressableStages.BuildContent()) EditorApplication.Exit(1);
+
             var options = new BuildPlayerOptions
             {
                 scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray(),

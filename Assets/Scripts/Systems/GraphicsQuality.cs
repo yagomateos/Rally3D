@@ -57,6 +57,9 @@ namespace Rally.Systems
             if (cam != null)
             {
                 cam.farClipPlane = FarClip[q];
+                // 0.3 m (was 0.1): three times the depth precision, which the far plane of several km needs on the
+                // web (surfaces close together flickered or hid each other). Nothing the cameras see is nearer.
+                cam.nearClipPlane = 0.3f;
                 var data = cam.GetUniversalAdditionalCameraData();
                 // Post-process edge smoothing only where MSAA alone isn't enough and the GPU can afford it.
                 if (data != null)

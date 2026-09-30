@@ -127,6 +127,7 @@ namespace Rally.Systems
         private Color tint;
 
         public bool Visible { get; private set; }
+        private static readonly Color GhostTint = new Color(0.55f, 0.85f, 1f, 0.35f);
 
         /// <summary>Builds the ghost from the player's car meshes if a saved run exists (and the option is on).</summary>
         public static GhostCar Create(RaceManager race)
@@ -134,8 +135,10 @@ namespace Rally.Systems
             if (!GhostRun.Enabled || race.Player == null) return null;
             var run = GhostRun.Decode(PlayerPrefs.GetString(GhostRun.Key(race), ""));
             if (run.Count < 10) return null;
-            var material = Resources.Load<Material>("GhostCar");
-            if (material == null) return null;
+            // Sprites/Default: unlit, translucent, double-sided and always in every build (web included).
+            var shader = Shader.Find("Sprites/Default");
+            if (shader == null) return null;
+            var material = new Material(shader) { name = "GhostCar", color = GhostTint };
 
             var root = new GameObject("GhostCar");
             Transform car = race.Player.transform;
@@ -148,7 +151,7 @@ namespace Rally.Systems
                 part.transform.localPosition = car.InverseTransformPoint(filter.transform.position);
                 part.transform.localRotation = Quaternion.Inverse(car.rotation) * filter.transform.rotation;
                 part.transform.localScale = filter.transform.lossyScale;
-                part.AddComponent<MeshFilter>().sharedMesh = filter.sharedMesh;
+                part.AddComponent<MeshFilter>().sharedMesh = WhiteVertexColours(filter.sharedMesh);
                 var r = part.AddComponent<MeshRenderer>();
                 var mats = new Material[filter.sharedMesh.subMeshCount];
                 for (int i = 0; i < mats.Length; i++) mats[i] = material;
@@ -162,9 +165,25 @@ namespace Rally.Systems
             ghost.player = car;
             ghost.renderers = root.GetComponentsInChildren<Renderer>();
             ghost.block = new MaterialPropertyBlock();
-            ghost.tint = material.GetColor("_BaseColor");
+            ghost.tint = GhostTint;
             ghost.Place(0f);
             return ghost;
+        }
+
+        // The ghost's shader multiplies by vertex colour; car meshes have none, which WebGL reads as black
+        // (invisible). A copy with white vertex colours per mesh, shared between parts that use the same mesh.
+        private static readonly Dictionary<Mesh, Mesh> whiteCopies = new Dictionary<Mesh, Mesh>();
+
+        private static Mesh WhiteVertexColours(Mesh source)
+        {
+            if (whiteCopies.TryGetValue(source, out var copy) && copy != null) return copy;
+            copy = Instantiate(source);
+            copy.name = source.name + "_Ghost";
+            var white = new Color32[copy.vertexCount];
+            for (int i = 0; i < white.Length; i++) white[i] = new Color32(255, 255, 255, 255);
+            copy.colors32 = white;
+            whiteCopies[source] = copy;
+            return copy;
         }
 
         private void LateUpdate()
@@ -181,7 +200,7 @@ namespace Rally.Systems
             // Fade out when right on top of the player's own car, so it never hides it.
             float d = player != null ? Vector3.Distance(player.position, transform.position) : 99f;
             float alpha = Visible ? tint.a * Mathf.InverseLerp(1.5f, 6f, d) : 0f;
-            block.SetColor("_BaseColor", new Color(tint.r, tint.g, tint.b, alpha));
+            block.SetColor("_Color", new Color(tint.r, tint.g, tint.b, alpha));
             foreach (var r in renderers)
             {
                 r.enabled = alpha > 0.01f;
