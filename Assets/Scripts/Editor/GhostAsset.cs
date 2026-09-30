@@ -34,9 +34,21 @@ namespace Rally.EditorTools
             Debug.Log("[Rally] Created " + Path);
         }
 
+        /// <summary>Assets/Resources/LeaderboardConfig.asset with no server (times stay on the device until a URL is set).</summary>
+        [MenuItem("Rally/Create Leaderboard Config")]
+        public static void CreateLeaderboardConfig()
+        {
+            const string path = "Assets/Resources/LeaderboardConfig.asset";
+            if (AssetDatabase.LoadAssetAtPath<Rally.Systems.LeaderboardConfig>(path) != null) return;
+            Directory.CreateDirectory("Assets/Resources");
+            AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<Rally.Systems.LeaderboardConfig>(), path);
+            AssetDatabase.SaveAssets();
+        }
+
         public static void CreateFromCommandLine()
         {
             Create();
+            CreateLeaderboardConfig();
             EditorApplication.Exit(0);
         }
     }

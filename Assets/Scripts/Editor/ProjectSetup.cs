@@ -14,6 +14,7 @@ namespace Rally.EditorTools
         {
             EnsureLayer(VehicleLayerIndex, VehicleLayer);
             GhostAsset.Create(); // the best-run ghost's material (kept in Resources so builds include it)
+            GhostAsset.CreateLeaderboardConfig();
 
             PlayerSettings.companyName = "Rally3D";
             PlayerSettings.productName = "Rally 3D"; // several stages now; shown in the browser tab

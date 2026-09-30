@@ -342,7 +342,29 @@ namespace Rally.Systems
                 if (ghostRecorder != null) ghostRecorder.SaveAsBest();
                 PlayerPrefs.Save();
             }
+            SubmitTime(participant.FinishTime);
             Invoke(nameof(ShowResults), resultsDelay);
+        }
+
+        /// <summary>Place in the stage's best-times table (0 = outside the top 10); online when a server is set.</summary>
+        public int LeaderboardPlace { get; private set; }
+        public bool LeaderboardIsOnline { get; private set; }
+        public event Action LeaderboardUpdated;
+
+        private void SubmitTime(float time)
+        {
+            string key = Leaderboard.StageKey(stage.stageNumber, stage.stageName);
+            string car = CarCatalog.Cars[CarCatalog.Selected].name;
+            LeaderboardPlace = Leaderboard.SubmitLocal(key, car, time);
+            if (!Leaderboard.Online) return;
+            string me = Leaderboard.PlayerName;
+            Leaderboard.Run(Leaderboard.SubmitOnline(key, car, time, list =>
+            {
+                if (list == null || this == null) return;
+                LeaderboardPlace = list.FindIndex(e => e.name == me && Mathf.Abs(e.time - time) < 0.01f) + 1;
+                LeaderboardIsOnline = true;
+                LeaderboardUpdated?.Invoke();
+            }));
         }
 
         private void ShowResults()

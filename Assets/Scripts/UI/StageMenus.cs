@@ -55,6 +55,7 @@ namespace Rally.UI
             race.PauseChanged += OnPauseChanged;
             RaceManager.WebQuitRequested += ShowQuitScreen;
             race.PlayerResultsReady += OnResults;
+            race.LeaderboardUpdated += RefreshTablePlace;
         }
 
         private void OnDestroy()
@@ -63,6 +64,7 @@ namespace Rally.UI
             if (race == null) return;
             race.PauseChanged -= OnPauseChanged;
             race.PlayerResultsReady -= OnResults;
+            race.LeaderboardUpdated -= RefreshTablePlace;
         }
 
         private static void EnsureEventSystem()
@@ -286,7 +288,7 @@ namespace Rally.UI
             var player = race.Player;
             resultTime.text = "TIEMPO: " + RaceManager.FormatTime(player.FinishTime);
             resultBest.text = "MEJOR: " + RaceManager.FormatTime(race.BestTime);
-            resultNewBest.text = race.NewBest ? "¡NUEVO RÉCORD PERSONAL!" : "";
+            RefreshTablePlace();
             int position = race.GetPosition(player);
             resultPosition.text = $"POSICIÓN  {position} / {race.Participants.Count}";
             RefreshStandings();
@@ -357,6 +359,16 @@ namespace Rally.UI
             resultsMenu.GetComponentInChildren<Text>().text = "ABANDONAR";
             resultsMenu.onClick.AddListener(() => race.ExitToMenu());
             return false;
+        }
+
+        /// <summary>"¡NUEVO RÉCORD PERSONAL!" and the place in the stage's best-times table (online when a server is set).</summary>
+        private void RefreshTablePlace()
+        {
+            var parts = new System.Collections.Generic.List<string>();
+            if (race.NewBest) parts.Add("¡NUEVO RÉCORD PERSONAL!");
+            if (race.LeaderboardPlace > 0)
+                parts.Add($"PUESTO {race.LeaderboardPlace} EN LA TABLA{(race.LeaderboardIsOnline ? " MUNDIAL" : "")}");
+            resultNewBest.text = string.Join("   ·   ", parts);
         }
 
         private void RefreshStandings()

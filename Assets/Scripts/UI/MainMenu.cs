@@ -52,10 +52,12 @@ namespace Rally.UI
             BuildCarSelect(root);
             BuildOptions(root);
             BuildControls(root);
+            BuildTimes(root);
             // Controller: up / down wrap round in each list of buttons.
             MenuNavigation.WrapColumn(mainScreen.transform);
             MenuNavigation.WrapColumn(stageScreen.transform);
             MenuNavigation.WrapColumn(optionsScreen.transform);
+            MenuNavigation.WrapColumn(timesScreen.transform);
 
             var cam = Camera.main;
             if (cam != null)
@@ -113,13 +115,14 @@ namespace Rally.UI
             UIFactory.Label("Stage", t, new Vector2(0f, 1f), new Vector2(120f, -270f), new Vector2(700f, 40f),
                 $"{race.Stage.stageNumber}  ·  {race.Stage.stageName}", 30, TextAnchor.MiddleLeft, UIFactory.TextDim);
 
-            playButton = MenuButton(t, "Play", -380f, "JUGAR", () => { championshipPick = false; Open(stageScreen, firstStageButton); });
-            // The four stages in a row, times added up: straight to the car choice.
-            MenuButton(t, "Championship", -484f, "CAMPEONATO", () => { championshipPick = true; Open(carScreen, startButton); });
-            MenuButton(t, "Controls", -588f, "CONTROLES", () => Open(controlsScreen, controlsBack));
-            MenuButton(t, "Options", -692f, "OPCIONES", () => { RefreshOptions(); Open(optionsScreen, volumeButton); });
+            playButton = MenuButton(t, "Play", -360f, "JUGAR", () => { championshipPick = false; Open(stageScreen, firstStageButton); });
+            // All the stages in a row, times added up: straight to the car choice.
+            MenuButton(t, "Championship", -452f, "CAMPEONATO", () => { championshipPick = true; Open(carScreen, startButton); });
+            MenuButton(t, "Times", -544f, "TIEMPOS", () => { ShowTimes(timesStage); Open(timesScreen, timesStageButton); });
+            MenuButton(t, "Controls", -636f, "CONTROLES", () => Open(controlsScreen, controlsBack));
+            MenuButton(t, "Options", -728f, "OPCIONES", () => { RefreshOptions(); Open(optionsScreen, volumeButton); });
             // On the web this shows an exit screen (a page cannot close its own tab); elsewhere it quits.
-            MenuButton(t, "Quit", -796f, "SALIR", () => race.Quit());
+            MenuButton(t, "Quit", -820f, "SALIR", () => race.Quit());
 
             UIFactory.Label("Best", t, new Vector2(0f, 0f), new Vector2(120f, 60f), new Vector2(700f, 36f),
                 "MEJOR TIEMPO  " + RaceManager.FormatTime(race.BestTime), 26, TextAnchor.MiddleLeft, UIFactory.TextDim);
@@ -252,6 +255,96 @@ namespace Rally.UI
             y -= 16f;
             optionsBack = Row("Back", () => Open(mainScreen, playButton));
             optionsBack.GetComponentInChildren<Text>().text = "VOLVER";
+        }
+
+        // ------------------------------------------------------------------ best times
+
+        private CanvasGroup timesScreen;
+        private Button timesStageButton;
+        private Text timesStageLabel, timesList, timesSource, nameLabel;
+        private InputField nameInput;
+        private int timesStage;
+
+        /// <summary>MEJORES TIEMPOS: the top 10 of each stage (online when a server is set) and the player's name.</summary>
+        private void BuildTimes(RectTransform root)
+        {
+            timesScreen = Screen("Times", root, true);
+            var t = timesScreen.transform;
+            Title(t, "MEJORES TIEMPOS", new Vector2(120f, -80f));
+            timesStageButton = MenuButton(t, "Stage", -190f, "", () => ShowTimes(timesStage + 1), 620f);
+            timesStageLabel = timesStageButton.GetComponentInChildren<Text>();
+            timesSource = UIFactory.Label("Source", t, new Vector2(0f, 1f), new Vector2(120f, -262f), new Vector2(620f, 26f),
+                "", 18, TextAnchor.MiddleLeft, UIFactory.TextDim, FontStyle.Normal);
+            timesList = UIFactory.Label("List", t, new Vector2(0f, 1f), new Vector2(120f, -290f), new Vector2(620f, 360f),
+                "", 22, TextAnchor.UpperLeft, UIFactory.TextMain, FontStyle.Normal);
+            timesList.lineSpacing = 1.05f;
+            var name = MenuButton(t, "Name", -670f, "", OpenNameInput, 620f);
+            nameLabel = name.GetComponentInChildren<Text>();
+            MenuButton(t, "Back", -770f, "VOLVER", () => Open(mainScreen, playButton), 620f);
+
+            // Name editor: an input field over the name button (phones get their on-screen keyboard).
+            var box = UIFactory.Panel("NameInput", t, new Vector2(0f, 1f), new Vector2(120f, -670f), new Vector2(620f, 84f), new Color(0.1f, 0.1f, 0.12f, 0.98f));
+            box.raycastTarget = true;
+            var text = UIFactory.Label("Text", box.transform, "", 32, TextAnchor.MiddleCenter, UIFactory.TextMain);
+            nameInput = box.gameObject.AddComponent<InputField>();
+            nameInput.textComponent = text;
+            nameInput.characterLimit = 16;
+            nameInput.onEndEdit.AddListener(value =>
+            {
+                Leaderboard.PlayerName = value;
+                nameInput.gameObject.SetActive(false);
+                RefreshName();
+                EventSystem.current?.SetSelectedGameObject(timesStageButton.gameObject);
+            });
+            nameInput.gameObject.SetActive(false);
+            RefreshName();
+        }
+
+        private void RefreshName() => nameLabel.text = "TU NOMBRE:  " + Leaderboard.PlayerName + "   (CAMBIAR)";
+
+        private void OpenNameInput()
+        {
+            nameInput.gameObject.SetActive(true);
+            nameInput.text = Leaderboard.PlayerName;
+            nameInput.Select();
+            nameInput.ActivateInputField();
+        }
+
+        private void ShowTimes(int index)
+        {
+            int n = StageCatalog.Stages.Length;
+            timesStage = (index % n + n) % n;
+            var stage = StageCatalog.Stages[timesStage];
+            timesStageLabel.text = $"<   {stage.number}  ·  {stage.name}   >";
+            string key = Leaderboard.StageKey(stage.number, stage.name);
+            FillTimes(Leaderboard.LocalTop(key), false);
+            if (Leaderboard.Online)
+            {
+                timesSource.text = "CARGANDO LA TABLA MUNDIAL…";
+                int asked = timesStage;
+                StartCoroutine(Leaderboard.FetchOnline(key, list =>
+                {
+                    if (asked != timesStage) return;
+                    if (list != null) FillTimes(list, true);
+                    else timesSource.text = "SIN CONEXIÓN: TIEMPOS DE ESTE DISPOSITIVO";
+                }));
+            }
+        }
+
+        private void FillTimes(System.Collections.Generic.List<Leaderboard.Entry> list, bool online)
+        {
+            timesSource.text = online ? "TABLA MUNDIAL" : "TIEMPOS DE ESTE DISPOSITIVO";
+            if (list.Count == 0) { timesList.text = "TODAVÍA NO HAY TIEMPOS.\nCORRE ESTE TRAMO PARA ESTRENAR LA TABLA."; return; }
+            var sb = new System.Text.StringBuilder();
+            string me = Leaderboard.PlayerName;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var e = list[i];
+                string line = $"{i + 1,2}.  {RaceManager.FormatTime(e.time)}   {e.name}   ·   {e.car}";
+                sb.AppendLine(e.name == me ? $"<color=#FF7A1A>{line}</color>" : line);
+            }
+            timesList.supportRichText = true;
+            timesList.text = sb.ToString();
         }
 
         private void BuildControls(RectTransform root)

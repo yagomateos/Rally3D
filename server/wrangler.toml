@@ -1,0 +1,7 @@
+name = "rally3d-scores"
+main = "leaderboard-worker.js"
+compatibility_date = "2026-09-01"
+
+[[kv_namespaces]]
+binding = "SCORES"
+id = "PON_AQUI_EL_ID_DEL_NAMESPACE"

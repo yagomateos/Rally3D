@@ -415,6 +415,31 @@ namespace Rally.Tests
             }
         }
 
+        /// <summary>QA-32: finishing a stage puts the time in the stage's best-times table (top 10, fastest first).</summary>
+        [UnityTest]
+        public IEnumerator QA32_Leaderboard_KeepsTheTopTenPerStage()
+        {
+            Assert.AreEqual("ANA 2", Leaderboard.Clean("ana 2<!>"));
+            const string key = "TRAMO 99_TEST";
+            PlayerPrefs.DeleteKey("Rally.Times." + key);
+            for (int i = 0; i < 12; i++) Leaderboard.SubmitLocal(key, "COCHE", 100f + i);
+            int place = Leaderboard.SubmitLocal(key, "COCHE", 99f);
+            var top = Leaderboard.LocalTop(key);
+            Assert.AreEqual(10, top.Count, "Only the top 10 are kept.");
+            Assert.AreEqual(1, place, "The fastest time goes first.");
+            Assert.AreEqual(99f, top[0].time, 0.001f);
+            Assert.AreEqual(0, Leaderboard.SubmitLocal(key, "COCHE", 500f), "Too slow for the table.");
+            PlayerPrefs.DeleteKey("Rally.Times." + key);
+
+            yield return LoadStage();
+            yield return StartRace();
+            yield return new WaitForSeconds(1f);
+            foreach (var checkpoint in Race.Checkpoints) Player.NotifyCheckpoint(checkpoint);
+            yield return null;
+            Assert.Greater(Race.LeaderboardPlace, 0, "A finished run goes into the stage's table.");
+            Assert.IsFalse(Leaderboard.Online, "No server configured in the project: the table stays on the device.");
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()
