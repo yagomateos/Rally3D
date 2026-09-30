@@ -302,6 +302,39 @@ namespace Rally.Tests
             }
         }
 
+        /// <summary>QA-29: the new cars have their own handling and paint, and picking another car undoes both.</summary>
+        [UnityTest]
+        public IEnumerator QA29_NewCars_OwnHandlingAndPaint()
+        {
+            yield return LoadStage();
+            Assert.AreEqual(5, CarCatalog.Cars.Length);
+            CarCatalog.Apply(Race, 3); // LEYENDA: rear-wheel drive
+            yield return null;
+            Assert.AreEqual(1f, Player.Car.Tuning.rearTorqueBias, 0.001f, "LEYENDA is rear-wheel drive.");
+            Color paint = PaintOf(Player.gameObject);
+            Assert.Less(Vector4.Distance(paint, CarCatalog.Cars[3].paint), 0.02f, "LEYENDA wears its own paint.");
+
+            CarCatalog.Apply(Race, 4); // GRUPO B: much more power
+            yield return null;
+            Assert.Greater(Player.Car.Tuning.peakTorque, 560f);
+            Assert.Less(Vector4.Distance(PaintOf(Player.gameObject), CarCatalog.Cars[4].paint), 0.02f);
+            foreach (var p in Race.Participants)
+                if (!p.IsPlayer) Assert.Greater(Vector4.Distance(PaintOf(p.gameObject), CarCatalog.Cars[4].paint), 0.1f, "Rivals keep their own paint.");
+
+            CarCatalog.Apply(Race, 0); // back to the standard car
+            yield return null;
+            Assert.AreEqual(0.58f, Player.Car.Tuning.rearTorqueBias, 0.001f);
+            Assert.Greater(Vector4.Distance(PaintOf(Player.gameObject), CarCatalog.Cars[4].paint), 0.1f, "The special paint is removed.");
+        }
+
+        private static Color PaintOf(GameObject car)
+        {
+            foreach (var r in car.GetComponentsInChildren<Renderer>(true))
+                foreach (var m in r.sharedMaterials)
+                    if (m != null && m.name.StartsWith("Paint_")) return m.GetColor("_BaseColor");
+            return Color.clear;
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()

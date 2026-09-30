@@ -18,6 +18,10 @@ namespace Rally.Systems
             public string description;
             public int speed, acceleration, grip; // 1..5, for the menu bars
             public Action<CarTuning> modify;
+            /// <summary>Own colours on top of the base livery's car (for cars that aren't one of the rivals' liveries).</summary>
+            public bool repaint;
+            public Color paint, accent;
+            public string number;
         }
 
         public static readonly Entry[] Cars =
@@ -54,6 +58,36 @@ namespace Rally.Systems
                     t.peakTorque *= 0.96f;
                 }
             },
+            new Entry
+            {
+                livery = "PlayerCar", name = "LEYENDA  #1", description = "TRACCIÓN TRASERA. DERRAPA CON FACILIDAD: PARA EXPERTOS.",
+                speed = 3, acceleration = 4, grip = 2,
+                repaint = true, paint = new Color(0.05f, 0.28f, 0.14f), accent = new Color(0.95f, 0.75f, 0.2f), number = "1",
+                modify = t =>
+                {
+                    t.rearTorqueBias = 1f;         // all the power to the rear wheels
+                    t.powerOversteerGrip = 0.78f;  // the tail steps out under power
+                    t.handbrakeRearGrip = 0.34f;
+                    t.peakTorque *= 1.05f;
+                    t.tractionControl = Mathf.Min(t.tractionControl, 0.2f);
+                    t.yawStability *= 0.8f;
+                }
+            },
+            new Entry
+            {
+                livery = "RivalCar_Crimson", name = "GRUPO B  #9", description = "MUCHÍSIMA POTENCIA Y PUNTA. MUY DIFÍCIL DE DOMAR.",
+                speed = 5, acceleration = 5, grip = 2,
+                repaint = true, paint = new Color(0.07f, 0.07f, 0.08f), accent = new Color(1f, 0.82f, 0.1f), number = "9",
+                modify = t =>
+                {
+                    t.peakTorque *= 1.28f;
+                    t.maxSpeedKph += 18f;
+                    t.mass -= 60f;
+                    t.sidewaysStiffness *= 0.94f;
+                    t.shiftTime *= 0.8f;
+                    t.brakeTorque *= 1.06f;
+                }
+            },
         };
 
         private const string SelectedKey = "Rally.SelectedCar";
@@ -78,6 +112,7 @@ namespace Rally.Systems
             if (race == null || race.Player == null) return;
             var entry = Cars[Mathf.Clamp(index, 0, Cars.Length - 1)];
             var player = race.Player;
+            RemovePaint(player); // back to the livery's own materials before any swap
 
             string playerLivery = LiveryOf(player.gameObject);
             if (playerLivery != null && playerLivery != entry.livery)
@@ -89,6 +124,8 @@ namespace Rally.Systems
                     break;
                 }
             }
+
+            if (entry.repaint) Repaint(player, entry);
 
             var controller = player.Car;
             var current = controller.Tuning;
@@ -104,6 +141,62 @@ namespace Rally.Systems
         }
 
         private const string CopySuffix = " (jugador)";
+
+        // Runtime paint clones on the player's car → the livery material they replaced (never edit the assets).
+        private static readonly System.Collections.Generic.Dictionary<Material, Material> paintClones =
+            new System.Collections.Generic.Dictionary<Material, Material>();
+        private static string originalNumber;
+        private static Color? originalColor;
+
+        /// <summary>Own colours for a car that isn't one of the rivals' liveries: runtime copies of its paint.</summary>
+        private static void Repaint(RaceParticipant player, Entry entry)
+        {
+            string livery = LiveryOf(player.gameObject);
+            foreach (var r in player.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    var m = mats[i];
+                    if (m == null) continue;
+                    Color? tint = m.name == "Paint_" + livery ? entry.paint : m.name == "Accent_" + livery ? entry.accent : (Color?)null;
+                    if (tint == null) continue;
+                    var clone = new Material(m) { name = m.name }; // same name: the livery is still recognised
+                    clone.SetColor("_BaseColor", tint.Value);
+                    paintClones[clone] = m;
+                    mats[i] = clone;
+                    changed = true;
+                }
+                if (changed) r.sharedMaterials = mats;
+            }
+            var numbers = player.GetComponentsInChildren<TextMesh>(true);
+            if (numbers.Length > 0 && originalNumber == null) originalNumber = numbers[0].text;
+            foreach (var t in numbers) t.text = entry.number;
+            if (originalColor == null) originalColor = player.Color;
+            player.Configure(player.DisplayName, player.IsPlayer, entry.paint);
+        }
+
+        private static void RemovePaint(RaceParticipant player)
+        {
+            if (paintClones.Count == 0) return;
+            bool found = false; // clones left from a previous stage load are just freed
+            foreach (var r in player.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < mats.Length; i++)
+                    if (mats[i] != null && paintClones.TryGetValue(mats[i], out var original)) { mats[i] = original; changed = true; }
+                if (changed) { r.sharedMaterials = mats; found = true; }
+            }
+            foreach (var clone in paintClones.Keys) UnityEngine.Object.Destroy(clone);
+            paintClones.Clear();
+            if (found && originalNumber != null)
+                foreach (var t in player.GetComponentsInChildren<TextMesh>(true)) t.text = originalNumber;
+            if (found && originalColor != null) player.Configure(player.DisplayName, player.IsPlayer, originalColor.Value);
+            originalNumber = null;
+            originalColor = null;
+        }
         private static CarTuning sharedTuning;
 
         /// <summary>Livery name of a car, read from its paint material ("Paint_&lt;livery&gt;").</summary>
