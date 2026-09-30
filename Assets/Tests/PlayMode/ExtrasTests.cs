@@ -183,6 +183,26 @@ namespace Rally.Tests
             finally { Rally.Car.DrivingAssist.Setting = before; }
         }
 
+        /// <summary>QA-26: the graphics quality option changes draw distances and effects at once.</summary>
+        [UnityTest]
+        public IEnumerator QA26_GraphicsQuality_AppliesAtOnce()
+        {
+            var before = GraphicsQuality.Setting;
+            try
+            {
+                yield return LoadStage();
+                GraphicsQuality.Setting = GraphicsQuality.Level.Baja;
+                yield return null;
+                Assert.AreEqual(1500f, Camera.main.farClipPlane, 0.1f);
+                Assert.AreEqual(350f, Terrain.activeTerrain.treeDistance, 0.1f);
+                GraphicsQuality.Setting = GraphicsQuality.Level.Alta;
+                yield return null;
+                Assert.AreEqual(5000f, Camera.main.farClipPlane, 0.1f);
+                Assert.AreEqual(560f, Terrain.activeTerrain.treeDistance, 0.1f);
+            }
+            finally { GraphicsQuality.Setting = before; }
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()

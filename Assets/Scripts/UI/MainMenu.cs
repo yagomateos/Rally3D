@@ -22,7 +22,7 @@ namespace Rally.UI
         private Button firstStageButton;
         private int stageIndex;
         private Button playButton, startButton, volumeButton, controlsBack, optionsBack;
-        private Text carName, carDescription, volumeLabel, sensitivityLabel, damageLabel, coDriverLabel, rivalsLabel, autoLabel, difficultyLabel, assistLabel;
+        private Text carName, carDescription, volumeLabel, sensitivityLabel, damageLabel, coDriverLabel, rivalsLabel, autoLabel, difficultyLabel, assistLabel, qualityLabel;
         private Image[][] statBars;
         private int carIndex;
         private MenuCamera menuCamera;
@@ -208,8 +208,8 @@ namespace Rally.UI
             optionsScreen = Screen("Options", root, true);
             var t = optionsScreen.transform;
             Title(t, "OPCIONES", new Vector2(120f, -80f));
-            // Compact rows: with the phone-only entries there are eight plus VOLVER, and a landscape phone is ~970 units tall.
-            const float rowHeight = 64f, rowStep = 76f;
+            // Compact rows: with the phone-only entries there are ten plus VOLVER, and a landscape phone is ~970 units tall.
+            float rowHeight = Application.isMobilePlatform ? 54f : 64f, rowStep = Application.isMobilePlatform ? 64f : 76f;
             float y = -180f;
             Button Row(string name, UnityEngine.Events.UnityAction action)
             {
@@ -228,6 +228,11 @@ namespace Rally.UI
             coDriverLabel = Row("CoDriver", CycleCoDriver).GetComponentInChildren<Text>();
             rivalsLabel = Row("Rivals", () => { RaceManager.RivalsEnabled = !RaceManager.RivalsEnabled; RefreshOptions(); ApplyRivalsNow(); })
                 .GetComponentInChildren<Text>();
+            qualityLabel = Row("Quality", () =>
+            {
+                GraphicsQuality.Setting = (GraphicsQuality.Level)(((int)GraphicsQuality.Setting + 1) % 3);
+                RefreshOptions();
+            }).GetComponentInChildren<Text>();
             assistLabel = Row("Assist", () =>
             {
                 DrivingAssist.Setting = (DrivingAssist.Level)(((int)DrivingAssist.Setting + 1) % 3);
@@ -386,6 +391,7 @@ namespace Rally.UI
             rivalsLabel.text = RaceManager.RivalsEnabled ? "RIVALES:  SÍ" : "RIVALES:  NO (CONTRA EL RELOJ)";
             if (autoLabel != null) autoLabel.text = "ACELERAR SOLO:  " + (PlayerCarInput.AcelerarSolo ? "SÍ" : "NO");
             assistLabel.text = "AYUDA DE CONDUCCIÓN:  " + DrivingAssist.LevelNames[(int)DrivingAssist.Setting];
+            qualityLabel.text = "CALIDAD GRÁFICA:  " + GraphicsQuality.LevelNames[(int)GraphicsQuality.Setting];
             if (sensitivityLabel != null)
             {
                 var input = race.Player != null ? race.Player.GetComponent<PlayerCarInput>() : null;
