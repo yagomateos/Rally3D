@@ -49,7 +49,7 @@ namespace Rally.Track
         [Tooltip("0 = pine forest after rain. 1 = snow. 2 = desert. 3 = coast at sunset (the builder makes each theme's own textures and materials).")]
         public int theme;
 
-        public const int ForestTheme = 0, SnowTheme = 1, DesertTheme = 2, CoastTheme = 3;
+        public const int ForestTheme = 0, SnowTheme = 1, DesertTheme = 2, CoastTheme = 3, NightTheme = 4;
 
         [Tooltip("Top speed of every car on this stage (the player's limiter and gearing, the rivals' speed plan). " +
                  "Above 1 on the fast tarmac stage as a challenge.")]
@@ -209,6 +209,19 @@ namespace Rally.Track
                 TrackSegment.Straight(120, 10, A, O),           // finish straight
                 TrackSegment.Straight(115, 10, A, O),           // stop zone after the flying finish
             };
+        }
+
+        /// <summary>
+        /// Stage 5: stage 1's pine forest at night. Same route and terrain shape; moonlight, dark fog, a starry sky
+        /// and real headlights on every car (added at load by the race manager for this theme).
+        /// </summary>
+        public void ResetToNightStage()
+        {
+            ResetToDefaultStage();
+            stageNumber = "TRAMO 05";
+            stageName = "PINAR DE NOCHE";
+            description = "TIERRA · GRAVA · BARRO · ASFALTO   ·   NOCHE CERRADA, FAROS";
+            theme = NightTheme;
         }
 
         /// <summary>This stage's rules on a car's tuning copy (never on the shared asset).</summary>

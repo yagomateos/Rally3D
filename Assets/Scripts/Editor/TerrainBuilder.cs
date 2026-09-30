@@ -49,7 +49,7 @@ namespace Rally.EditorTools
 
         private static TerrainLayer CreateLayer(string name, Texture2D albedo, Texture2D normal, float tile, float smoothness)
         {
-            string path = $"{Folder}/{StageTheme.Name(name)}.terrainlayer";
+            string path = $"{Folder}/{StageTheme.SharedName(name)}.terrainlayer";
             var layer = AssetDatabase.LoadAssetAtPath<TerrainLayer>(path);
             if (layer == null)
             {
@@ -106,7 +106,7 @@ namespace Rally.EditorTools
             // Grass only in the forest: nearly invisible in the snow, out of place in the desert, and each
             // detail layer costs download size.
             EditorUtility.DisplayProgressBar("Rally", "Growing grass", 0.5f);
-            if (StageTheme.Current == StageTheme.Kind.Forest) PaintGrass(data, splat, route, sculptor, lib);
+            if (StageTheme.ForestLike) PaintGrass(data, splat, route, sculptor, lib);
 
             var surfaceMap = go.AddComponent<TerrainSurfaceMap>();
             surfaceMap.SetData(SurfaceMapResolution, sculptor.Origin, sculptor.Size, BuildSurfaceMap(splat));
@@ -211,7 +211,8 @@ namespace Rally.EditorTools
             Vector3 centre = origin + new Vector3(size.x * 0.5f, 0f, size.z * 0.5f);
 
             float hills = StageTheme.Snow ? 190f : StageTheme.Desert ? 70f : StageTheme.Coast ? 100f : 150f;
-            Color colour = StageTheme.Snow ? new Color(0.84f, 0.87f, 0.93f)
+            Color colour = StageTheme.Night ? new Color(0.05f, 0.07f, 0.06f)
+                : StageTheme.Snow ? new Color(0.84f, 0.87f, 0.93f)
                 : StageTheme.Desert ? new Color(0.8f, 0.64f, 0.44f)
                 : StageTheme.Coast ? new Color(0.42f, 0.4f, 0.27f)
                 : new Color(0.2f, 0.27f, 0.17f);
@@ -268,7 +269,7 @@ namespace Rally.EditorTools
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
 
-            var mat = MaterialFactory.Opaque("Horizon", colour, null, null, 0.05f, 0f, 1f, null, "Environment");
+            var mat = MaterialFactory.Opaque(StageTheme.Night ? "Horizon_Night" : "Horizon", colour, null, null, 0.05f, 0f, 1f, null, "Environment");
             var go = PropFactory.MeshObject("Horizon", PropFactory.SaveMesh(mesh), mat);
             go.isStatic = true;
             var mr = go.GetComponent<MeshRenderer>();

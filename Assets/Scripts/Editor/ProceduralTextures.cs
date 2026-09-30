@@ -351,6 +351,46 @@ namespace Rally.EditorTools
             return TextureBaker.Save("T_Sky_Sunset", w, h, px, TextureBaker.Kind.Albedo, TextureWrapMode.Repeat, TextureWrapMode.Clamp, 2048);
         }
 
+        /// <summary>Night sky: near-black overhead fading to deep blue at the horizon, stars (more overhead) and a moon.</summary>
+        public static Texture2D NightSky()
+        {
+            const int w = 2048, h = 1024;
+            var px = new Color[w * h];
+            Color zenith = new Color(0.008f, 0.012f, 0.03f);
+            Color horizon = new Color(0.045f, 0.06f, 0.11f);
+            Color ground = new Color(0.02f, 0.025f, 0.035f);
+            Vector2 moon = new Vector2(0.3f, 0.76f);
+            for (int y = 0; y < h; y++)
+            {
+                float v = (y + 0.5f) / h;
+                float elevation = (v - 0.5f) * 2f;
+                for (int x = 0; x < w; x++)
+                {
+                    float u = (x + 0.5f) / w;
+                    Color c;
+                    if (elevation < 0f) c = Color.Lerp(horizon, ground, S(0f, 0.15f, -elevation));
+                    else
+                    {
+                        c = Color.Lerp(horizon, zenith, S(0f, 0.6f, elevation));
+                        // Stars: sparse hashed points, brighter and denser away from the hazy horizon.
+                        float star = Noise.Hash01(x, y, 777);
+                        float threshold = Mathf.Lerp(0.9993f, 0.9965f, S(0.05f, 0.6f, elevation));
+                        if (star > threshold)
+                        {
+                            float b = (star - threshold) / (1f - threshold);
+                            c += new Color(0.85f, 0.9f, 1f) * (0.4f + 0.6f * b);
+                        }
+                        float du = Mathf.Min(Mathf.Abs(u - moon.x), 1f - Mathf.Abs(u - moon.x));
+                        float d = Mathf.Sqrt(du * du * 4f + (v - moon.y) * (v - moon.y));
+                        c += new Color(0.85f, 0.9f, 1f) * (d < 0.012f ? 1.4f : Mathf.Exp(-d * 18f) * 0.12f);
+                    }
+                    c.a = 1f;
+                    px[y * w + x] = c;
+                }
+            }
+            return TextureBaker.Save("T_Sky_Night", w, h, px, TextureBaker.Kind.Albedo, TextureWrapMode.Repeat, TextureWrapMode.Clamp, 2048);
+        }
+
         public static Texture2D Checker()
         {
             var (tex, _) = TextureBaker.Bake("T_Checker", 256, 64, (u, v) =>

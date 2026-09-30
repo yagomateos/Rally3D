@@ -153,6 +153,8 @@ namespace Rally.Systems
                 if (p.GetComponent<CarDamage>() == null) p.gameObject.AddComponent<CarDamage>();
                 if (p.GetComponent<CarBodyContact>() == null) p.gameObject.AddComponent<CarBodyContact>();
                 if (p.GetComponent<ReplayRecorder>() == null) p.gameObject.AddComponent<ReplayRecorder>();
+                if (stage != null && stage.theme == StageDefinition.NightTheme && p.GetComponent<Headlights>() == null)
+                    p.gameObject.AddComponent<Headlights>();
                 if (p.IsPlayer)
                 {
                     Player = p;

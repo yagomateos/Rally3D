@@ -59,7 +59,7 @@ namespace Rally.EditorTools
             }
             // Normal maps are the same in every theme, so all stages share one file instead of a "_Snow" copy.
             // The PNG is rewritten in place, so its GUID (and every stage's reference to it) survives a rebuild.
-            if (kind != Kind.Normal) name = StageTheme.Name(name);
+            if (kind != Kind.Normal) name = StageTheme.SharedName(name);
             var tex = new Texture2D(width, height, TextureFormat.RGBA32, false, kind != Kind.Albedo && kind != Kind.AlphaSprite);
             tex.SetPixels(pixels);
             tex.Apply();

@@ -13,13 +13,22 @@ namespace Rally.EditorTools
     /// </summary>
     public static class StageTheme
     {
-        public enum Kind { Forest = 0, Snow = 1, Desert = 2, Coast = 3 }
+        public enum Kind { Forest = 0, Snow = 1, Desert = 2, Coast = 3, Night = 4 }
 
         public static Kind Current { get; set; } = Kind.Forest;
         public static bool Snow => Current == Kind.Snow;
         public static bool Desert => Current == Kind.Desert;
         public static bool Coast => Current == Kind.Coast;
-        private static string Suffix => Snow ? "_Snow" : Desert ? "_Desert" : Coast ? "_Coast" : "";
+        /// <summary>The pine forest at night: stage 1's textures, materials and terrain layers, its own everything else.</summary>
+        public static bool Night => Current == Kind.Night;
+        public static bool ForestLike => Current == Kind.Forest || Night;
+        private static string Suffix => Snow ? "_Snow" : Desert ? "_Desert" : Coast ? "_Coast" : Night ? "_Night" : "";
+
+        /// <summary>
+        /// Name for assets saved in place (textures, materials, terrain layers): the night stage shares stage 1's,
+        /// which keeps the download small. Other themes get their own copies.
+        /// </summary>
+        public static string SharedName(string baseName) => Night ? baseName : Name(baseName);
 
         /// <summary>Asset name for the current theme ("Road_Dirt" → "Road_Dirt_Snow" in the snow build).</summary>
         public static string Name(string baseName) =>

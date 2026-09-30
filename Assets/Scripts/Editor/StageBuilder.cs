@@ -29,6 +29,7 @@ namespace Rally.EditorTools
         public const string SnowScenePath = "Assets/Scenes/Stage02.unity";
         public const string DesertScenePath = "Assets/Scenes/Stage03.unity";
         public const string CoastScenePath = "Assets/Scenes/Stage04.unity";
+        public const string NightScenePath = "Assets/Scenes/Stage05.unity";
         private const string DataFolder = "Assets/Settings/Rally";
 
         [MenuItem("Rally/Build Stage (full)")]
@@ -59,6 +60,13 @@ namespace Rally.EditorTools
             finally { EditorUtility.ClearProgressBar(); }
         }
 
+        [MenuItem("Rally/Build Night Stage 05 (full)")]
+        public static void BuildNightFromMenu()
+        {
+            try { BuildNight(); }
+            finally { EditorUtility.ClearProgressBar(); }
+        }
+
         /// <summary>Entry point for -executeMethod in batch mode.</summary>
         public static void BuildFromCommandLine() => RunInBatch(Build);
 
@@ -71,9 +79,13 @@ namespace Rally.EditorTools
         /// <summary>Entry point for -executeMethod in batch mode (coastal tarmac stage).</summary>
         public static void BuildCoastFromCommandLine() => RunInBatch(BuildCoast);
 
+        /// <summary>Entry point for -executeMethod in batch mode (night stage).</summary>
+        public static void BuildNightFromCommandLine() => RunInBatch(BuildNight);
+
         public static void BuildSnow() => Build("Stage02", SnowScenePath, StageTheme.Kind.Snow);
         public static void BuildDesert() => Build("Stage03", DesertScenePath, StageTheme.Kind.Desert);
         public static void BuildCoast() => Build("Stage04", CoastScenePath, StageTheme.Kind.Coast);
+        public static void BuildNight() => Build("Stage05", NightScenePath, StageTheme.Kind.Night);
 
         private static void RunInBatch(System.Action build)
         {
@@ -101,7 +113,7 @@ namespace Rally.EditorTools
         private static void BuildStage(string stageAsset, string scenePath)
         {
             var timer = System.Diagnostics.Stopwatch.StartNew();
-            bool snow = StageTheme.Snow, desert = StageTheme.Desert, coast = StageTheme.Coast;
+            bool snow = StageTheme.Snow, desert = StageTheme.Desert, coast = StageTheme.Coast, night = StageTheme.Night;
             ProjectSetup.Apply();
             Directory.CreateDirectory(DataFolder);
             Directory.CreateDirectory("Assets/Scenes");
@@ -112,6 +124,7 @@ namespace Rally.EditorTools
                     if (snow) d.ResetToSnowStage();
                     else if (desert) d.ResetToDesertStage();
                     else if (coast) d.ResetToCoastStage();
+                    else if (night) d.ResetToNightStage();
                     else d.ResetToDefaultStage();
                 });
             var tuning = LoadOrCreate<CarTuning>($"{DataFolder}/CarTuning.asset", null);
@@ -144,7 +157,7 @@ namespace Rally.EditorTools
             Progress("Cars", 0.18f);
             var liveries = Liveries();
             var carPrefabs = new List<GameObject>();
-            if (snow || desert || coast)
+            if (snow || desert || coast || night)
             {
                 // Same cars as stage 1 (the stage swaps in its own grip table at runtime).
                 foreach (var livery in liveries)
@@ -241,11 +254,11 @@ namespace Rally.EditorTools
             skid.AddComponent<SkidMarks>();
 
             var weather = new GameObject("Weather").AddComponent<WeatherEffects>();
-            weather.Configure(cam.transform, lib.mote, lib.drizzle, lib.fogWisp, snow, desert, coast);
+            weather.Configure(cam.transform, lib.mote, lib.drizzle, lib.fogWisp, snow, desert, coast || night);
             FogZoneBuilder.Build(def, path);
             FogZoneBuilder.EnsureController();
 
-            if ((coast || StageTheme.Current == StageTheme.Kind.Forest) && lib.sheep != null) AddSheepCrossings(path, lib.sheep.GetComponent<Sheep>());
+            if ((coast || StageTheme.ForestLike) && lib.sheep != null) AddSheepCrossings(path, lib.sheep.GetComponent<Sheep>());
 
             new GameObject("StageAudio").AddComponent<StageAudio>();
             new GameObject("HUD").AddComponent<RaceHUD>();
@@ -408,21 +421,22 @@ namespace Rally.EditorTools
             var sunGo = new GameObject("Sun");
             var sun = sunGo.AddComponent<Light>();
             sun.type = LightType.Directional;
-            bool snow = StageTheme.Snow, desert = StageTheme.Desert, coast = StageTheme.Coast;
-            sun.color = snow ? new Color(0.93f, 0.96f, 1f) : desert ? new Color(1f, 0.92f, 0.78f) : coast ? new Color(1f, 0.62f, 0.36f) : new Color(1f, 0.95f, 0.88f);
+            bool snow = StageTheme.Snow, desert = StageTheme.Desert, coast = StageTheme.Coast, night = StageTheme.Night;
+            sun.color = night ? new Color(0.55f, 0.66f, 1f) : snow ? new Color(0.93f, 0.96f, 1f) : desert ? new Color(1f, 0.92f, 0.78f) : coast ? new Color(1f, 0.62f, 0.36f) : new Color(1f, 0.95f, 0.88f);
             // Desert: strong, high sun with hard shadows. Coast: low sunset sun with long shadows.
-            sun.intensity = snow ? 1.7f : desert ? 2.7f : coast ? 1.7f : 2.1f;
+            sun.intensity = night ? 0.35f : snow ? 1.7f : desert ? 2.7f : coast ? 1.7f : 2.1f;
             sun.shadows = LightShadows.Soft;
-            sun.shadowStrength = snow ? 0.6f : desert ? 0.85f : coast ? 0.75f : 0.72f;
+            sun.shadowStrength = night ? 0.5f : snow ? 0.6f : desert ? 0.85f : coast ? 0.75f : 0.72f;
             sun.shadowBias = 0.04f;
             sun.shadowNormalBias = 0.3f;
             // Coast: 15° golden-hour sun; lower put most of the road in the hills' long shadows (near black on the web).
-            sunGo.transform.rotation = Quaternion.Euler(desert ? 55f : coast ? 15f : 36f, -38f, 0f);
+            sunGo.transform.rotation = night ? Quaternion.Euler(40f, 150f, 0f) // the moon
+                : Quaternion.Euler(desert ? 55f : coast ? 15f : 36f, -38f, 0f);
             sunGo.AddComponent<UniversalAdditionalLightData>();
 
             // Sky, ambient, fog.
-            var skyTex = desert ? ProceduralTextures.ClearSky() : coast ? ProceduralTextures.SunsetSky() : ProceduralTextures.OvercastSky();
-            var sky = new Material(Shader.Find("Skybox/Panoramic")) { name = desert ? "Sky_Clear" : coast ? "Sky_Sunset" : "Sky_Overcast" };
+            var skyTex = night ? ProceduralTextures.NightSky() : desert ? ProceduralTextures.ClearSky() : coast ? ProceduralTextures.SunsetSky() : ProceduralTextures.OvercastSky();
+            var sky = new Material(Shader.Find("Skybox/Panoramic")) { name = night ? "Sky_Night" : desert ? "Sky_Clear" : coast ? "Sky_Sunset" : "Sky_Overcast" };
             sky.SetTexture("_MainTex", skyTex);
             sky.SetFloat("_Mapping", 1f);
             sky.SetFloat("_ImageType", 0f);
@@ -433,15 +447,15 @@ namespace Rally.EditorTools
             RenderSettings.skybox = sky;
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = snow ? new Color(0.84f, 0.88f, 0.96f) : desert ? new Color(0.72f, 0.8f, 0.92f) : coast ? new Color(0.64f, 0.6f, 0.76f) : new Color(0.78f, 0.82f, 0.88f);
-            RenderSettings.ambientEquatorColor = snow ? new Color(0.76f, 0.8f, 0.87f) : desert ? new Color(0.84f, 0.74f, 0.6f) : coast ? new Color(0.92f, 0.68f, 0.54f) : new Color(0.62f, 0.64f, 0.6f);
+            RenderSettings.ambientSkyColor = night ? new Color(0.09f, 0.11f, 0.2f) : snow ? new Color(0.84f, 0.88f, 0.96f) : desert ? new Color(0.72f, 0.8f, 0.92f) : coast ? new Color(0.64f, 0.6f, 0.76f) : new Color(0.78f, 0.82f, 0.88f);
+            RenderSettings.ambientEquatorColor = night ? new Color(0.05f, 0.06f, 0.1f) : snow ? new Color(0.76f, 0.8f, 0.87f) : desert ? new Color(0.84f, 0.74f, 0.6f) : coast ? new Color(0.92f, 0.68f, 0.54f) : new Color(0.62f, 0.64f, 0.6f);
             // Snow and sand bounce a lot of light back up.
-            RenderSettings.ambientGroundColor = snow ? new Color(0.68f, 0.71f, 0.78f) : desert ? new Color(0.62f, 0.5f, 0.36f) : coast ? new Color(0.42f, 0.34f, 0.3f) : new Color(0.32f, 0.3f, 0.26f);
+            RenderSettings.ambientGroundColor = night ? new Color(0.03f, 0.03f, 0.045f) : snow ? new Color(0.68f, 0.71f, 0.78f) : desert ? new Color(0.62f, 0.5f, 0.36f) : coast ? new Color(0.42f, 0.34f, 0.3f) : new Color(0.32f, 0.3f, 0.26f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Exponential;
             // Desert calima: warm haze that softens the distance but still shows the next corners (~300 m to half fog).
-            RenderSettings.fogDensity = snow ? 0.0036f : desert ? 0.0023f : coast ? 0.0014f : 0.0026f; // coast: clear evening air
-            RenderSettings.fogColor = snow ? new Color(0.86f, 0.89f, 0.94f) : desert ? new Color(0.87f, 0.79f, 0.66f) : coast ? new Color(0.86f, 0.62f, 0.52f) : new Color(0.68f, 0.71f, 0.74f);
+            RenderSettings.fogDensity = night ? 0.0045f : snow ? 0.0036f : desert ? 0.0023f : coast ? 0.0014f : 0.0026f; // coast: clear evening air
+            RenderSettings.fogColor = night ? new Color(0.03f, 0.04f, 0.07f) : snow ? new Color(0.86f, 0.89f, 0.94f) : desert ? new Color(0.87f, 0.79f, 0.66f) : coast ? new Color(0.86f, 0.62f, 0.52f) : new Color(0.68f, 0.71f, 0.74f);
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
             RenderSettings.reflectionIntensity = 1f;
 
@@ -462,19 +476,19 @@ namespace Rally.EditorTools
             var tonemap = profile.Add<Tonemapping>(true);
             tonemap.mode.Override(TonemappingMode.ACES);
             var color = profile.Add<ColorAdjustments>(true);
-            color.postExposure.Override(snow ? 0.1f : desert ? 0.05f : coast ? 0.3f : 0.35f); // snow and sand are bright already
+            color.postExposure.Override(night ? 0.55f : snow ? 0.1f : desert ? 0.05f : coast ? 0.3f : 0.35f); // snow and sand are bright already
             color.contrast.Override(desert ? 18f : coast ? 16f : 14f);
-            color.saturation.Override(desert ? 8f : coast ? 12f : 2f);
+            color.saturation.Override(night ? -8f : desert ? 8f : coast ? 12f : 2f);
             color.colorFilter.Override(desert ? new Color(1f, 0.96f, 0.9f) : coast ? new Color(1f, 0.95f, 0.92f) : new Color(0.98f, 0.99f, 1f));
             var wb = profile.Add<WhiteBalance>(true);
-            wb.temperature.Override(snow ? -14f : desert ? 16f : coast ? 20f : -6f); // desert and sunset: warm tones
+            wb.temperature.Override(night ? -22f : snow ? -14f : desert ? 16f : coast ? 20f : -6f); // desert and sunset: warm tones
             if (desert) wb.tint.Override(3f);
             if (coast) wb.tint.Override(6f); // a touch of sunset pink
             var smh = profile.Add<ShadowsMidtonesHighlights>(true);
             smh.shadows.Override(new Vector4(0.95f, 1f, 1.05f, -0.02f));
             var bloom = profile.Add<Bloom>(true);
-            bloom.threshold.Override(desert ? 1f : coast ? 0.95f : 1.05f);
-            bloom.intensity.Override(desert ? 0.35f : coast ? 0.5f : 0.28f); // coast: the lamps and the low sun glow
+            bloom.threshold.Override(night ? 0.9f : desert ? 1f : coast ? 0.95f : 1.05f);
+            bloom.intensity.Override(night ? 0.6f : desert ? 0.35f : coast ? 0.5f : 0.28f); // night: headlights and tail lights glow // coast: the lamps and the low sun glow
             bloom.scatter.Override(0.6f);
             var vignette = profile.Add<Vignette>(true);
             vignette.intensity.Override(0.2f);

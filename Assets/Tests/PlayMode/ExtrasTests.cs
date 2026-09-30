@@ -363,6 +363,58 @@ namespace Rally.Tests
             Assert.AreEqual(scene, UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle, "Skipping must not reload the stage.");
         }
 
+        /// <summary>QA-31: the night stage: dark sky and fog, and every car carries working headlights.</summary>
+        [UnityTest]
+        public IEnumerator QA31_NightStage_HeadlightsOnEveryCar()
+        {
+            yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Stage05");
+            float t = 0f;
+            while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            var race = RaceManager.Instance;
+            Assert.AreEqual(Rally.Track.StageDefinition.NightTheme, race.Stage.theme);
+            Assert.AreEqual("PINAR DE NOCHE", race.Stage.stageName);
+            yield return null;
+            foreach (var p in race.Participants)
+            {
+                var lights = p.GetComponent<Headlights>();
+                Assert.IsNotNull(lights, $"{p.DisplayName} needs headlights.");
+                Assert.IsNotNull(lights.Beam);
+                Assert.AreEqual(LightType.Spot, lights.Beam.type);
+                Assert.AreEqual(LightShadows.None, lights.Beam.shadows, "No shadows from headlights (web performance).");
+            }
+            Assert.Less(RenderSettings.fogColor.grayscale, 0.1f, "Dark night fog.");
+            Assert.Less(RenderSettings.sun.intensity, 0.6f, "Moonlight, not daylight.");
+        }
+
+        /// <summary>Not a check: renders the night stage while driving, to RALLY_SHOT_DIR, to review how it looks.</summary>
+        [UnityTest, Explicit("Renders screenshots for review.")]
+        public IEnumerator NightStage_Screenshots()
+        {
+            string dir = System.Environment.GetEnvironmentVariable("RALLY_SHOT_DIR");
+            if (string.IsNullOrEmpty(dir)) dir = Application.temporaryCachePath;
+            yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Stage05");
+            float t = 0f;
+            while ((RaceManager.Instance == null || RaceManager.Instance.Player == null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            var race = RaceManager.Instance;
+            race.BeginCountdown();
+            t = 0f;
+            while (race.CurrentState != RaceManager.State.Racing && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            var car = race.Player.Car;
+            car.Body.linearVelocity = race.Path.TangentAt(race.Player.Distance) * 20f;
+            for (int i = 0; i < 2; i++)
+            {
+                yield return new WaitForSeconds(2f);
+                var cam = Camera.main;
+                var rt = new RenderTexture(1280, 720, 24);
+                cam.targetTexture = rt; cam.Render();
+                RenderTexture.active = rt;
+                var tex = new Texture2D(1280, 720, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0); tex.Apply();
+                System.IO.File.WriteAllBytes($"{dir}/night-{i}.png", tex.EncodeToPNG());
+                cam.targetTexture = null; RenderTexture.active = null;
+            }
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()
