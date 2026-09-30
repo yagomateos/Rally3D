@@ -14,7 +14,7 @@ namespace Rally.UI
         private CanvasGroup intro, pause, results;
         private Text sensorStatus, sensitivityLabel;
         private Text introPrompt, resultTitle, resultTime, resultBest, resultPosition, resultNewBest, resultStandings;
-        private Button pauseDefault, resultsDefault;
+        private Button pauseDefault, resultsDefault, resultsMenu;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         private static string StartPrompt => Application.isMobilePlatform ? "TOCA LA PANTALLA PARA EMPEZAR" : "HAZ CLIC O PULSA  ENTER  /  A  PARA EMPEZAR";
@@ -140,9 +140,15 @@ namespace Rally.UI
             UIFactory.Panel("Line", pause.transform, c, new Vector2(0f, 130f), new Vector2(120f, 4f), UIFactory.Accent);
 
             pauseDefault = UIFactory.Button("Resume", pause.transform, c, new Vector2(0f, 40f), new Vector2(420f, 70f), "CONTINUAR", () => race.SetPaused(false));
-            UIFactory.Button("Restart", pause.transform, c, new Vector2(0f, -45f), new Vector2(420f, 70f), "REPETIR TRAMO", () => race.Restart());
+            var restart = UIFactory.Button("Restart", pause.transform, c, new Vector2(0f, -45f), new Vector2(420f, 70f), "REPETIR TRAMO", () => race.Restart());
             // Back to the main menu (car choice, options). Quitting the game lives in the main menu.
-            UIFactory.Button("Menu", pause.transform, c, new Vector2(0f, -130f), new Vector2(420f, 70f), "SALIR AL MENÚ", () => race.ExitToMenu());
+            var menu = UIFactory.Button("Menu", pause.transform, c, new Vector2(0f, -130f), new Vector2(420f, 70f), "SALIR AL MENÚ", () => race.ExitToMenu());
+            if (Championship.Active)
+            {
+                // No second tries in a championship; leaving ends it.
+                restart.gameObject.SetActive(false);
+                menu.GetComponentInChildren<Text>().text = "ABANDONAR CAMPEONATO";
+            }
             UIFactory.Button("Quit", pause.transform, c, new Vector2(0f, -215f), new Vector2(420f, 70f), "SALIR DEL JUEGO", () => race.Quit());
 
             if (Application.isMobilePlatform)
@@ -232,7 +238,7 @@ namespace Rally.UI
 
             resultsDefault = UIFactory.Button("Restart", panel.transform, new Vector2(0.5f, 0f), new Vector2(-150f, 60f), new Vector2(270f, 64f),
                 "REPETIR", () => race.Restart());
-            UIFactory.Button("Menu", panel.transform, new Vector2(0.5f, 0f), new Vector2(150f, 60f), new Vector2(270f, 64f),
+            resultsMenu = UIFactory.Button("Menu", panel.transform, new Vector2(0.5f, 0f), new Vector2(150f, 60f), new Vector2(270f, 64f),
                 "MENÚ", () => race.ExitToMenu());
         }
 
@@ -250,6 +256,7 @@ namespace Rally.UI
             bool won = position == 1 && race.Participants.Count > 1;
             resultTitle.text = won ? "¡VICTORIA!" : "TRAMO COMPLETADO";
             resultTitle.color = won ? UIFactory.Accent : UIFactory.TextMain;
+            if (Championship.Active) won = ChampionshipResults() || won;
             Show(results, true);
             if (won) Celebration.Play(results.transform);
             EventSystem.current?.SetSelectedGameObject(resultsDefault.gameObject);
@@ -270,7 +277,46 @@ namespace Rally.UI
                     0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 4f));
 
             // Standings on the results page keep updating as rivals finish.
-            if (results.alpha > 0f && Time.frameCount % 30 == 0) RefreshStandings();
+            if (results.alpha > 0f && Time.frameCount % 30 == 0 && !Championship.Active) RefreshStandings();
+        }
+
+        /// <summary>
+        /// Championship results: overall standings with gaps, and the buttons to go on (SIGUIENTE TRAMO) or leave.
+        /// After the last stage, the final classification. Returns true when the player has won the championship.
+        /// </summary>
+        private bool ChampionshipResults()
+        {
+            var list = Championship.Standings();
+            float leader = list.Count > 0 ? list[0].total : 0f;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"CAMPEONATO  ·  {Championship.StagesDone} DE {Championship.StageCount} TRAMOS");
+            for (int i = 0; i < list.Count; i++)
+            {
+                var e = list[i];
+                string gap = i == 0 ? RaceManager.FormatTime(e.total) : "+" + RaceManager.FormatTime(e.total - leader);
+                sb.AppendLine($"{i + 1}.  {e.name}    {gap}");
+            }
+            resultStandings.text = sb.ToString();
+
+            var next = resultsDefault.GetComponentInChildren<Text>();
+            resultsDefault.onClick.RemoveAllListeners();
+            resultsMenu.onClick.RemoveAllListeners();
+            if (Championship.IsLastStage)
+            {
+                int pos = Championship.PlayerPosition();
+                bool champion = pos == 1 && list.Count > 1;
+                resultTitle.text = champion ? "¡CAMPEÓN!" : $"CAMPEONATO: {pos}º";
+                resultTitle.color = champion ? UIFactory.Accent : UIFactory.TextMain;
+                next.text = "MENÚ";
+                resultsDefault.onClick.AddListener(() => race.ExitToMenu());
+                resultsMenu.gameObject.SetActive(false);
+                return champion;
+            }
+            next.text = "SIGUIENTE TRAMO";
+            resultsDefault.onClick.AddListener(Championship.NextStage);
+            resultsMenu.GetComponentInChildren<Text>().text = "ABANDONAR";
+            resultsMenu.onClick.AddListener(() => race.ExitToMenu());
+            return false;
         }
 
         private void RefreshStandings()

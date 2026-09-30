@@ -203,6 +203,58 @@ namespace Rally.Tests
             finally { GraphicsQuality.Setting = before; }
         }
 
+        /// <summary>
+        /// QA-27: championship rules. Times add up across stages, rivals still on the stage get an estimate, no stage
+        /// restarts, and the results offer the next stage.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator QA27_Championship_AddsTimesAndMovesOn()
+        {
+            Championship.Begin();
+            try
+            {
+                yield return LoadStage();
+                yield return StartRace();
+                Assert.IsTrue(Championship.Active);
+
+                // Finish the stage after a moment (player first; rivals still driving).
+                yield return new WaitForSeconds(2f);
+                foreach (var checkpoint in Race.Checkpoints) Player.NotifyCheckpoint(checkpoint);
+                float t = 0f;
+                while (!Race.ResultsShown && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
+                Assert.IsTrue(Race.ResultsShown);
+                Assert.AreEqual(1, Championship.StagesDone, "The first stage's times should be added.");
+                var standings = Championship.Standings();
+                Assert.AreEqual(Race.Participants.Count, standings.Count);
+                Assert.IsTrue(standings.All(e => e.total > 0f), "Every driver needs a time (estimated if still running).");
+                var mine = standings.First(e => e.isPlayer);
+                Assert.AreEqual(Player.FinishTime, mine.total, 0.01f);
+
+                // No restarts in a championship.
+                var before = UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle;
+                Race.Restart();
+                yield return null;
+                Assert.AreEqual(before, UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle, "Restart must do nothing in a championship.");
+
+                // Recording twice for the same stage must not add the times again.
+                Championship.RecordStage(Race);
+                Assert.AreEqual(mine.total, Championship.Standings().First(e => e.isPlayer).total, 0.01f);
+                Assert.IsFalse(Championship.IsLastStage);
+
+                // SIGUIENTE TRAMO: stage 2 loads and starts on its own; a second press in the same moment is ignored.
+                Championship.NextStage();
+                Championship.NextStage();
+                t = 0f;
+                while ((UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "Stage02" || RaceManager.Instance == null
+                        || RaceManager.Instance.CurrentState == RaceManager.State.Intro) && t < 20f)
+                { t += Time.unscaledDeltaTime; yield return null; }
+                Assert.AreEqual("Stage02", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                Assert.AreEqual(1, Championship.StageIndex, "One press, one stage.");
+                Assert.AreNotEqual(RaceManager.State.Intro, RaceManager.Instance.CurrentState, "The next stage should start straight away.");
+            }
+            finally { Championship.Abandon(); }
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()

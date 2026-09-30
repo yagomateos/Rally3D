@@ -18,6 +18,7 @@ namespace Rally.UI
         private static readonly float[] Volumes = { 1f, 0.75f, 0.5f, 0.25f, 0f };
 
         private RaceManager race;
+        private bool championshipPick;
         private CanvasGroup mainScreen, stageScreen, carScreen, optionsScreen, controlsScreen, current;
         private Button firstStageButton;
         private int stageIndex;
@@ -112,11 +113,13 @@ namespace Rally.UI
             UIFactory.Label("Stage", t, new Vector2(0f, 1f), new Vector2(120f, -270f), new Vector2(700f, 40f),
                 $"{race.Stage.stageNumber}  ·  {race.Stage.stageName}", 30, TextAnchor.MiddleLeft, UIFactory.TextDim);
 
-            playButton = MenuButton(t, "Play", -380f, "JUGAR", () => Open(stageScreen, firstStageButton));
-            MenuButton(t, "Controls", -484f, "CONTROLES", () => Open(controlsScreen, controlsBack));
-            MenuButton(t, "Options", -588f, "OPCIONES", () => { RefreshOptions(); Open(optionsScreen, volumeButton); });
+            playButton = MenuButton(t, "Play", -380f, "JUGAR", () => { championshipPick = false; Open(stageScreen, firstStageButton); });
+            // The four stages in a row, times added up: straight to the car choice.
+            MenuButton(t, "Championship", -484f, "CAMPEONATO", () => { championshipPick = true; Open(carScreen, startButton); });
+            MenuButton(t, "Controls", -588f, "CONTROLES", () => Open(controlsScreen, controlsBack));
+            MenuButton(t, "Options", -692f, "OPCIONES", () => { RefreshOptions(); Open(optionsScreen, volumeButton); });
             // On the web this shows an exit screen (a page cannot close its own tab); elsewhere it quits.
-            MenuButton(t, "Quit", -692f, "SALIR", () => race.Quit());
+            MenuButton(t, "Quit", -796f, "SALIR", () => race.Quit());
 
             UIFactory.Label("Best", t, new Vector2(0f, 0f), new Vector2(120f, 60f), new Vector2(700f, 36f),
                 "MEJOR TIEMPO  " + RaceManager.FormatTime(race.BestTime), 26, TextAnchor.MiddleLeft, UIFactory.TextDim);
@@ -199,7 +202,8 @@ namespace Rally.UI
             UIFactory.Button("Prev", t, new Vector2(0f, 0.5f), new Vector2(60f, 40f), new Vector2(130f, 130f), "<", () => ShowCar(carIndex - 1));
             UIFactory.Button("Next", t, new Vector2(1f, 0.5f), new Vector2(-60f, 40f), new Vector2(130f, 130f), ">", () => ShowCar(carIndex + 1));
 
-            UIFactory.Button("Back", t, new Vector2(0.5f, 0f), new Vector2(-310f, 40f), new Vector2(380f, 84f), "VOLVER", () => Open(stageScreen, firstStageButton));
+            UIFactory.Button("Back", t, new Vector2(0.5f, 0f), new Vector2(-310f, 40f), new Vector2(380f, 84f), "VOLVER",
+                () => { if (championshipPick) Open(mainScreen, playButton); else Open(stageScreen, firstStageButton); });
             startButton = UIFactory.Button("Start", t, new Vector2(0.5f, 0f), new Vector2(310f, 40f), new Vector2(380f, 84f), "EMPEZAR", StartStage);
         }
 
@@ -330,6 +334,12 @@ namespace Rally.UI
         private void StartStage()
         {
             CarCatalog.Selected = carIndex;
+            if (championshipPick)
+            {
+                Championship.Begin();
+                RaceManager.LoadStageAndStart(Championship.CurrentScene);
+                return;
+            }
             if (stageIndex != StageCatalog.Current)
             {
                 // Another stage: load it and start straight away (it applies the chosen car when it loads).

@@ -34,7 +34,7 @@ namespace Rally.UI
         /// </summary>
         public static void WrapColumn(Transform screen)
         {
-            var buttons = screen.GetComponentsInChildren<Selectable>(true)
+            var buttons = screen.GetComponentsInChildren<Selectable>(false) // hidden buttons are left out of the loop
                 .Where(b => b.transform is RectTransform)
                 .ToList();
             if (buttons.Count < 2) return;

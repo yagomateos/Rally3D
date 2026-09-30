@@ -108,6 +108,7 @@ namespace Rally.Systems
         {
             Instance = this;
             reloading = false;
+            Championship.StageLoaded();
             CurrentState = OpenMenuOnLoad ? State.Menu : State.Intro;
             OpenMenuOnLoad = false;
             Time.timeScale = 1f;
@@ -196,7 +197,13 @@ namespace Rally.Systems
             }
 
             if (input.RestartStage.WasPressedThisFrame() && !BeforeStart) Restart();
-            if (ResultsShown && input.Confirm.WasPressedThisFrame()) Restart();
+            if (ResultsShown && input.Confirm.WasPressedThisFrame())
+            {
+                // In a championship, confirming the results goes on to the next stage (or back to the menu at the end).
+                if (!Championship.Active) Restart();
+                else if (Championship.IsLastStage) ExitToMenu();
+                else Championship.NextStage();
+            }
         }
 
         /// <summary>
@@ -330,6 +337,7 @@ namespace Rally.Systems
 
         private void ShowResults()
         {
+            Championship.RecordStage(this);
             ResultsShown = true;
             PlayerResultsReady?.Invoke();
         }
@@ -366,6 +374,7 @@ namespace Rally.Systems
 
         public void Restart()
         {
+            if (Championship.Active) return; // no second tries in a championship
             OpenMenuOnLoad = false;
             ReloadStage();
         }
@@ -373,6 +382,7 @@ namespace Rally.Systems
         /// <summary>Back to the main menu (reloads the stage so every car, clock and effect starts clean).</summary>
         public void ExitToMenu()
         {
+            Championship.Abandon(); // leaving mid-championship (or after it) ends it
             OpenMenuOnLoad = true;
             ReloadStage();
         }
