@@ -104,7 +104,7 @@ namespace Rally.Car
         private void Dent(Vector3 worldPoint, Vector3 worldNormal, float over)
         {
             if (body == null) return;
-            if (bodyMesh == null)
+            if (bodyMesh == null || body.sharedMesh != bodyMesh) // first dent, or the body model was swapped
             {
                 bodyMesh = body.mesh; // instance: other cars keep their own shape
                 original = bodyMesh.vertices;

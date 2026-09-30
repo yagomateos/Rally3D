@@ -44,7 +44,7 @@ Todo lo necesario para la página del juego. Publicarla lo tienes que hacer tú 
 > Corre contra dos rivales con un copiloto que te canta las curvas. Cuidado con las ovejas que se cruzan en la
 > carretera. Juega el **campeonato** de cinco tramos, bate tu **coche fantasma** y entra en la **tabla de tiempos**.
 >
-> - 5 coches con manejos distintos, entre ellos uno de tracción trasera y un Grupo B.
+> - 5 coches inspirados en los clásicos del rally (una berlina de los 90, un Grupo B, un tracción trasera de los 70...), cada uno con su manejo.
 > - Daños en la carrocería, repetición con cámaras de televisión y celebración al ganar.
 > - En el móvil: inclina el teléfono o usa el mando en pantalla, con ayuda de conducción opcional.
 > - Todo generado por código con Unity: terreno, coches, texturas, música y sonidos.
@@ -67,7 +67,7 @@ Todo lo necesario para la página del juego. Publicarla lo tienes que hacer tú 
 > Race two rivals while your co-driver calls the corners, and watch out for sheep crossing the road. Play the
 > five-stage **championship**, beat your own **ghost** and climb the **best-times table**.
 >
-> - 5 cars with different handling, including a rear-wheel-drive classic and a Group B monster.
+> - 5 cars inspired by rally legends (a 90s WRC saloon, a Group B monster, a 70s rear-wheel-drive classic...), each with its own handling.
 > - Body damage, TV-style replays and a victory celebration.
 > - On phones: tilt to steer or use the on-screen gamepad, with an optional driving assist.
 > - Everything generated from code in Unity: terrain, cars, textures, music and sounds.

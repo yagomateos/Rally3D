@@ -7,13 +7,16 @@ namespace Rally.Systems
     /// <summary>
     /// The cars the player can pick in the main menu. Each one is one of the three liveries built into the
     /// stage, with its own handling: the player's car gets that livery (swapping with the rival who wore it)
-    /// and a private copy of the tuning with the car's modifiers applied.
+    /// and a private copy of the tuning with the car's modifiers applied. Each car also has its own body
+    /// (Resources/CarModels, built by CarModelFactory), inspired by a classic rally car but with an invented
+    /// name and no brand: rivals wear the body of the car their livery belongs to.
     /// </summary>
     public static class CarCatalog
     {
         public struct Entry
         {
             public string livery;      // livery / prefab name used by the stage builder (materials Paint_<livery> ...)
+            public string model;       // body mesh in Resources/CarModels
             public string name;        // shown in the menu
             public string description;
             public int speed, acceleration, grip; // 1..5, for the menu bars
@@ -24,17 +27,25 @@ namespace Rally.Systems
             public string number;
         }
 
+        public const string ModelFolder = "CarModels";
+        public const string ModelPleyades = "Pleyades", ModelLanza = "Lanza", ModelItalica = "Italica",
+            ModelEscolta = "Escolta", ModelLeon = "Leon";
+
+        public static string ModelMeshName(string model) => "M_Car_" + model;
+
         public static readonly Entry[] Cars =
         {
             new Entry
             {
-                livery = "PlayerCar", name = "VALDENIEBLA  #7", description = "EQUILIBRADO. FÁCIL DE LLEVAR EN TODAS LAS SUPERFICIES.",
+                livery = "RivalCar_Azure", model = ModelPleyades, name = "PLÉYADES WRX  #3",
+                description = "AÑOS 90. EQUILIBRADO Y FÁCIL DE LLEVAR EN TODAS LAS SUPERFICIES.",
                 speed = 3, acceleration = 3, grip = 4,
                 modify = t => { }
             },
             new Entry
             {
-                livery = "RivalCar_Azure", name = "AZUR  #3", description = "EL MÁS RÁPIDO EN RECTA, PERO PATINA MÁS EN LAS CURVAS.",
+                livery = "RivalCar_Crimson", model = ModelLanza, name = "LANZA EVO  #11",
+                description = "EL MÁS RÁPIDO EN RECTA, PERO PATINA MÁS EN LAS CURVAS.",
                 speed = 5, acceleration = 4, grip = 2,
                 modify = t =>
                 {
@@ -47,8 +58,10 @@ namespace Rally.Systems
             },
             new Entry
             {
-                livery = "RivalCar_Crimson", name = "CARMESÍ  #11", description = "MUCHO AGARRE Y GIRO RÁPIDO. MENOS PUNTA.",
+                livery = "PlayerCar", model = ModelItalica, name = "ITÁLICA INTEGRAL  #7",
+                description = "AÑOS 80. MUCHO AGARRE Y GIRO RÁPIDO. MENOS PUNTA.",
                 speed = 2, acceleration = 3, grip = 5,
+                repaint = true, paint = new Color(0.92f, 0.92f, 0.9f), accent = new Color(0.8f, 0.08f, 0.08f), number = "7",
                 modify = t =>
                 {
                     t.sidewaysStiffness *= 1.08f;
@@ -60,9 +73,10 @@ namespace Rally.Systems
             },
             new Entry
             {
-                livery = "PlayerCar", name = "LEYENDA  #1", description = "TRACCIÓN TRASERA. DERRAPA CON FACILIDAD: PARA EXPERTOS.",
+                livery = "PlayerCar", model = ModelEscolta, name = "ESCOLTA MK1  #1",
+                description = "AÑOS 70, TRACCIÓN TRASERA. DERRAPA CON FACILIDAD: PARA EXPERTOS.",
                 speed = 3, acceleration = 4, grip = 2,
-                repaint = true, paint = new Color(0.05f, 0.28f, 0.14f), accent = new Color(0.95f, 0.75f, 0.2f), number = "1",
+                repaint = true, paint = new Color(0.93f, 0.9f, 0.82f), accent = new Color(0.1f, 0.28f, 0.7f), number = "1",
                 modify = t =>
                 {
                     t.rearTorqueBias = 1f;         // all the power to the rear wheels
@@ -75,9 +89,10 @@ namespace Rally.Systems
             },
             new Entry
             {
-                livery = "RivalCar_Crimson", name = "GRUPO B  #9", description = "MUCHÍSIMA POTENCIA Y PUNTA. MUY DIFÍCIL DE DOMAR.",
+                livery = "RivalCar_Crimson", model = ModelLeon, name = "LEÓN T16  #9",
+                description = "GRUPO B, MOTOR CENTRAL. MUCHÍSIMA POTENCIA: MUY DIFÍCIL DE DOMAR.",
                 speed = 5, acceleration = 5, grip = 2,
-                repaint = true, paint = new Color(0.07f, 0.07f, 0.08f), accent = new Color(1f, 0.82f, 0.1f), number = "9",
+                repaint = true, paint = new Color(0.99f, 0.99f, 0.99f), accent = new Color(1f, 0.78f, 0.08f), number = "9",
                 modify = t =>
                 {
                     t.peakTorque *= 1.28f;
@@ -126,6 +141,7 @@ namespace Rally.Systems
             }
 
             if (entry.repaint) Repaint(player, entry);
+            ApplyBodies(race, entry);
 
             var controller = player.Car;
             var current = controller.Tuning;
@@ -141,6 +157,74 @@ namespace Rally.Systems
         }
 
         private const string CopySuffix = " (jugador)";
+
+        /// <summary>
+        /// Body shapes: the player's car gets the chosen model; each rival the model of the car its livery
+        /// belongs to (the first catalogue entry wearing it without a repaint).
+        /// </summary>
+        private static void ApplyBodies(RaceManager race, Entry chosen)
+        {
+            foreach (var p in race.Participants)
+            {
+                string model = p == race.Player ? chosen.model : ModelForLivery(LiveryOf(p.gameObject));
+                var mesh = ModelMesh(model);
+                var body = p.transform.Find("Body");
+                var filter = body != null ? body.GetComponent<MeshFilter>() : null;
+                if (mesh != null && filter != null && filter.sharedMesh != mesh) filter.sharedMesh = mesh;
+                SetRims(p, model);
+            }
+        }
+
+        // Wheel colour of the cars known for it (gold, white or black rims); the rest keep the silver ones.
+        private static Color? RimColour(string model) =>
+            model == ModelPleyades ? new Color(0.78f, 0.6f, 0.2f) :
+            model == ModelLanza ? new Color(0.88f, 0.88f, 0.86f) :
+            model == ModelEscolta ? new Color(0.12f, 0.12f, 0.13f) : (Color?)null;
+
+        private const string RimMaterial = "Car_Rim";
+        private static readonly System.Collections.Generic.Dictionary<string, Material> rimMaterials =
+            new System.Collections.Generic.Dictionary<string, Material>();
+        private static Material silverRim;
+
+        private static void SetRims(RaceParticipant car, string model)
+        {
+            foreach (var r in car.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null || mats[i].name != RimMaterial) continue;
+                    if (silverRim == null && !rimMaterials.ContainsValue(mats[i])) silverRim = mats[i];
+                    var colour = RimColour(model);
+                    Material wanted = silverRim;
+                    if (colour != null && silverRim != null && (!rimMaterials.TryGetValue(model, out wanted) || wanted == null))
+                    {
+                        wanted = new Material(silverRim) { name = RimMaterial }; // same name: recognised on the next swap
+                        wanted.SetColor("_BaseColor", colour.Value);
+                        rimMaterials[model] = wanted;
+                    }
+                    if (wanted != null && mats[i] != wanted) { mats[i] = wanted; r.sharedMaterials = mats; }
+                }
+            }
+        }
+
+        private static string ModelForLivery(string livery)
+        {
+            foreach (var e in Cars) if (!e.repaint && e.livery == livery) return e.model;
+            foreach (var e in Cars) if (e.livery == livery) return e.model;
+            return null;
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<string, Mesh> models =
+            new System.Collections.Generic.Dictionary<string, Mesh>();
+
+        public static Mesh ModelMesh(string model)
+        {
+            if (string.IsNullOrEmpty(model)) return null;
+            if (!models.TryGetValue(model, out var mesh) || mesh == null)
+                models[model] = mesh = Resources.Load<Mesh>($"{ModelFolder}/{ModelMeshName(model)}");
+            return mesh;
+        }
 
         // Runtime paint clones on the player's car → the livery material they replaced (never edit the assets).
         private static readonly System.Collections.Generic.Dictionary<Material, Material> paintClones =

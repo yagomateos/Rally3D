@@ -30,7 +30,9 @@ sonidos. No usa assets de terceros. La versión web está preparada para **itch.
 ## Cómo se juega
 
 - **JUGAR:** eliges tramo y coche y corres contra dos rivales, o solo contra el reloj si desactivas los rivales.
-  Hay **cinco coches**, entre ellos LEYENDA #1 (tracción trasera) y GRUPO B #9 (muy potente).
+  Hay **cinco coches** inspirados en clásicos del rally, cada uno con su carrocería, decoración y manejo:
+  PLÉYADES WRX (equilibrado), LANZA EVO (rápido en recta), ITÁLICA INTEGRAL (mucho agarre),
+  ESCOLTA MK1 (tracción trasera) y LEÓN T16 (Grupo B, muy potente). Los nombres son inventados y no llevan marcas.
 - **CAMPEONATO:** los cinco tramos seguidos, con el tiempo de cada piloto sumado. Tras cada tramo ves la clasificación
   general. No se pueden repetir tramos. Si ganas, eres campeón.
 - **Reglas:**
@@ -86,6 +88,7 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
 ## Compilar y publicar
 
 - **Editor:** abre `Assets/Scenes/Stage01.unity` y pulsa Play.
+- **Regenerar las carrocerías de los coches:** menú **Rally ▸ Build Car Models** (se guardan en `Assets/Resources/CarModels`).
 - **Regenerar un tramo:** menú **Rally ▸ Build Stage (full)** (y *Build Snow Stage 02*, *Build Desert Stage 03*, *Build Coast Stage 04*,
   *Build Night Stage 05*).
   Genera primero el tramo 01, porque los demás usan sus coches.
@@ -108,7 +111,7 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
 
 ## Pruebas
 
-**35 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
+**36 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
 
 ```bash
 unity test . --mode PlayMode
@@ -126,7 +129,7 @@ unity test . --mode EditMode
 | Menús, mando y resultados | QA04, QA19 |
 | Límites del mapa, ayuda de conducción y calidad gráfica | QA20, QA25, QA26 |
 | Campeonato, fantasma, repetición y celebración | QA22, QA27, QA28, QA30 |
-| Coches nuevos, tramo nocturno y tabla de tiempos | QA29, QA31, QA32 |
+| Coches y carrocerías, tramo nocturno y tabla de tiempos | QA29, QA31, QA32, QA33 |
 | Build listo para publicar (EditMode) | QA05 |
 
 Además, el build web se prueba en Chrome automatizado, en PC y con un Android emulado (táctil, acelerómetro y red

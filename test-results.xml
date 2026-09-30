@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="39" result="Passed" total="39" passed="36" failed="0" inconclusive="0" skipped="3" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 20:01:03Z" end-time="2026-09-30 20:03:25Z" duration="142.6512518">
+  <test-suite type="TestSuite" id="1061" name="Rally 3D" fullname="Rally 3D" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-09-30 20:01:03Z" end-time="2026-09-30 20:03:25Z" duration="142.651252" total="39" passed="36" failed="0" inconclusive="0" skipped="3" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1055" name="Rally.Tests.PlayMode.dll" fullname="/Users/yagomateos/Proyectos/Rally3D/Library/ScriptAssemblies/Rally.Tests.PlayMode.dll" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-09-30 20:01:03Z" end-time="2026-09-30 20:03:25Z" duration="142.647952" total="39" passed="36" failed="0" inconclusive="0" skipped="3" asserts="0">
+      <properties>
+        <property name="_PID" value="93842" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1056" name="Rally" fullname="Rally" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-09-30 20:01:03Z" end-time="2026-09-30 20:03:25Z" duration="142.647525" total="39" passed="36" failed="0" inconclusive="0" skipped="3" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1057" name="Tests" fullname="Rally.Tests" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-09-30 20:01:03Z" end-time="2026-09-30 20:03:25Z" duration="142.647084" total="39" passed="36" failed="0" inconclusive="0" skipped="3" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="CoastStageTests" fullname="Rally.Tests.CoastStageTests" classname="Rally.Tests.CoastStageTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 20:01:03Z" end-time="2026-09-30 20:01:04Z" duration="0.866344" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1002" name="QA16_CoastStage_FastTarmacWithRailsLightsAndSigns" fullname="Rally.Tests.CoastStageTests.QA16_CoastStage_FastTarmacWithRailsLightsAndSigns" methodname="QA16_CoastStage_FastTarmacWithRailsLightsAndSigns" classname="Rally.Tests.CoastStageTests" runstate="Runnable" seed="1942773707" result="Passed" start-time="2026-09-30 20:01:03Z" end-time="2026-09-30 20:01:04Z" duration="0.861795" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[QA16] 8 curve signs, 58 street lights, limiter 213 -> 213 km/h
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1003" name="ContactTests" fullname="Rally.Tests.ContactTests" classname="Rally.Tests.ContactTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 20:01:04Z" end-time="2026-09-30 20:01:07Z" duration="3.952874" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1004" name="QA11_PlayerHitsRival_RivalIsPushedAndStunned" fullname="Rally.Tests.ContactTests.QA11_PlayerHitsRival_RivalIsPushedAndStunned" methodname="QA11_PlayerHitsRival_RivalIsPushedAndStunned" classname="Rally.Tests.ContactTests" runstate="Runnable" seed="392177118" result="Passed" start-time="2026-09-30 20:01:04Z" end-time="2026-09-30 20:01:07Z" duration="3.950064" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1005" name="DamageAndPenaltyTests" fullname="Rally.Tests.DamageAndPenaltyTests" classname="Rally.Tests.DamageAndPenaltyTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 20:01:07Z" end-time="2026-09-30 20:01:15Z" duration="7.151916" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1006" name="QA06_PlayerReset_AddsFiveSecondPenalty" fullname="Rally.Tests.DamageAndPenaltyTests.QA06_PlayerReset_AddsFiveSecondPenalty" methodname="QA06_PlayerReset_AddsFiveSecondPenalty" classname="Rally.Tests.DamageAndPenaltyTests" runstate="Runnable" seed="1687554853" result="Passed" start-time="2026-09-30 20:01:07Z" end-time="2026-09-30 20:01:11Z" duration="3.734485" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1007" name="QA07_HardFrontalHit_DamagesCarAndReducesPower" fullname="Rally.Tests.DamageAndPenaltyTests.QA07_HardFrontalHit_DamagesCarAndReducesPower" methodname="QA07_HardFrontalHit_DamagesCarAndReducesPower" classname="Rally.Tests.DamageAndPenaltyTests" runstate="Runnable" seed="457035438" result="Passed" start-time="2026-09-30 20:01:11Z" end-time="2026-09-30 20:01:15Z" duration="3.408789" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1008" name="DesertStageTests" fullname="Rally.Tests.DesertStageTests" classname="Rally.Tests.DesertStageTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 20:01:15Z" end-time="2026-09-30 20:01:15Z" duration="0.315243" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1009" name="QA15_DesertStage_UsesSandGripAndLooseSandOffRoad" fullname="Rally.Tests.DesertStageTests.QA15_DesertStage_UsesSandGripAndLooseSandOffRoad" methodname="QA15_DesertStage_UsesSandGripAndLooseSandOffRoad" classname="Rally.Tests.DesertStageTests" runstate="Runnable" seed="2099321921" result="Passed" start-time="2026-09-30 20:01:15Z" end-time="2026-09-30 20:01:15Z" duration="0.307996" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1010" name="DifficultyMeasureTests" fullname="Rally.Tests.DifficultyMeasureTests" classname="Rally.Tests.DifficultyMeasureTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 20:01:15Z" end-time="2026-09-30 20:01:15Z" duration="0.011037" total="1" passed="0" failed="0" inconclusive="0" skipped="1" asserts="0">
+            <properties />
+            <test-case id="1011" name="Measure_RivalStageTimes_PerDifficulty" fullname="Rally.Tests.DifficultyMeasureTests.Measure_RivalStageTimes_PerDifficulty" methodname="Measure_RivalStageTimes_PerDifficulty" classname="Rally.Tests.DifficultyMeasureTests" runstate="Explicit" seed="66922878" result="Skipped" label="Explicit" start-time="2026-09-30 20:01:15Z" end-time="2026-09-30 20:01:15Z" duration="0.000121" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="_SKIPREASON" value="Measurement run: rivals' stage times per difficulty (several minutes)." />
+              </properties>
+              <reason>
+                <message><![CDATA[Measurement run: rivals' stage times per difficulty (several minutes).]]></message>
+              </reason>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1012" name="ExtrasTests" fullname="Rally.Tests.ExtrasTests" classname="Rally.Tests.ExtrasTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-30 20:01:15Z" end-time="2026-09-30 20:02:29Z" duration="73.672024" total="16" passed="15" failed="0" inconclusive="0" skipped="1" asserts="0">
+            <properties />
+            <test-case id="1026" name="NightStage_Screenshots" fullname="Rally.Tests.ExtrasTests.NightStage_Screenshots" methodname="NightStage_Screenshots" classname="Rally.Tests.ExtrasTests" runstate="Explicit" seed="1491300986" result="Skipped" label="Explicit" start-time="2026-09-30 20:01:15Z" end-time="2026-09-30 20:01:15Z" duration="0.000001" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="_SKIPREASON" value="Renders screenshots for review." />
+              </properties>
+              <reason>
+                <message><![CDATA[Renders screenshots for review.]]></message>
+              </reason>
+            </test-case>
+            <test-case id="1013" name="QA19_LeftStick_NavigatesMenuAndWrapsRound" fullname="Rally.Tests.ExtrasTests.QA19_LeftStick_NavigatesMenuAndWrapsRound" methodname="QA19_LeftStick_NavigatesMenuAndWrapsRound" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1522507411" result="Passed" start-time="2026-09-30 20:01:15Z" end-time="2026-09-30 20:01:18Z" duration="3.437194" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1014" name="QA20_MapEdge_HasInvisibleWalls" fullname="Rally.Tests.ExtrasTests.QA20_MapEdge_HasInvisibleWalls" methodname="QA20_MapEdge_HasInvisibleWalls" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1451038674" result="Passed" start-time="2026-09-30 20:01:18Z" end-time="2026-09-30 20:01:24Z" duration="5.226708" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1015" name="QA21_RoadsideProps_CollideOrGetKnockedFlying" fullname="Rally.Tests.ExtrasTests.QA21_RoadsideProps_CollideOrGetKnockedFlying" methodname="QA21_RoadsideProps_CollideOrGetKnockedFlying" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1261870743" result="Passed" start-time="2026-09-30 20:01:24Z" end-time="2026-09-30 20:01:28Z" duration="4.037549" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1028" name="QA22_Celebration_ConfettiAndMusic" fullname="Rally.Tests.ExtrasTests.QA22_Celebration_ConfettiAndMusic" methodname="QA22_Celebration_ConfettiAndMusic" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1075692871" result="Passed" start-time="2026-09-30 20:01:28Z" end-time="2026-09-30 20:01:28Z" duration="0.675686" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1016" name="QA23_SheepFlock_StandsInTheRoad" fullname="Rally.Tests.ExtrasTests.QA23_SheepFlock_StandsInTheRoad" methodname="QA23_SheepFlock_StandsInTheRoad" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="790262780" result="Passed" start-time="2026-09-30 20:01:28Z" end-time="2026-09-30 20:01:36Z" duration="7.234164" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1017" name="QA24_OffRoad_CountdownThenBackOnTheRoad" fullname="Rally.Tests.ExtrasTests.QA24_OffRoad_CountdownThenBackOnTheRoad" methodname="QA24_OffRoad_CountdownThenBackOnTheRoad" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="851536871" result="Passed" start-time="2026-09-30 20:01:36Z" end-time="2026-09-30 20:01:44Z" duration="8.455567" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1018" name="QA25_DrivingAssist_FollowsTheRoad" fullname="Rally.Tests.ExtrasTests.QA25_DrivingAssist_FollowsTheRoad" methodname="QA25_DrivingAssist_FollowsTheRoad" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="676304747" result="Passed" start-time="2026-09-30 20:01:44Z" end-time="2026-09-30 20:01:55Z" duration="11.224106" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[QA25] travelled to 167 m, worst 0.0 m past the road edge
+]]></output>
+            </test-case>
+            <test-case id="1019" name="QA26_GraphicsQuality_AppliesAtOnce" fullname="Rally.Tests.ExtrasTests.QA26_GraphicsQuality_AppliesAtOnce" methodname="QA26_GraphicsQuality_AppliesAtOnce" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="659642471" result="Passed" start-time="2026-09-30 20:01:55Z" end-time="2026-09-30 20:01:56Z" duration="0.467711" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1020" name="QA27_Championship_AddsTimesAndMovesOn" fullname="Rally.Tests.ExtrasTests.QA27_Championship_AddsTimesAndMovesOn" methodname="QA27_Championship_AddsTimesAndMovesOn" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1193733877" result="Passed" start-time="2026-09-30 20:01:56Z" end-time="2026-09-30 20:02:03Z" duration="7.362563" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1021" name="QA28_Ghost_SavesBestRunAndReplaysIt" fullname="Rally.Tests.ExtrasTests.QA28_Ghost_SavesBestRunAndReplaysIt" methodname="QA28_Ghost_SavesBestRunAndReplaysIt" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="2128656095" result="Passed" start-time="2026-09-30 20:02:03Z" end-time="2026-09-30 20:02:15Z" duration="11.917359" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1022" name="QA29_NewCars_OwnHandlingAndPaint" fullname="Rally.Tests.ExtrasTests.QA29_NewCars_OwnHandlingAndPaint" methodname="QA29_NewCars_OwnHandlingAndPaint" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1694710476" result="Passed" start-time="2026-09-30 20:02:15Z" end-time="2026-09-30 20:02:15Z" duration="0.249861" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1024" name="QA30_Replay_PlaysTheRunAndReturns" fullname="Rally.Tests.ExtrasTests.QA30_Replay_PlaysTheRunAndReturns" methodname="QA30_Replay_PlaysTheRunAndReturns" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="992640584" result="Passed" start-time="2026-09-30 20:02:15Z" end-time="2026-09-30 20:02:24Z" duration="8.261312" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1025" name="QA31_NightStage_HeadlightsOnEveryCar" fullname="Rally.Tests.ExtrasTests.QA31_NightStage_HeadlightsOnEveryCar" methodname="QA31_NightStage_HeadlightsOnEveryCar" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1495215882" result="Passed" start-time="2026-09-30 20:02:24Z" end-time="2026-09-30 20:02:24Z" duration="0.346151" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1027" name="QA32_Leaderboard_KeepsTheTopTenPerStage" fullname="Rally.Tests.ExtrasTests.QA32_Leaderboard_KeepsTheTopTenPerStage" methodname="QA32_Leaderboard_KeepsTheTopTenPerStage" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="1258929068" result="Passed" start-time="2026-09-30 20:02:24Z" end-time="2026-09-30 20:02:28Z" duration="4.298004" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1023" name="QA33_CarModels_EachCarHasItsOwnBody" fullname="Rally.Tests.ExtrasTests.QA33_CarModels_EachCarHasItsOwnBody" methodname="QA33_CarModels_EachCarHasItsOwnBody" classname="Rally.Tests.ExtrasTests" runstate="Runnable" seed="718620724" result="Passed" start-time="2026-09-30 20:02:28Z" end-time="2026-09-30 20:02:29Z" duration="0.473064" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1029" name="LookBackTests" fullname="Rally.Tests.LookBackTests" classname="Rally.Tests.LookBackTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 20:02:29Z" end-time="2026-09-30 20:02:41Z" duration="12.304994" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1030" name="QA13_LookBack_TurnsCameraRoundSmoothlyAndBack" fullname="Rally.Tests.LookBackTests.QA13_LookBack_TurnsCameraRoundSmoothlyAndBack" methodname="QA13_LookBack_TurnsCameraRoundSmoothlyAndBack" classname="Rally.Tests.LookBackTests" runstate="Runnable" seed="522740971" result="Passed" start-time="2026-09-30 20:02:29Z" end-time="2026-09-30 20:02:34Z" duration="5.343205" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1031" name="QA18_RightStick_LooksInAnyDirection" fullname="Rally.Tests.LookBackTests.QA18_RightStick_LooksInAnyDirection" methodname="QA18_RightStick_LooksInAnyDirection" classname="Rally.Tests.LookBackTests" runstate="Runnable" seed="847060809" result="Passed" start-time="2026-09-30 20:02:34Z" end-time="2026-09-30 20:02:41Z" duration="6.953497" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1032" name="PacenoteTests" fullname="Rally.Tests.PacenoteTests" classname="Rally.Tests.PacenoteTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 20:02:41Z" end-time="2026-09-30 20:02:45Z" duration="3.601075" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1033" name="QA08_Pacenotes_CallCornersBothWaysAndTheThreeJumps" fullname="Rally.Tests.PacenoteTests.QA08_Pacenotes_CallCornersBothWaysAndTheThreeJumps" methodname="QA08_Pacenotes_CallCornersBothWaysAndTheThreeJumps" classname="Rally.Tests.PacenoteTests" runstate="Runnable" seed="358685010" result="Passed" start-time="2026-09-30 20:02:41Z" end-time="2026-09-30 20:02:41Z" duration="0.293280" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Pacenotes] 320m IZQUIERDA 5 LARGA | 516m DERECHA 3 LARGA | 646m SALTO  | 700m IZQUIERDA 4  | 780m DERECHA 4  | 860m IZQUIERDA 5  | 1040m HORQUILLA IZQUIERDA  | 1156m DERECHA 3  | 1228m IZQUIERDA 3  | 1352m DERECHA 2  | 1468m IZQUIERDA 5  | 1604m DERECHA 4 LARGA | 1804m IZQUIERDA 3 LARGA | 1972m DERECHA 6 LARGA | 2140m SALTO  | 2212m DERECHA 3 LARGA | 2356m HORQUILLA IZQUIERDA  | 2484m DERECHA 4 LARGA | 2568m IZQUIERDA 4 LARGA | 2669m SALTO  | 2716m DERECHA 5 LARGA
+]]></output>
+            </test-case>
+            <test-case id="1034" name="QA09_CoDriver_CallsTheNextCornerOnScreen" fullname="Rally.Tests.PacenoteTests.QA09_CoDriver_CallsTheNextCornerOnScreen" methodname="QA09_CoDriver_CallsTheNextCornerOnScreen" classname="Rally.Tests.PacenoteTests" runstate="Runnable" seed="1559679665" result="Passed" start-time="2026-09-30 20:02:41Z" end-time="2026-09-30 20:02:45Z" duration="3.299105" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1035" name="PushTests" fullname="Rally.Tests.PushTests" classname="Rally.Tests.PushTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 20:02:45Z" end-time="2026-09-30 20:02:52Z" duration="7.344240" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1036" name="QA12_LowSpeedPushFromBehind_MovesRivalSmoothly" fullname="Rally.Tests.PushTests.QA12_LowSpeedPushFromBehind_MovesRivalSmoothly" methodname="QA12_LowSpeedPushFromBehind_MovesRivalSmoothly" classname="Rally.Tests.PushTests" runstate="Runnable" seed="908436342" result="Passed" start-time="2026-09-30 20:02:45Z" end-time="2026-09-30 20:02:52Z" duration="7.336405" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1037" name="ResetTests" fullname="Rally.Tests.ResetTests" classname="Rally.Tests.ResetTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-30 20:02:52Z" end-time="2026-09-30 20:03:09Z" duration="17.438421" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1038" name="QA01_ResetAfterCuttingOffRoad_ReturnsToWhereTheCarLeftTheRoad" fullname="Rally.Tests.ResetTests.QA01_ResetAfterCuttingOffRoad_ReturnsToWhereTheCarLeftTheRoad" methodname="QA01_ResetAfterCuttingOffRoad_ReturnsToWhereTheCarLeftTheRoad" classname="Rally.Tests.ResetTests" runstate="Runnable" seed="1928504350" result="Passed" start-time="2026-09-30 20:02:52Z" end-time="2026-09-30 20:02:55Z" duration="3.553382" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1039" name="QA02_ResetOntoAnotherCar_PicksAFreeSpot" fullname="Rally.Tests.ResetTests.QA02_ResetOntoAnotherCar_PicksAFreeSpot" methodname="QA02_ResetOntoAnotherCar_PicksAFreeSpot" classname="Rally.Tests.ResetTests" runstate="Runnable" seed="552103778" result="Passed" start-time="2026-09-30 20:02:55Z" end-time="2026-09-30 20:03:00Z" duration="4.636356" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1040" name="QA03_CarOnItsRoof_RecoversAutomatically" fullname="Rally.Tests.ResetTests.QA03_CarOnItsRoof_RecoversAutomatically" methodname="QA03_CarOnItsRoof_RecoversAutomatically" classname="Rally.Tests.ResetTests" runstate="Runnable" seed="1688712495" result="Passed" start-time="2026-09-30 20:03:00Z" end-time="2026-09-30 20:03:09Z" duration="9.240271" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1041" name="ResultsInputTests" fullname="Rally.Tests.ResultsInputTests" classname="Rally.Tests.ResultsInputTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 20:03:09Z" end-time="2026-09-30 20:03:17Z" duration="7.847705" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1042" name="QA04_ConfirmOnResults_RestartsStageOnce" fullname="Rally.Tests.ResultsInputTests.QA04_ConfirmOnResults_RestartsStageOnce" methodname="QA04_ConfirmOnResults_RestartsStageOnce" classname="Rally.Tests.ResultsInputTests" runstate="Runnable" seed="1445208312" result="Passed" start-time="2026-09-30 20:03:09Z" end-time="2026-09-30 20:03:17Z" duration="7.839485" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1043" name="SheepTests" fullname="Rally.Tests.SheepTests" classname="Rally.Tests.SheepTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 20:03:17Z" end-time="2026-09-30 20:03:23Z" duration="6.206146" total="2" passed="1" failed="0" inconclusive="0" skipped="1" asserts="0">
+            <properties />
+            <test-case id="1044" name="QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit" fullname="Rally.Tests.SheepTests.QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit" methodname="QA17_Sheep_CrossesBleatsAndIsKnockedAwayWhenHit" classname="Rally.Tests.SheepTests" runstate="Runnable" seed="2115357442" result="Passed" start-time="2026-09-30 20:03:17Z" end-time="2026-09-30 20:03:23Z" duration="6.205243" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[QA17] car speed after the hit 67 km/h, damage 0.00
+]]></output>
+            </test-case>
+            <test-case id="1045" name="SheepCrossing_Screenshots" fullname="Rally.Tests.SheepTests.SheepCrossing_Screenshots" methodname="SheepCrossing_Screenshots" classname="Rally.Tests.SheepTests" runstate="Explicit" seed="1431252401" result="Skipped" label="Explicit" start-time="2026-09-30 20:03:23Z" end-time="2026-09-30 20:03:23Z" duration="0.000001" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="_SKIPREASON" value="Renders screenshots for review." />
+              </properties>
+              <reason>
+                <message><![CDATA[Renders screenshots for review.]]></message>
+              </reason>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1046" name="SnowStageTests" fullname="Rally.Tests.SnowStageTests" classname="Rally.Tests.SnowStageTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 20:03:23Z" end-time="2026-09-30 20:03:24Z" duration="0.317091" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1047" name="QA10_SnowStage_UsesSnowGripForCarsAndAI" fullname="Rally.Tests.SnowStageTests.QA10_SnowStage_UsesSnowGripForCarsAndAI" methodname="QA10_SnowStage_UsesSnowGripForCarsAndAI" classname="Rally.Tests.SnowStageTests" runstate="Runnable" seed="77650590" result="Passed" start-time="2026-09-30 20:03:23Z" end-time="2026-09-30 20:03:24Z" duration="0.308970" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1048" name="TerrainRoadTests" fullname="Rally.Tests.TerrainRoadTests" classname="Rally.Tests.TerrainRoadTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-30 20:03:24Z" end-time="2026-09-30 20:03:25Z" duration="1.616348" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1054" name="QA14_Terrain_StaysBelowTheRoad" fullname="Rally.Tests.TerrainRoadTests.QA14_Terrain_StaysBelowTheRoad" classname="Rally.Tests.TerrainRoadTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-30 20:03:24Z" end-time="2026-09-30 20:03:25Z" duration="1.603810" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <test-case id="1049" name="QA14_Terrain_StaysBelowTheRoad(&quot;Stage01&quot;)" fullname="Rally.Tests.TerrainRoadTests.QA14_Terrain_StaysBelowTheRoad(&quot;Stage01&quot;)" methodname="QA14_Terrain_StaysBelowTheRoad" classname="Rally.Tests.TerrainRoadTests" runstate="Runnable" seed="1530773830" result="Passed" start-time="2026-09-30 20:03:24Z" end-time="2026-09-30 20:03:24Z" duration="0.338470" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[QA14] Stage01: heightmap 1025, 13959 points, 4 above the road (0.03 %), worst 0.09 m
+]]></output>
+              </test-case>
+              <test-case id="1050" name="QA14_Terrain_StaysBelowTheRoad(&quot;Stage02&quot;)" fullname="Rally.Tests.TerrainRoadTests.QA14_Terrain_StaysBelowTheRoad(&quot;Stage02&quot;)" methodname="QA14_Terrain_StaysBelowTheRoad" classname="Rally.Tests.TerrainRoadTests" runstate="Runnable" seed="1580269963" result="Passed" start-time="2026-09-30 20:03:24Z" end-time="2026-09-30 20:03:24Z" duration="0.275495" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[QA14] Stage02: heightmap 1025, 13197 points, 2 above the road (0.02 %), worst 0.08 m
+]]></output>
+              </test-case>
+              <test-case id="1051" name="QA14_Terrain_StaysBelowTheRoad(&quot;Stage03&quot;)" fullname="Rally.Tests.TerrainRoadTests.QA14_Terrain_StaysBelowTheRoad(&quot;Stage03&quot;)" methodname="QA14_Terrain_StaysBelowTheRoad" classname="Rally.Tests.TerrainRoadTests" runstate="Runnable" seed="693406740" result="Passed" start-time="2026-09-30 20:03:24Z" end-time="2026-09-30 20:03:25Z" duration="0.358599" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[QA14] Stage03: heightmap 1025, 17123 points, 0 above the road (0.00 %), worst 0.00 m
+]]></output>
+              </test-case>
+              <test-case id="1052" name="QA14_Terrain_StaysBelowTheRoad(&quot;Stage04&quot;)" fullname="Rally.Tests.TerrainRoadTests.QA14_Terrain_StaysBelowTheRoad(&quot;Stage04&quot;)" methodname="QA14_Terrain_StaysBelowTheRoad" classname="Rally.Tests.TerrainRoadTests" runstate="Runnable" seed="1288939739" result="Passed" start-time="2026-09-30 20:03:25Z" end-time="2026-09-30 20:03:25Z" duration="0.304253" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[QA14] Stage04: heightmap 1025, 17957 points, 0 above the road (0.00 %), worst 0.00 m
+]]></output>
+              </test-case>
+              <test-case id="1053" name="QA14_Terrain_StaysBelowTheRoad(&quot;Stage05&quot;)" fullname="Rally.Tests.TerrainRoadTests.QA14_Terrain_StaysBelowTheRoad(&quot;Stage05&quot;)" methodname="QA14_Terrain_StaysBelowTheRoad" classname="Rally.Tests.TerrainRoadTests" runstate="Runnable" seed="1291408927" result="Passed" start-time="2026-09-30 20:03:25Z" end-time="2026-09-30 20:03:25Z" duration="0.323348" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[QA14] Stage05: heightmap 1025, 13959 points, 4 above the road (0.03 %), worst 0.09 m
+Saving results to: /Users/yagomateos/Library/Application Support/Rally3D/Rally 3D/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

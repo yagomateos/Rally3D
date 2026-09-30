@@ -135,11 +135,13 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
   (LZ4: WebGL no descomprime LZMA). Carga siempre las escenas con `StageLoader`, nunca con `SceneManager` directamente.
 - En WebGL, los shaders que multiplican por color de vértice necesitan mallas con colores (sin ellos lee negro), y la precisión
   de profundidad es menor: no pegues superficies a 6 cm de otras. Para efectos translúcidos en runtime usa `Sprites/Default`.
-- Coches LEYENDA/GRUPO B (repintado en runtime en `CarCatalog`), repetición (`ReplayDirector`), tabla de tiempos (`Leaderboard`,
+- Cinco coches inspirados en clásicos (PLÉYADES WRX, LANZA EVO, ITÁLICA INTEGRAL, ESCOLTA MK1, LEÓN T16): carrocerías de
+  `CarModelFactory` en `Resources/CarModels`, que `CarCatalog` pone en runtime (el jugador, la del coche elegido; cada rival, la de su
+  decoración). **Sin nombres ni logotipos de marcas reales** (decisión del usuario: son marcas registradas). Repintado en runtime en `CarCatalog`, repetición (`ReplayDirector`), tabla de tiempos (`Leaderboard`,
   servidor opcional en `server/`), faros de la noche (`Headlights`).
 - Modo CAMPEONATO (`Championship`), coche fantasma de tu mejor vuelta (`GhostRun`/`GhostRecorder`/`GhostCar`),
   opción CALIDAD GRÁFICA (`GraphicsQuality`).
-- Controles de móvil y 37 tests (35 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Controles de móvil y 38 tests (36 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

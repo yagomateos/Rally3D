@@ -165,9 +165,9 @@ namespace Rally.Systems
             }
             standings.AddRange(participants);
             MapBounds.Create(this); // invisible walls at the edge of the map (and back to the road from the sea)
-            GhostCar.Create(this);  // the best run so far on this stage, if any
             // The car picked in the main menu, also after "Repetir tramo" (which reloads the stage without the menu).
             CarCatalog.Apply(this, CarCatalog.Selected);
+            GhostCar.Create(this);  // the best run so far on this stage, if any (copies the chosen car's body)
 
             if (StartOnLoad)
             {

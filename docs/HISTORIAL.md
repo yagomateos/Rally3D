@@ -513,3 +513,19 @@ En modo batch: `Unity -batchmode -projectPath . -executeMethod Rally.EditorTools
   - El tramo 01 va en la descarga del juego y los tramos 02–05 son bundles LZ4: los LZMA fallan en WebGL con «Failed to decompress».
   - Descarga inicial de 31 MB (antes 42 MB con cuatro tramos), que carga en 14,5 s a 20 Mbps (antes 19 s) y en 27,8 s a 10 Mbps (antes 36,4 s).
   - Cada tramo extra ocupa 15–17 MB y se baja al elegirlo, con pantalla de carga. Si la descarga falla, el juego vuelve al menú.
+
+## Coches inspirados en clásicos del rally
+
+- Cinco carrocerías propias generadas por código (`CarModelFactory`, menú **Rally ▸ Build Car Models**), inspiradas en coches reales
+  pero con nombres inventados y sin logotipos, porque los nombres y diseños de las marcas están registrados:
+  - **PLÉYADES WRX #3:** berlina WRC de finales de los 90, toma de aire en el capó, alerón alto y llantas doradas.
+  - **LANZA EVO #11:** berlina angulosa, paragolpes con tomas de aire, rejillas en el capó y alerón de dos planos.
+  - **ITÁLICA INTEGRAL #7:** compacto cuadrado de cinco puertas, pasos de rueda enormes, cuatro faros y bandas azul y roja.
+  - **ESCOLTA MK1 #1:** berlina de dos puertas de los 70, faros redondos, cuatro focos auxiliares y tracción trasera.
+  - **LEÓN T16 #9:** Grupo B de motor central, tomas de aire detrás de las puertas y alerón en el techo.
+- Todas comparten ejes, ruedas y colisionadores con el coche físico, y las mismas 7 ranuras de material, así que no hay que regenerar
+  los tramos: `CarCatalog` cambia la malla del cuerpo en runtime. El jugador lleva la del coche elegido y cada rival la del coche de
+  su decoración, así los tres coches del tramo son distintos (QA33).
+- Los arcos de rueda están recortados en la carrocería y las aletas se ensanchan alrededor de cada rueda.
+- `CarDamage` vuelve a copiar la malla si cambia el modelo después de una abolladura.
+- `CarModelFactory.RenderPreviews` hace capturas de cada coche (delante, detrás y de lado) para revisarlos sin abrir el Editor.

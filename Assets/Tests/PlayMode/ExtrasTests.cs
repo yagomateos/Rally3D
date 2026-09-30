@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
@@ -308,24 +309,47 @@ namespace Rally.Tests
         {
             yield return LoadStage();
             Assert.AreEqual(5, CarCatalog.Cars.Length);
-            CarCatalog.Apply(Race, 3); // LEYENDA: rear-wheel drive
+            CarCatalog.Apply(Race, 3); // ESCOLTA MK1: rear-wheel drive
             yield return null;
-            Assert.AreEqual(1f, Player.Car.Tuning.rearTorqueBias, 0.001f, "LEYENDA is rear-wheel drive.");
+            Assert.AreEqual(1f, Player.Car.Tuning.rearTorqueBias, 0.001f, "ESCOLTA is rear-wheel drive.");
             Color paint = PaintOf(Player.gameObject);
-            Assert.Less(Vector4.Distance(paint, CarCatalog.Cars[3].paint), 0.02f, "LEYENDA wears its own paint.");
+            Assert.Less(Vector4.Distance(paint, CarCatalog.Cars[3].paint), 0.02f, "ESCOLTA wears its own paint.");
 
-            CarCatalog.Apply(Race, 4); // GRUPO B: much more power
+            CarCatalog.Apply(Race, 4); // LEÓN T16 (Group B): much more power
             yield return null;
             Assert.Greater(Player.Car.Tuning.peakTorque, 560f);
             Assert.Less(Vector4.Distance(PaintOf(Player.gameObject), CarCatalog.Cars[4].paint), 0.02f);
             foreach (var p in Race.Participants)
                 if (!p.IsPlayer) Assert.Greater(Vector4.Distance(PaintOf(p.gameObject), CarCatalog.Cars[4].paint), 0.1f, "Rivals keep their own paint.");
 
-            CarCatalog.Apply(Race, 0); // back to the standard car
+            CarCatalog.Apply(Race, 0); // back to the first car
             yield return null;
             Assert.AreEqual(0.58f, Player.Car.Tuning.rearTorqueBias, 0.001f);
             Assert.Greater(Vector4.Distance(PaintOf(Player.gameObject), CarCatalog.Cars[4].paint), 0.1f, "The special paint is removed.");
         }
+
+        /// <summary>QA-33: every car has its own body model; rivals wear the model of their livery's car.</summary>
+        [UnityTest]
+        public IEnumerator QA33_CarModels_EachCarHasItsOwnBody()
+        {
+            yield return LoadStage();
+            for (int i = 0; i < CarCatalog.Cars.Length; i++)
+            {
+                CarCatalog.Apply(Race, i);
+                yield return null;
+                var entry = CarCatalog.Cars[i];
+                var mesh = BodyOf(Player.gameObject);
+                Assert.IsNotNull(mesh, "The player's car has a body.");
+                Assert.AreEqual(CarCatalog.ModelMeshName(entry.model), mesh.name, $"{entry.name} wears its own body.");
+                Assert.AreEqual(7, mesh.subMeshCount, "Same material slots as the stage cars.");
+                var bodies = new HashSet<string>();
+                foreach (var p in Race.Participants) bodies.Add(BodyOf(p.gameObject).name);
+                if (!entry.repaint) Assert.AreEqual(Race.Participants.Count, bodies.Count, "Each car on the stage looks different.");
+            }
+            CarCatalog.Apply(Race, 0);
+        }
+
+        private static Mesh BodyOf(GameObject car) => car.transform.Find("Body").GetComponent<MeshFilter>().sharedMesh;
 
         private static Color PaintOf(GameObject car)
         {
