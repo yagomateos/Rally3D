@@ -23,7 +23,7 @@ namespace Rally.UI
         private Button firstStageButton;
         private int stageIndex;
         private Button playButton, startButton, volumeButton, controlsBack, optionsBack;
-        private Text carName, carDescription, volumeLabel, sensitivityLabel, damageLabel, coDriverLabel, rivalsLabel, autoLabel, difficultyLabel, assistLabel, qualityLabel;
+        private Text carName, carDescription, volumeLabel, sensitivityLabel, damageLabel, coDriverLabel, rivalsLabel, autoLabel, difficultyLabel, assistLabel, qualityLabel, ghostLabel;
         private Image[][] statBars;
         private int carIndex;
         private MenuCamera menuCamera;
@@ -237,6 +237,7 @@ namespace Rally.UI
                 GraphicsQuality.Setting = (GraphicsQuality.Level)(((int)GraphicsQuality.Setting + 1) % 3);
                 RefreshOptions();
             }).GetComponentInChildren<Text>();
+            ghostLabel = Row("Ghost", () => { GhostRun.Enabled = !GhostRun.Enabled; RefreshOptions(); }).GetComponentInChildren<Text>();
             assistLabel = Row("Assist", () =>
             {
                 DrivingAssist.Setting = (DrivingAssist.Level)(((int)DrivingAssist.Setting + 1) % 3);
@@ -402,6 +403,7 @@ namespace Rally.UI
             if (autoLabel != null) autoLabel.text = "ACELERAR SOLO:  " + (PlayerCarInput.AcelerarSolo ? "SÍ" : "NO");
             assistLabel.text = "AYUDA DE CONDUCCIÓN:  " + DrivingAssist.LevelNames[(int)DrivingAssist.Setting];
             qualityLabel.text = "CALIDAD GRÁFICA:  " + GraphicsQuality.LevelNames[(int)GraphicsQuality.Setting];
+            ghostLabel.text = "FANTASMA (TU MEJOR VUELTA):  " + (GhostRun.Enabled ? "SÍ" : "NO");
             if (sensitivityLabel != null)
             {
                 var input = race.Player != null ? race.Player.GetComponent<PlayerCarInput>() : null;

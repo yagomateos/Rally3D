@@ -83,6 +83,7 @@ namespace Rally.Systems
         public bool NewBest { get; private set; }
         public bool ResultsShown { get; private set; }
         public StageDefinition Stage => stage;
+        private GhostRecorder ghostRecorder;
         public TrackPath Path => path;
         public IReadOnlyList<Checkpoint> Checkpoints => checkpoints;
         public IReadOnlyList<RaceParticipant> Participants => participants;
@@ -155,10 +156,13 @@ namespace Rally.Systems
                 {
                     Player = p;
                     if (p.GetComponent<PlayerContactPush>() == null) p.gameObject.AddComponent<PlayerContactPush>();
+                    ghostRecorder = p.GetComponent<GhostRecorder>();
+                    if (ghostRecorder == null) ghostRecorder = p.gameObject.AddComponent<GhostRecorder>();
                 }
             }
             standings.AddRange(participants);
             MapBounds.Create(this); // invisible walls at the edge of the map (and back to the road from the sea)
+            GhostCar.Create(this);  // the best run so far on this stage, if any
             // The car picked in the main menu, also after "Repetir tramo" (which reloads the stage without the menu).
             CarCatalog.Apply(this, CarCatalog.Selected);
 
@@ -330,6 +334,7 @@ namespace Rally.Systems
                 BestTime = participant.FinishTime;
                 PlayerPrefs.SetFloat(BestTimeKey, BestTime);
                 SaveSplits();
+                if (ghostRecorder != null) ghostRecorder.SaveAsBest();
                 PlayerPrefs.Save();
             }
             Invoke(nameof(ShowResults), resultsDelay);

@@ -255,6 +255,53 @@ namespace Rally.Tests
             finally { Championship.Abandon(); }
         }
 
+        /// <summary>QA-28: a new best run is saved and comes back as a translucent ghost following the stage clock.</summary>
+        [UnityTest]
+        public IEnumerator QA28_Ghost_SavesBestRunAndReplaysIt()
+        {
+            // Data round trip and interpolation.
+            var samples = new System.Collections.Generic.List<GhostRun.Sample>();
+            for (int i = 0; i < 20; i++)
+                samples.Add(new GhostRun.Sample { t = i * GhostRun.SampleInterval, position = new Vector3(i, 0f, 0f), rotation = Quaternion.identity });
+            var back = GhostRun.Decode(GhostRun.Encode(samples));
+            Assert.AreEqual(20, back.Count);
+            Assert.IsTrue(GhostRun.Evaluate(back, 0.55f, out var mid, out _));
+            Assert.AreEqual(5.5f, mid.x, 0.01f);
+            Assert.IsFalse(GhostRun.Evaluate(back, 5f, out _, out _), "Past the end of the run the ghost disappears.");
+
+            yield return LoadStage();
+            string bestKey = $"BestTime_{Race.Stage.stageNumber}_{Race.Stage.stageName}";
+            string ghostKey = GhostRun.Key(Race);
+            float oldBest = PlayerPrefs.GetFloat(bestKey, 0f);
+            string oldGhost = PlayerPrefs.GetString(ghostKey, "");
+            try
+            {
+                PlayerPrefs.DeleteKey(bestKey);
+                PlayerPrefs.DeleteKey(ghostKey);
+                yield return LoadStage(); // reload so the stage starts with no best time
+                yield return StartRace();
+                Player.Car.Body.linearVelocity = Race.Path.TangentAt(Player.Distance) * 15f;
+                yield return new WaitForSeconds(3f);
+                foreach (var checkpoint in Race.Checkpoints) Player.NotifyCheckpoint(checkpoint);
+                yield return new WaitForSeconds(0.5f);
+                Assert.IsTrue(Race.NewBest);
+                Assert.IsNotEmpty(PlayerPrefs.GetString(ghostKey, ""), "A new best should save the ghost.");
+
+                yield return LoadStage();
+                var ghost = Object.FindFirstObjectByType<GhostCar>();
+                Assert.IsNotNull(ghost, "The saved run should come back as a ghost.");
+                yield return StartRace();
+                yield return new WaitForSeconds(1.5f);
+                Assert.IsTrue(ghost.Visible, "The ghost follows its run during the race.");
+                Assert.IsNull(ghost.GetComponentInChildren<Collider>(), "The ghost must not collide with anything.");
+            }
+            finally
+            {
+                if (oldBest > 0f) PlayerPrefs.SetFloat(bestKey, oldBest); else PlayerPrefs.DeleteKey(bestKey);
+                if (oldGhost.Length > 0) PlayerPrefs.SetString(ghostKey, oldGhost); else PlayerPrefs.DeleteKey(ghostKey);
+            }
+        }
+
         /// <summary>QA-22: the win celebration throws confetti and plays the victory music.</summary>
         [UnityTest]
         public IEnumerator QA22_Celebration_ConfettiAndMusic()
