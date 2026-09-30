@@ -100,6 +100,7 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
   - *Kind of project* = HTML. Sube el zip y marca *This file will be played in the browser*.
   - Tamaño 1280 × 720, con *Fullscreen button* y *Mobile friendly* en horizontal.
   - Los archivos del build llevan un nombre único en cada versión, así que tras subir una nueva basta con recargar la página.
+- **Página de itch.io:** portada, banner, GIF de juego y textos en castellano e inglés en [docs/itch/PAGINA_ITCH.md](docs/itch/PAGINA_ITCH.md).
 - **Tamaño y carga:**
   - El tramo 01, con el menú, va en la descarga inicial: 31 MB, que cargan en unos 15 s a 20 Mbps.
   - Los tramos 02–05 se descargan al elegirlos (15–17 MB cada uno) desde `StreamingAssets`, con pantalla de carga.
