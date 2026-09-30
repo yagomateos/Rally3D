@@ -17,7 +17,8 @@ y controles táctiles para móvil. Todo el contenido (terreno, carretera, coches
 - Tras un build para publicar, regenera `~/Desktop/Rally3D_Web.zip` con `index.html` **en la raíz** del zip (ver README).
   Borra antes `~/Desktop/Rally3D_Web`: los archivos llevan *hash* en el nombre (`WebBuild` activa `nameFilesAsHashes`)
   y si no se acumularían versiones viejas. Si el usuario ve comportamientos ya corregidos, lo primero es sospechar de una versión antigua en caché.
-- Mantén el **README.md** (en castellano) al día cuando cambien controles, opciones, dificultad o tests.
+- Mantén el **README.md** (en castellano) al día cuando cambien controles, opciones, tramos o tests, pero **corto y ordenado**
+  (una captura por tramo, tablas resumidas). El detalle técnico y el historial van en `docs/HISTORIAL.md`.
 
 ## Estructura
 
@@ -129,7 +130,9 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
 - Horizonte (`TerrainBuilder.BuildHorizon`), MSAA 4× y plano lejano de 5 km (PC) / 3 km (móvil) en `MobilePerformance`;
   cámara de móvil idéntica a la de PC.
 - Cuenta atrás fuera de la carretera con vuelta automática, ayuda de conducción (`DrivingAssist`), ovejas en la carretera en los tramos 01 y 04.
-- Controles de móvil y 28 tests (27 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Modo CAMPEONATO (`Championship`), coche fantasma de tu mejor vuelta (`GhostRun`/`GhostRecorder`/`GhostCar`),
+  opción CALIDAD GRÁFICA (`GraphicsQuality`).
+- Controles de móvil y 31 tests (30 PlayMode + 1 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 
