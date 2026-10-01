@@ -64,6 +64,14 @@ namespace Rally.UI
             // Hold to look behind (both layouts), left of the screen under the timer panels.
             lookBack = Pedal("LookBack", root, new Vector2(0f, 1f), new Vector2(48f, -300f), new Vector2(200f, 70f), "ATRÁS", 24);
             lookBack.Changed = pressed => Rally.CameraSystem.RallyCamera.TouchLookBack = pressed;
+            // Next camera view (the C key on a keyboard), so phones can reach the CABINA view too.
+            var camera = Pedal("Camera", root, new Vector2(0f, 1f), new Vector2(48f, -386f), new Vector2(200f, 70f), "CÁMARA", 24);
+            camera.Changed = pressed =>
+            {
+                if (!pressed) return;
+                var rallyCamera = FindAnyObjectByType<Rally.CameraSystem.RallyCamera>();
+                if (rallyCamera != null) rallyCamera.NextMode();
+            };
             modeLabel = mode.GetComponentInChildren<Text>();
             mode.Changed = pressed => { if (pressed) SetPadMode(!padMode); };
 

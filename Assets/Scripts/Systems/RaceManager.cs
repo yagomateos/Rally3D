@@ -249,6 +249,7 @@ namespace Rally.Systems
                 if (ai != null && !p.IsPlayer) ai.ApplyDifficulty(stage != null ? stage.topSpeedScale : 1f);
             }
             CarCatalog.Apply(this, CarCatalog.Selected);
+            Championship.RestoreDamage(Player); // damage not repaired at the last service (after Apply: it resets the body)
 
             CurrentState = State.Countdown;
             CountdownRemaining = countdownSeconds;

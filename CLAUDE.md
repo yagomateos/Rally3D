@@ -140,9 +140,9 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
   decoración). Habitáculo abierto con cristales reales, jaula, piloto y copiloto; la vista CABINA (`RallyCamera.Mode.Cockpit`)
   sale de `CarCatalog.CockpitOf`/`CockpitCamera`, que también usa el generador. **Sin nombres ni logotipos de marcas reales** (decisión del usuario: son marcas registradas). Repintado en runtime en `CarCatalog`, repetición (`ReplayDirector`), tabla de tiempos (`Leaderboard`,
   servidor opcional en `server/`), faros de la noche (`Headlights`).
-- Modo CAMPEONATO (`Championship`), coche fantasma de tu mejor vuelta (`GhostRun`/`GhostRecorder`/`GhostCar`),
+- Modo CAMPEONATO (`Championship`, daños que pasan de tramo y ASISTENCIA para reparar a cambio de segundos), coche fantasma de tu mejor vuelta (`GhostRun`/`GhostRecorder`/`GhostCar`),
   opción CALIDAD GRÁFICA (`GraphicsQuality`).
-- Controles de móvil y 39 tests (37 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Controles de móvil y 40 tests (38 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

@@ -14,6 +14,7 @@ namespace Rally.Audio
         public const float EngineBaseRpm = 3000f;
 
         private static readonly Dictionary<string, AudioClip> cache = new Dictionary<string, AudioClip>();
+        private static readonly Dictionary<AudioClip, float[]> sampleData = new Dictionary<AudioClip, float[]>();
 
         private static AudioClip Cached(string name, int samples, System.Func<int, float[]> generate)
         {
@@ -22,7 +23,32 @@ namespace Rally.Audio
             clip = AudioClip.Create(name, data.Length, 1, SampleRate, false);
             clip.SetData(data, 0);
             cache[name] = clip;
+            sampleData[clip] = data;
             return clip;
+        }
+
+        /// <summary>
+        /// Muffled copy of a generated loop, as heard from inside the car (CABINA view). WebGL has no audio filters,
+        /// so the low-pass is baked into a second clip. Null for clips this class didn't generate.
+        /// </summary>
+        public static AudioClip Muffled(AudioClip source, float cutoffHz)
+        {
+            if (source == null || !sampleData.TryGetValue(source, out var data)) return null;
+            return Cached($"{source.name}_Muffled{cutoffHz:0}", data.Length, n =>
+            {
+                var output = new float[n];
+                float a = 1f - Mathf.Exp(-2f * Mathf.PI * cutoffHz / SampleRate);
+                // Two one-pole stages; a first pass over the loop warms the filters up so the copy loops seamlessly.
+                float s1 = 0f, s2 = 0f;
+                for (int pass = 0; pass < 2; pass++)
+                    for (int i = 0; i < n; i++)
+                    {
+                        s1 += (data[i] - s1) * a;
+                        s2 += (s1 - s2) * a;
+                        if (pass == 1) output[i] = s2;
+                    }
+                return output;
+            });
         }
 
         /// <summary>4-cylinder engine loop. <paramref name="load"/> adds harmonics and grit.</summary>

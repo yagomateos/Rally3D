@@ -8,6 +8,8 @@ namespace Rally.Systems
     /// CAMPEONATO: the four stages in a row, the times of every driver added up. Kept in memory across the stage
     /// loads (a page reload ends it). A rival still on the stage when the player's results appear gets a time
     /// extrapolated from its pace so far. No stage restarts during a championship; leaving to the menu abandons it.
+    /// The player's damage carries over to the next stage unless they pay for repairs at the service between
+    /// stages (ASISTENCIA): seconds added to their total, more the worse the car is.
     /// </summary>
     public static class Championship
     {
@@ -29,6 +31,47 @@ namespace Rally.Systems
         private static readonly Dictionary<string, Entry> totals = new Dictionary<string, Entry>();
 
         private static bool advancing;
+        private static float[] playerDamage = new float[4];
+
+        /// <summary>Seconds a full repair costs at the service: 20 s per fully wrecked side, at most a minute.</summary>
+        public static int RepairSeconds
+        {
+            get
+            {
+                float sum = 0f;
+                foreach (float z in playerDamage) sum += z;
+                return sum < 0.02f ? 0 : Mathf.Clamp(Mathf.CeilToInt(sum * 20f), 1, 60);
+            }
+        }
+
+        /// <summary>Worst damaged side, 0..1 (for the service screen).</summary>
+        public static float PlayerDamage01
+        {
+            get { float worst = 0f; foreach (float z in playerDamage) worst = Mathf.Max(worst, z); return worst; }
+        }
+
+        /// <summary>Pays for the repairs: the cost goes on the player's total and the car starts the next stage as new.</summary>
+        public static void Repair()
+        {
+            int cost = RepairSeconds;
+            if (!Active || cost == 0) return;
+            foreach (var key in totals.Keys.ToList())
+            {
+                var e = totals[key];
+                if (!e.isPlayer) continue;
+                e.total += cost;
+                totals[key] = e;
+            }
+            playerDamage = new float[4];
+        }
+
+        /// <summary>Called when a championship stage starts: the player's car keeps the damage it finished the last one with.</summary>
+        public static void RestoreDamage(RaceParticipant player)
+        {
+            if (!Active || player == null || RepairSeconds == 0) return;
+            var damage = player.GetComponent<Rally.Car.CarDamage>();
+            if (damage != null) damage.Restore(playerDamage);
+        }
 
         /// <summary>Called by each stage's race manager when it wakes up.</summary>
         public static void StageLoaded() => advancing = false;
@@ -40,12 +83,14 @@ namespace Rally.Systems
             StageIndex = 0;
             StagesDone = 0;
             totals.Clear();
+            playerDamage = new float[4];
         }
 
         public static void Abandon()
         {
             Active = false;
             totals.Clear();
+            playerDamage = new float[4];
         }
 
         public static string CurrentScene => StageCatalog.Stages[Mathf.Clamp(StageIndex, 0, StageCount - 1)].scene;
@@ -64,6 +109,8 @@ namespace Rally.Systems
                 e.total += time;
                 e.lastStage = time;
                 totals[p.DisplayName] = e;
+                var damage = p.IsPlayer ? p.GetComponent<Rally.Car.CarDamage>() : null;
+                if (damage != null) playerDamage = damage.Zones;
             }
             StagesDone = StageIndex + 1;
         }

@@ -66,6 +66,10 @@ namespace Rally.CameraSystem
         public static Vector2 ExternalLook { get; set; }
 
         public Mode CurrentMode { get; private set; } = Mode.Chase;
+        /// <summary>True while the player's camera is in the CABINA view (the car audio switches to the cabin mix).</summary>
+        public static bool InCockpit => current != null && current.isActiveAndEnabled && current.CurrentMode == Mode.Cockpit;
+        private static RallyCamera current;
+
         public CarController Target
         {
             get => target;
@@ -96,6 +100,7 @@ namespace Rally.CameraSystem
 
             cam = GetComponent<Camera>();
             currentDistance = distance;
+            current = this;
         }
 
         private void Start() => SnapToTarget();
@@ -120,8 +125,11 @@ namespace Rally.CameraSystem
         {
             var input = RallyInput.Instance;
             if (input != null && input.CycleCamera.WasPressedThisFrame())
-                SetMode((Mode)(((int)CurrentMode + 1) % ModeCount));
+                NextMode();
         }
+
+        /// <summary>Next view in the cycle (C key, View button, CÁMARA touch button).</summary>
+        public void NextMode() => SetMode((Mode)(((int)CurrentMode + 1) % ModeCount));
 
         /// <summary>Switches view (the C key cycles through them).</summary>
         public void SetMode(Mode mode)

@@ -544,3 +544,19 @@ En modo batch: `Unity -batchmode -projectPath . -executeMethod Rally.EditorTools
   tripulación también se ve desde fuera. Los cascos llevan el color de la carrocería y los monos el de la decoración.
 - **Números de las puertas:** usaban el material de la fuente, que se dibuja encima de todo, y el número de la puerta de enfrente
   se veía a través del coche (y dentro de la cabina). Ahora usan `Sprites/Default`, que respeta la profundidad.
+
+## Sonido de cabina, botón de cámara en el móvil y asistencia en el campeonato
+
+- **Sonido en la vista CABINA:** WebGL no tiene filtros de audio, así que `ProceduralAudio.Muffled` genera una copia apagada
+  (paso bajo de dos etapas, que sigue sonando en bucle sin cortes) del motor, la grava, la rodadura y el viento. `CarAudio` mezcla
+  la versión de fuera con la de dentro según `RallyCamera.InCockpit`: dentro el motor suena más cerca y más grave, el viento y
+  las piedras apagados, y la carretera retumba por el suelo. Solo el coche del jugador lleva estas copias (QA34).
+- **Botón CÁMARA** en los controles táctiles (bajo ATRÁS), para llegar a la vista de cabina en el móvil.
+- **Asistencia en el campeonato:** los daños del jugador (por zonas) pasan al tramo siguiente, con las abolladuras
+  (`CarDamage.Restore`) y la pérdida de potencia. En los resultados, «ASISTENCIA: REPARAR DAÑOS N % (+X S)» los repara a cambio de
+  segundos en el total: 20 s por lado destrozado, como mucho 60 s (QA35).
+- **Aviso «ERROR: Shader» en la consola web:** son `Hidden/CoreSRP/CoreCopy` y `Hidden/Universal/HDRDebugView`, shaders internos
+  de URP que WebGL no soporta y que Unity no usa en la web. No afecta al juego; no se ha tocado.
+- **Rendimiento:** cada carrocería nueva tiene unos 7.500 vértices (unos 23.000 con los tres coches), poco al lado del terreno y la
+  vegetación, y las llamadas de dibujo no cambian (el interior usa los mismos materiales). No se han hecho versiones simplificadas.
+  Los FPS en móviles reales siguen pendientes de medir.

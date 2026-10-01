@@ -35,6 +35,8 @@ sonidos. No usa assets de terceros. La versión web está preparada para **itch.
   ESCOLTA MK1 (tracción trasera) y LEÓN T16 (Grupo B, muy potente). Los nombres son inventados y no llevan marcas.
 - **CAMPEONATO:** los cinco tramos seguidos, con el tiempo de cada piloto sumado. Tras cada tramo ves la clasificación
   general. No se pueden repetir tramos. Si ganas, eres campeón.
+  - Los daños **pasan al tramo siguiente**. En la **ASISTENCIA** de la pantalla de resultados puedes reparar el coche
+    a cambio de segundos (20 s por lado destrozado, como mucho 1 minuto).
 - **Reglas:**
   - Reiniciar en la pista (R) suma **+5 s**.
   - Si te sales lejos de la carretera, una **cuenta atrás roja de 5 s** te devuelve a ella, sin penalización.
@@ -69,6 +71,7 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
 **Móvil (navegador, en horizontal):**
 - **Modo BOTONES:** giras inclinando el móvil y tienes ACELERAR, FRENAR, REINICIAR y ATRÁS en pantalla.
 - **Modo MANDO:** joystick y botones A/B/X/Y en pantalla. Se cambia de modo con el botón bajo PAUSA.
+- En los dos modos, **CÁMARA** (bajo ATRÁS) cambia de vista, incluida la de cabina.
 - Si el navegador no da datos de inclinación, aparecen botones IZQUIERDA / DERECHA. Brave bloquea los sensores; usa Chrome.
 
 ## Opciones
@@ -111,7 +114,7 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
 
 ## Pruebas
 
-**37 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
+**38 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
 
 ```bash
 unity test . --mode PlayMode
@@ -128,7 +131,7 @@ unity test . --mode EditMode
 | Ovejas y objetos de la cuneta | QA17, QA21, QA23 |
 | Menús, mando y resultados | QA04, QA19 |
 | Límites del mapa, ayuda de conducción y calidad gráfica | QA20, QA25, QA26 |
-| Campeonato, fantasma, repetición y celebración | QA22, QA27, QA28, QA30 |
+| Campeonato (con asistencia), fantasma, repetición y celebración | QA22, QA27, QA28, QA30, QA35 |
 | Coches y carrocerías, tramo nocturno y tabla de tiempos | QA29, QA31, QA32, QA33 |
 | Build listo para publicar (EditMode) | QA05 |
 

@@ -349,7 +349,7 @@ namespace Rally.Tests
             CarCatalog.Apply(Race, 0);
         }
 
-        /// <summary>QA-34: the CABINA view sits inside the car, between the crew, and gives the near plane back after.</summary>
+        /// <summary>QA-34: the CABINA view sits inside the car, between the crew, sounds muffled, and gives the near plane back after.</summary>
         [UnityTest]
         public IEnumerator QA34_CockpitView_InsideTheCarWithTheCrew()
         {
@@ -376,10 +376,56 @@ namespace Rally.Tests
                 Assert.Greater(Vector3.Dot(cam.transform.forward, Player.transform.forward), 0.95f, $"{car}: looking ahead.");
                 Assert.Less(unityCam.nearClipPlane, 0.15f, "The helmets are close: the near plane comes in.");
             }
+            // Inside, the engine is heard through its muffled cabin twin.
+            AudioSource Loop(string n) => Player.transform.Find(n).GetComponent<AudioSource>();
+            yield return new WaitForSeconds(1.5f);
+            Assert.Greater(Loop("EngineOffLoad_Cabin").volume, Loop("EngineOffLoad").volume, "Cabin view: muffled engine.");
+
             cam.SetMode(Rally.CameraSystem.RallyCamera.Mode.Chase);
             yield return null;
             Assert.AreEqual(normalNear, unityCam.nearClipPlane, 1e-4f, "Outside views keep their near plane.");
+            yield return new WaitForSeconds(1.5f);
+            Assert.Less(Loop("EngineOffLoad_Cabin").volume, 0.01f, "Outside again: the cabin mix fades out.");
+            Assert.Greater(Loop("EngineOffLoad").volume, 0f, "Outside again: the normal engine sound is back.");
             CarCatalog.Apply(Race, 0);
+        }
+
+        /// <summary>QA-35: championship damage carries over to the next stage; the service repairs it for a time penalty.</summary>
+        [UnityTest]
+        public IEnumerator QA35_ChampionshipService_DamageCarriesOverOrCostsTime()
+        {
+            yield return LoadStage();
+            Championship.Begin();
+            try
+            {
+                var damage = Player.GetComponent<Rally.Car.CarDamage>();
+                Assert.IsNotNull(damage);
+                damage.Restore(new[] { 0.6f, 0f, 0.3f, 0f });
+                Championship.RecordStage(Race);
+                Assert.Greater(Championship.RepairSeconds, 0, "A damaged car costs time to repair.");
+                Assert.AreEqual(0.6f, Championship.PlayerDamage01, 0.01f);
+
+                // Next stage without repairs: the car starts with the same damage, dented and down on power.
+                var body = Player.transform.Find("Body").GetComponent<MeshFilter>();
+                CarCatalog.Apply(Race, CarCatalog.Selected); // as at the start of a stage: a clean body
+                Vector3[] clean = body.sharedMesh.vertices;
+                Championship.RestoreDamage(Player);
+                yield return null;
+                Assert.AreEqual(0.6f, damage.Zones[0], 0.01f, "Front damage carried over.");
+                Assert.Less(Player.Car.DamagePowerScale, 1f, "Still down on power.");
+                Vector3[] dented = body.sharedMesh.vertices;
+                float deepest = 0f;
+                for (int i = 0; i < clean.Length; i++) deepest = Mathf.Max(deepest, (dented[i] - clean[i]).magnitude);
+                Assert.Greater(deepest, 0.05f, "The carried-over damage shows on the body.");
+
+                // Repairing: the cost goes on the player's total and nothing carries over.
+                float before = Championship.Standings().First(e => e.isPlayer).total;
+                int cost = Championship.RepairSeconds;
+                Championship.Repair();
+                Assert.AreEqual(before + cost, Championship.Standings().First(e => e.isPlayer).total, 0.01f);
+                Assert.AreEqual(0, Championship.RepairSeconds, "Repaired: nothing left to pay for.");
+            }
+            finally { Championship.Abandon(); }
         }
 
         private static Mesh BodyOf(GameObject car) => car.transform.Find("Body").GetComponent<MeshFilter>().sharedMesh;

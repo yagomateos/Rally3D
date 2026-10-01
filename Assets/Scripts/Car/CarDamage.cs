@@ -95,6 +95,31 @@ namespace Rally.Car
             ApplyMechanical();
         }
 
+        /// <summary>Damage per zone: front, rear, left, right (0..1). Carried from stage to stage in a championship.</summary>
+        public float[] Zones => new[] { front, rear, left, right };
+
+        /// <summary>
+        /// Puts back damage from the previous stage: the same zones (and their mechanical effects) and a dent in the
+        /// middle of each damaged side, as deep as a hit that would have caused it.
+        /// </summary>
+        public void Restore(float[] zones)
+        {
+            if (zones == null || zones.Length < 4 || Setting == Mode.Desactivados) return;
+            front = Mathf.Clamp01(zones[0]); rear = Mathf.Clamp01(zones[1]);
+            left = Mathf.Clamp01(zones[2]); right = Mathf.Clamp01(zones[3]);
+            ApplyMechanical();
+            if (body == null) return;
+            Transform t = body.transform;
+            void DentAt(float amount, Vector3 local, Vector3 inward)
+            {
+                if (amount > 0.01f) Dent(t.TransformPoint(local), t.TransformDirection(inward), amount / damagePerMs);
+            }
+            DentAt(front, new Vector3(0f, 0.6f, 2.1f), Vector3.back);
+            DentAt(rear, new Vector3(0f, 0.6f, -2.0f), Vector3.forward);
+            DentAt(left, new Vector3(-0.95f, 0.6f, 0f), Vector3.right);
+            DentAt(right, new Vector3(0.95f, 0.6f, 0f), Vector3.left);
+        }
+
         private void ApplyMechanical()
         {
             if (Setting != Mode.Completos) { car.DamagePowerScale = 1f; car.DamageSteerBias = 0f; return; }

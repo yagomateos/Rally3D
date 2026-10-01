@@ -244,6 +244,10 @@ namespace Rally.UI
                 "REPETICIÓN", StartReplay);
             resultsMenu = UIFactory.Button("Menu", panel.transform, new Vector2(0.5f, 0f), new Vector2(290f, 60f), new Vector2(260f, 64f),
                 "MENÚ", () => race.ExitToMenu());
+            // Championship service between stages: pay seconds to start the next stage with the car repaired.
+            resultsRepair = UIFactory.Button("Repair", panel.transform, new Vector2(0.5f, 0f), new Vector2(0f, 135f), new Vector2(620f, 52f),
+                "", RepairCar);
+            resultsRepair.gameObject.SetActive(false);
             BuildReplayOverlay();
         }
 
@@ -356,9 +360,34 @@ namespace Rally.UI
             }
             next.text = "SIGUIENTE TRAMO";
             resultsDefault.onClick.AddListener(Championship.NextStage);
+            ShowService();
             resultsMenu.GetComponentInChildren<Text>().text = "ABANDONAR";
             resultsMenu.onClick.AddListener(() => race.ExitToMenu());
             return false;
+        }
+
+        private Button resultsRepair;
+
+        /// <summary>ASISTENCIA: offer the repair (with its cost) when the car is damaged.</summary>
+        private void ShowService()
+        {
+            int cost = Championship.RepairSeconds;
+            resultsRepair.gameObject.SetActive(cost > 0);
+            resultsRepair.interactable = cost > 0;
+            resultsRepair.GetComponentInChildren<Text>().text =
+                $"ASISTENCIA: REPARAR DAÑOS {Mathf.RoundToInt(Championship.PlayerDamage01 * 100f)} %  (+{cost} S)";
+        }
+
+        private void RepairCar()
+        {
+            int cost = Championship.RepairSeconds;
+            if (cost == 0) return;
+            Championship.Repair();
+            ChampionshipResults(); // standings now include the cost
+            resultsRepair.gameObject.SetActive(true);
+            resultsRepair.interactable = false;
+            resultsRepair.GetComponentInChildren<Text>().text = $"COCHE REPARADO  (+{cost} S)";
+            EventSystem.current?.SetSelectedGameObject(resultsDefault.gameObject);
         }
 
         /// <summary>"¡NUEVO RÉCORD PERSONAL!" and the place in the stage's best-times table (online when a server is set).</summary>
