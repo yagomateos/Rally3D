@@ -394,7 +394,7 @@ namespace Rally.UI
 
         private void Open(CanvasGroup screen, Button select)
         {
-            foreach (var g in new[] { mainScreen, stageScreen, carScreen, optionsScreen, controlsScreen }) Hide(g);
+            foreach (var g in new[] { mainScreen, stageScreen, carScreen, optionsScreen, controlsScreen, timesScreen }) Hide(g);
             current = screen;
             current.alpha = 1f;
             current.interactable = true;

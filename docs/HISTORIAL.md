@@ -560,3 +560,9 @@ En modo batch: `Unity -batchmode -projectPath . -executeMethod Rally.EditorTools
 - **Rendimiento:** cada carrocería nueva tiene unos 7.500 vértices (unos 23.000 con los tres coches), poco al lado del terreno y la
   vegetación, y las llamadas de dibujo no cambian (el interior usa los mismos materiales). No se han hecho versiones simplificadas.
   Los FPS en móviles reales siguen pendientes de medir.
+
+## Menú: la pantalla TIEMPOS se quedaba detrás
+
+- Al volver de TIEMPOS (o abrir otra pantalla después), la tabla de tiempos seguía dibujada detrás: `MainMenu.Open` oculta todas
+  las pantallas antes de mostrar la nueva, pero la lista no incluía `timesScreen`. Pasaba en PC y en el móvil.
+- QA36 abre cada pantalla del menú, vuelve y comprueba que solo se ve una; sin el arreglo falla en «Back from Times».

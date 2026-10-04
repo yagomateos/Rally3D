@@ -10,6 +10,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
+using Button = UnityEngine.UI.Button;
 using static Rally.Tests.StageTestUtility;
 
 namespace Rally.Tests
@@ -48,6 +49,29 @@ namespace Rally.Tests
             {
                 InputSystem.RemoveDevice(pad);
                 Race.SetPaused(false);
+            }
+        }
+
+        /// <summary>QA-36: opening a main-menu screen and going back leaves only one screen showing (TIEMPOS stayed behind).</summary>
+        [UnityTest]
+        public IEnumerator QA36_MainMenu_BackLeavesOnlyOneScreen()
+        {
+            yield return LoadStage();
+            var menu = Object.FindAnyObjectByType<MainMenu>();
+            Assert.IsNotNull(menu);
+            Button Visible(string name) => menu.GetComponentsInChildren<UnityEngine.UI.Button>(true)
+                .First(b => b.name == name && b.GetComponentInParent<CanvasGroup>().alpha > 0.5f);
+            int Showing() => menu.GetComponentsInChildren<CanvasGroup>(true).Count(g => g.alpha > 0.5f);
+            Assert.AreEqual(1, Showing(), "Only the main screen at first.");
+            foreach (string screen in new[] { "Times", "Controls", "Options", "Play" })
+            {
+                Visible(screen).onClick.Invoke();
+                yield return null;
+                Assert.AreEqual(1, Showing(), $"{screen}: only its own screen shows.");
+                Visible("Back").onClick.Invoke();
+                yield return null;
+                Assert.AreEqual(1, Showing(), $"Back from {screen}: only the main screen shows.");
+                Assert.IsNotNull(Visible("Play"), "Back on the main screen.");
             }
         }
 

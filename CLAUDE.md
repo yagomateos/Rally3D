@@ -142,7 +142,7 @@ cd ~/Desktop/Rally3D_Web && zip -r ../Rally3D_Web.zip index.html Build TemplateD
   servidor opcional en `server/`), faros de la noche (`Headlights`).
 - Modo CAMPEONATO (`Championship`, daños que pasan de tramo y ASISTENCIA para reparar a cambio de segundos), coche fantasma de tu mejor vuelta (`GhostRun`/`GhostRecorder`/`GhostCar`),
   opción CALIDAD GRÁFICA (`GraphicsQuality`).
-- Controles de móvil y 40 tests (38 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
+- Controles de móvil y 41 tests (39 PlayMode + 2 EditMode) más dos pruebas *Explicit* (medición de dificultad y capturas de la oveja).
 - Recortes para la web del terreno, los *normal maps* y la pantalla de inicio. Build final con 4 tramos: **41,6 MB**
   (antes 51,4 MB con 2). Carga con caché vacía: 19 s a 20 Mbps y 36 s a 10 Mbps. Cada tramo nuevo añade unos 6–8 MB.
 

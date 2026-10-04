@@ -114,7 +114,7 @@ En los menús, el stick izquierdo y la cruceta mueven la selección y la lista d
 
 ## Pruebas
 
-**38 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
+**39 tests de PlayMode y 2 de EditMode**, todos en verde. Se ejecutan en batch sin abrir el Editor:
 
 ```bash
 unity test . --mode PlayMode
@@ -129,7 +129,7 @@ unity test . --mode EditMode
 | Tramos (nieve, desierto, costa) y terreno bajo la carretera | QA10, QA14, QA15, QA16 |
 | Cámara, vista de cabina y mirar alrededor | QA13, QA18, QA34 |
 | Ovejas y objetos de la cuneta | QA17, QA21, QA23 |
-| Menús, mando y resultados | QA04, QA19 |
+| Menús, mando y resultados | QA04, QA19, QA36 |
 | Límites del mapa, ayuda de conducción y calidad gráfica | QA20, QA25, QA26 |
 | Campeonato (con asistencia), fantasma, repetición y celebración | QA22, QA27, QA28, QA30, QA35 |
 | Coches y carrocerías, tramo nocturno y tabla de tiempos | QA29, QA31, QA32, QA33 |
